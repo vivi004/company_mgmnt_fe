@@ -72,15 +72,10 @@ const StaffDashboard = () => {
 
     useEffect(() => {
         // Load dynamically based on username logic 
-        const loadMyUnverified = async () => {
-            try {
-                const userName = userProfile.first_name ? `${userProfile.first_name} ${userProfile.last_name || ''}`.trim() : 'Staff';
-                const res = await api().get('/api/bills/unverified');
-                const myUnverified = res.data.filter((b: any) => b.created_by === userName);
-                setUnverifiedCount(myUnverified.length);
-            } catch (err) {
-                console.error("Failed to load unverified count:", err);
-            }
+        const loadMyUnverified = () => {
+            const userName = userProfile.first_name ? `${userProfile.first_name} ${userProfile.last_name || ''}`.trim() : 'Staff';
+            const stored = JSON.parse(localStorage.getItem('unverifiedBills') || '[]');
+            setUnverifiedCount(stored.filter((b: any) => b.createdBy === userName).length);
         };
         loadMyUnverified();
     }, [userProfile, activeTab]);

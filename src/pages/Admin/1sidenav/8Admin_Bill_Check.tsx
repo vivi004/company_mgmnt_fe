@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react';
 import { getAllProducts, getCartItems } from '../../../constants/productData';
 import { numberToWordsINR } from '../../../utils/numberToWords';
-import { getAuthAxios } from '../../../utils/apiClient';
 
 interface Bill {
     id: number;
@@ -33,32 +32,10 @@ const AdminBillCheck = ({ theme }: Props) => {
         loadUnverifiedBills();
     }, []);
 
-    const api = () => getAuthAxios();
-
-    const loadUnverifiedBills = async () => {
-        try {
-            const res = await api().get('/api/bills/unverified');
-            const mapped = res.data.map((b: any) => ({
-                id: b.id,
-                shopName: b.shop_name,
-                villageName: b.village_name,
-                cart: b.cart,
-                customRates: b.custom_rates,
-                date: b.bill_date,
-                invoiceNo: b.invoice_no,
-                createdBy: b.created_by,
-                status: b.status
-            }));
-            // Admin sees:
-            // 1. Bills verified by staff
-            // 2. Bills placed by Admin (status might be StaffVerified or Unverified)
-            const forAdmin = mapped.filter((b: any) =>
-                b.status === 'StaffVerified' || (b.createdBy === 'Admin' && b.status === 'Unverified')
-            );
-            setUnverifiedBills(forAdmin);
-        } catch (err) {
-            console.error('Failed to load bills', err);
-        }
+    const loadUnverifiedBills = () => {
+        const stored = JSON.parse(localStorage.getItem('unverifiedBills') || '[]');
+        const adminUnverified = stored.filter((b: Bill) => b.createdBy === 'Admin');
+        setUnverifiedBills(adminUnverified);
     };
 
 
@@ -68,25 +45,25 @@ const AdminBillCheck = ({ theme }: Props) => {
     const getItemCount = (cart: Record<string, number>) =>
         getCartItems(cart).reduce((sum, item) => sum + item.quantity, 0);
 
-    const handleVerify = async (bill: Bill) => {
+    const handleVerify = (bill: Bill) => {
         if (!window.confirm('Verify and push this bill to the primary ledger?')) return;
 
-        try {
-            await api().put(`/api/bills/${bill.id}/verify`);
-            setUnverifiedBills(unverifiedBills.filter(b => b.id !== bill.id));
-        } catch (err) {
-            alert('Verification failed on server');
-        }
+        // Remove from unverified
+        const updatedUnverified = unverifiedBills.filter(b => b.id !== bill.id);
+        setUnverifiedBills(updatedUnverified);
+        localStorage.setItem('unverifiedBills', JSON.stringify(updatedUnverified));
+
+        // Add to verified (placedBills)
+        const verified = JSON.parse(localStorage.getItem('placedBills') || '[]');
+        verified.push(bill);
+        localStorage.setItem('placedBills', JSON.stringify(verified));
     };
 
-    const handleReject = async (id: number) => {
+    const handleReject = (id: number) => {
         if (!window.confirm('Are you sure you want to permanently discard this unverified bill?')) return;
-        try {
-            await api().delete(`/api/bills/${id}`);
-            setUnverifiedBills(unverifiedBills.filter(b => b.id !== id));
-        } catch (err) {
-            alert('Deletion failed on server');
-        }
+        const updated = unverifiedBills.filter(b => b.id !== id);
+        setUnverifiedBills(updated);
+        localStorage.setItem('unverifiedBills', JSON.stringify(updated));
     };
 
     const invoiceHTML = (bill: Bill) => {
@@ -140,23 +117,24 @@ const AdminBillCheck = ({ theme }: Props) => {
         setSelectedCategory('All');
     };
 
-    const handleSaveEdit = async () => {
+    const handleSaveEdit = () => {
         if (!editingBill) return;
         const finalCart: Record<string, number> = {};
         for (const [id, qty] of Object.entries(editCart)) {
             if (qty > 0) finalCart[id] = qty;
         }
 
-        try {
-            await api().put(`/api/bills/${editingBill.id}`, {
-                cart: finalCart,
-                custom_rates: editRates
-            });
-            loadUnverifiedBills();
-            setEditingBill(null);
-        } catch (err) {
-            alert('Failed to save changes on server');
-        }
+        const stored = JSON.parse(localStorage.getItem('unverifiedBills') || '[]');
+        const updated = stored.map((b: Bill) => {
+            if (b.id === editingBill.id) {
+                return { ...b, cart: finalCart, customRates: editRates };
+            }
+            return b;
+        });
+        localStorage.setItem('unverifiedBills', JSON.stringify(updated));
+
+        setUnverifiedBills(updated.filter((b: Bill) => b.createdBy === 'Admin'));
+        setEditingBill(null);
     };
 
     return (

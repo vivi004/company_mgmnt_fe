@@ -40,7 +40,6 @@ const ShopNamesAdmin = ({ orderLineId, villageName, theme, onBack }: Props) => {
     const [showReview, setShowReview] = useState(false);
     const [showBill, setShowBill] = useState(false);
     const [currentBillId, setCurrentBillId] = useState<number | null>(null);
-    const [currentInvoiceNo, setCurrentInvoiceNo] = useState<number | null>(null);
 
     const updateQuantity = (id: string, delta: number) => {
         setCart(prev => {
@@ -60,18 +59,6 @@ const ShopNamesAdmin = ({ orderLineId, villageName, theme, onBack }: Props) => {
     useEffect(() => {
         fetchShops();
     }, [orderLineId]);
-
-    useEffect(() => {
-        if (selectedShop?.id) {
-            setCart({});
-            setCurrentBillId(null);
-            setCurrentInvoiceNo(null);
-            setShowBill(false);
-            setShowReview(false);
-            setSelectedCategory(null);
-            setSelectedSubCategory(null);
-        }
-    }, [selectedShop?.id]);
 
     const fetchShops = async () => {
         setLoading(true);
@@ -148,7 +135,6 @@ const ShopNamesAdmin = ({ orderLineId, villageName, theme, onBack }: Props) => {
                 villageName={villageName}
                 theme={theme}
                 cart={cart}
-                invoiceNo={currentInvoiceNo || 0}
                 onNewOrder={() => {
                     setCart({});
                     setShowBill(false);
@@ -157,7 +143,6 @@ const ShopNamesAdmin = ({ orderLineId, villageName, theme, onBack }: Props) => {
                     setSelectedCategory(null);
                     setSelectedShop(null);
                     setCurrentBillId(null);
-                    setCurrentInvoiceNo(null);
                 }}
                 onEditOrder={() => {
                     setShowBill(false);
@@ -177,42 +162,34 @@ const ShopNamesAdmin = ({ orderLineId, villageName, theme, onBack }: Props) => {
                 cart={cart}
                 updateQuantity={updateQuantity}
                 onBack={() => setShowReview(false)}
-                onPlaceOrder={async () => {
-                    const storedUser = JSON.parse(localStorage.getItem('user') || '{}');
-                    const userName = storedUser.first_name ? `${storedUser.first_name} ${storedUser.last_name || ''}`.trim() : 'Admin';
+                onPlaceOrder={() => {
+                    const existingBills = JSON.parse(localStorage.getItem('unverifiedBills') || '[]');
 
-                    const billPayload = {
-                        shop_name: selectedShop.shop_name,
-                        village_name: villageName,
-                        cart: cart,
-                        custom_rates: {}, // Admin can add custom rates later in edit
-                        invoice_no: Math.floor(5000 + Math.random() * 1000), // Backend will use this if needed, or generate
-                        bill_date: new Date().toISOString(),
-                        created_by: userName,
-                        status: 'StaffVerified' // Admin placement skips staff check and goes straight to admin queue
-                    };
-
-                    try {
-                        if (currentBillId) {
-                            await api().put(`/api/bills/${currentBillId}`, { cart: { ...cart }, custom_rates: {} });
-                        } else {
-                            const res = await api().post('/api/bills', billPayload);
-                            if (res.data && res.data.id) {
-                                setCurrentBillId(res.data.id);
-                                if (res.data.bill) {
-                                    setCurrentInvoiceNo(res.data.bill.invoice_no);
-                                }
-                            }
-                        }
-
-                        // Explicitly clear review state before showing bill
-                        setShowReview(false);
-                        setShowBill(true);
-                        showToast('Order placed successfully!', 'success');
-                    } catch (err) {
-                        console.error('Admin order placement failed:', err);
-                        showToast('Failed to place order on server', 'error');
+                    if (currentBillId) {
+                        // Update existing bill payload
+                        const updatedBills = existingBills.map((b: any) =>
+                            b.id === currentBillId ? { ...b, cart: { ...cart } } : b
+                        );
+                        localStorage.setItem('unverifiedBills', JSON.stringify(updatedBills));
+                    } else {
+                        // Create strictly new bill
+                        const newId = Date.now();
+                        const bill = {
+                            id: newId,
+                            shopName: selectedShop!.shop_name,
+                            villageName,
+                            cart: { ...cart },
+                            date: new Date().toISOString(),
+                            invoiceNo: Math.floor(5000 + Math.random() * 1000),
+                            createdBy: 'Admin',
+                        };
+                        existingBills.push(bill);
+                        localStorage.setItem('unverifiedBills', JSON.stringify(existingBills));
+                        setCurrentBillId(newId);
                     }
+
+                    setShowReview(false);
+                    setShowBill(true);
                 }}
             />
         );
