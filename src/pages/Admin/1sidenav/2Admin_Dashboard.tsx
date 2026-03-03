@@ -97,6 +97,7 @@ const AdminDashboard = () => {
     const [unverifiedCount, setUnverifiedCount] = useState(0);
 
     const loadBills = async () => {
+        // Load verified bills for the ledger
         try {
             const res = await api().get('/api/bills');
             const mappedBills = res.data.map((b: any) => ({
@@ -110,12 +111,18 @@ const AdminDashboard = () => {
                 createdBy: b.created_by || b.createdBy
             }));
             setBills(mappedBills);
+        } catch (err) {
+            console.error("Error loading verified bills:", err);
+            showToast("Failed to load bills from server", "error");
+        }
 
+        // Load unverified count for the badge (independent — don't block ledger)
+        try {
             const unvRes = await api().get('/api/bills/unverified');
             setUnverifiedCount(unvRes.data.length);
         } catch (err) {
-            console.error("Error loading bills:", err);
-            showToast("Failed to sync bills with server", "error");
+            console.error("Error loading unverified count:", err);
+            // Don't show a toast — the badge just won't update
         }
     };
 
