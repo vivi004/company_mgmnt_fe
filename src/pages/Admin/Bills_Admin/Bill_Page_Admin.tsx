@@ -6,12 +6,13 @@ interface Props {
     shopName: string;
     villageName: string;
     theme: string;
+    invoiceNo: number;
     cart: Record<string, number>;
     onNewOrder: () => void;
     onEditOrder: () => void;
 }
 
-const BillPageAdmin = ({ shopName, villageName, theme, cart, onNewOrder, onEditOrder }: Props) => {
+const BillPageAdmin = ({ shopName, villageName, theme, invoiceNo, cart, onNewOrder, onEditOrder }: Props) => {
     const isDark = theme === 'dark';
     const printRef = useRef<HTMLDivElement>(null);
     const cartItems = getCartItems(cart);
@@ -20,7 +21,7 @@ const BillPageAdmin = ({ shopName, villageName, theme, cart, onNewOrder, onEditO
     const totalAmt = cartItems.reduce((a, i) => a + i.price * i.quantity, 0);
     const d = new Date();
     const dateStr = `${d.getDate()}-${d.toLocaleString('en', { month: 'short' })}-${String(d.getFullYear()).slice(2)}`;
-    const invNo = Math.floor(5000 + Math.random() * 1000);
+    const invNo = invoiceNo;
 
     const handlePDF = () => {
         const el = printRef.current;

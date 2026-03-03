@@ -39,6 +39,7 @@ const ShopNamesStaff = ({ orderLineId, villageName, theme, onBack }: Props) => {
     const [showReview, setShowReview] = useState(false);
     const [showBill, setShowBill] = useState(false);
     const [currentBillId, setCurrentBillId] = useState<number | null>(null);
+    const [invoiceNo, setInvoiceNo] = useState<number>(0);
 
     const updateQuantity = (id: string, delta: number) => {
         setCart(prev => {
@@ -108,6 +109,7 @@ const ShopNamesStaff = ({ orderLineId, villageName, theme, onBack }: Props) => {
                 shopName={selectedShop.shop_name}
                 villageName={villageName}
                 theme={theme}
+                invoiceNo={invoiceNo}
                 cart={cart}
                 onNewOrder={() => {
                     setCart({});
@@ -117,6 +119,7 @@ const ShopNamesStaff = ({ orderLineId, villageName, theme, onBack }: Props) => {
                     setSelectedCategory(null);
                     setSelectedShop(null);
                     setCurrentBillId(null);
+                    setInvoiceNo(0);
                 }}
                 onEditOrder={() => {
                     setShowBill(false);
@@ -129,46 +132,49 @@ const ShopNamesStaff = ({ orderLineId, villageName, theme, onBack }: Props) => {
     // Review Order Page
     if (selectedShop && showReview) {
         return (
-            <ReviewOrderStaff
-                shopName={selectedShop.shop_name}
-                villageName={villageName}
-                theme={theme}
-                cart={cart}
-                updateQuantity={updateQuantity}
-                onBack={() => setShowReview(false)}
-                onPlaceOrder={() => {
-                    const storedUser = JSON.parse(localStorage.getItem('user') || '{}');
-                    const userName = storedUser.first_name ? `${storedUser.first_name} ${storedUser.last_name || ''}`.trim() : 'Staff';
+            <>
+                <ToastContainer toasts={toasts} removeToast={removeToast} />
+                <ReviewOrderStaff
+                    shopName={selectedShop.shop_name}
+                    villageName={villageName}
+                    theme={theme}
+                    cart={cart}
+                    updateQuantity={updateQuantity}
+                    onBack={() => setShowReview(false)}
+                    onPlaceOrder={async () => {
+                        const storedUser = JSON.parse(localStorage.getItem('user') || '{}');
+                        const userName = storedUser.first_name ? `${storedUser.first_name} ${storedUser.last_name || ''}`.trim() : 'Staff';
 
-                    const existingBills = JSON.parse(localStorage.getItem('unverifiedBills') || '[]');
-
-                    if (currentBillId) {
-                        // Update existing bill payload
-                        const updatedBills = existingBills.map((b: any) =>
-                            b.id === currentBillId ? { ...b, cart: { ...cart } } : b
-                        );
-                        localStorage.setItem('unverifiedBills', JSON.stringify(updatedBills));
-                    } else {
-                        // Create strictly new bill
-                        const newId = Date.now();
-                        const bill = {
-                            id: newId,
-                            shopName: selectedShop!.shop_name,
-                            villageName,
-                            cart: { ...cart },
-                            date: new Date().toISOString(),
-                            invoiceNo: Math.floor(5000 + Math.random() * 1000),
-                            createdBy: userName,
+                        const billPayload = {
+                            invoice_no: Math.floor(5000 + Math.random() * 1000),
+                            shop_name: selectedShop!.shop_name,
+                            village_name: villageName,
+                            cart: cart,
+                            custom_rates: {},
+                            created_by: userName,
+                            bill_date: new Date().toISOString(),
+                            status: 'Unverified'
                         };
-                        existingBills.push(bill);
-                        localStorage.setItem('unverifiedBills', JSON.stringify(existingBills));
-                        setCurrentBillId(newId);
-                    }
 
-                    setShowReview(false);
-                    setShowBill(true);
-                }}
-            />
+                        try {
+                            if (currentBillId) {
+                                const res = await api().put(`/api/bills/${currentBillId}`, { cart, custom_rates: {} });
+                                if (res.data.invoice_no) setInvoiceNo(res.data.invoice_no);
+                                showToast('Order updated!', 'success');
+                            } else {
+                                const res = await api().post('/api/bills', billPayload);
+                                setCurrentBillId(res.data.id);
+                                setInvoiceNo(res.data.invoice_no || billPayload.invoice_no);
+                                showToast('Order submitted for verification!', 'success');
+                            }
+                            setShowReview(false);
+                            setShowBill(true);
+                        } catch (err: any) {
+                            showToast(err.response?.data?.error || 'Failed to submit order', 'error');
+                        }
+                    }}
+                />
+            </>
         );
     }
 

@@ -1,6 +1,8 @@
 import { useState, useEffect } from 'react';
 import { getAllProducts, getCartItems } from '../../../constants/productData';
 import { numberToWordsINR } from '../../../utils/numberToWords';
+import { getAuthAxios } from '../../../utils/apiClient';
+import { useToast } from '../../../components/Toast';
 
 interface Bill {
     id: number;
@@ -21,6 +23,8 @@ interface Props {
 const StaffBillCheck = ({ theme, userProfileName }: Props) => {
     const isDark = theme === 'dark';
     const [unverifiedBills, setUnverifiedBills] = useState<Bill[]>([]);
+    const { showToast } = useToast();
+    const api = () => getAuthAxios();
 
     // Edit Modal State
     const [editingBill, setEditingBill] = useState<Bill | null>(null);
@@ -33,11 +37,25 @@ const StaffBillCheck = ({ theme, userProfileName }: Props) => {
         loadUnverifiedBills();
     }, [userProfileName]);
 
-    const loadUnverifiedBills = () => {
-        const stored = JSON.parse(localStorage.getItem('unverifiedBills') || '[]');
-        // Filter it down to only bills created by this staff member
-        const myUnverified = stored.filter((b: Bill) => b.createdBy === userProfileName);
-        setUnverifiedBills(myUnverified);
+    const loadUnverifiedBills = async () => {
+        try {
+            const res = await api().get('/api/bills/unverified');
+            const mapped = res.data
+                .filter((b: any) => (b.created_by || b.createdBy) === userProfileName)
+                .map((b: any) => ({
+                    id: b.id,
+                    shopName: b.shop_name || b.shopName,
+                    villageName: b.village_name || b.villageName,
+                    cart: b.cart,
+                    customRates: b.custom_rates || b.customRates || {},
+                    date: b.bill_date || b.date,
+                    invoiceNo: b.invoice_no || b.invoiceNo,
+                    createdBy: b.created_by || b.createdBy
+                }));
+            setUnverifiedBills(mapped);
+        } catch {
+            showToast('Failed to load pending bills', 'error');
+        }
     };
 
 
@@ -47,29 +65,27 @@ const StaffBillCheck = ({ theme, userProfileName }: Props) => {
     const getItemCount = (cart: Record<string, number>) =>
         getCartItems(cart).reduce((sum, item) => sum + item.quantity, 0);
 
-    const handleVerify = (bill: Bill) => {
+    const handleVerify = async (bill: Bill) => {
         if (!window.confirm('Verify and push this bill to the primary ledger?')) return;
 
-        // Remove from unverified
-        const stored = JSON.parse(localStorage.getItem('unverifiedBills') || '[]');
-        const updatedUnverified = stored.filter((b: Bill) => b.id !== bill.id);
-        localStorage.setItem('unverifiedBills', JSON.stringify(updatedUnverified));
-
-        // Add to verified (placedBills)
-        const verified = JSON.parse(localStorage.getItem('placedBills') || '[]');
-        verified.push(bill);
-        localStorage.setItem('placedBills', JSON.stringify(verified));
-
-        setUnverifiedBills(unverifiedBills.filter(b => b.id !== bill.id));
+        try {
+            await api().put(`/api/bills/verify/${bill.id}`);
+            showToast('Bill verified and moved to primary ledger!', 'success');
+            loadUnverifiedBills();
+        } catch {
+            showToast('Failed to verify bill', 'error');
+        }
     };
 
-    const handleReject = (id: number) => {
+    const handleReject = async (id: number) => {
         if (!window.confirm('Are you sure you want to permanently discard this unverified bill?')) return;
-        const stored = JSON.parse(localStorage.getItem('unverifiedBills') || '[]');
-        const updated = stored.filter((b: Bill) => b.id !== id);
-        localStorage.setItem('unverifiedBills', JSON.stringify(updated));
-
-        setUnverifiedBills(unverifiedBills.filter(b => b.id !== id));
+        try {
+            await api().delete(`/api/bills/${id}`);
+            showToast('Bill discarded', 'info');
+            loadUnverifiedBills();
+        } catch {
+            showToast('Failed to discard bill', 'error');
+        }
     };
 
     const invoiceHTML = (bill: Bill) => {
@@ -123,24 +139,21 @@ const StaffBillCheck = ({ theme, userProfileName }: Props) => {
         setSelectedCategory('All');
     };
 
-    const handleSaveEdit = () => {
+    const handleSaveEdit = async () => {
         if (!editingBill) return;
         const finalCart: Record<string, number> = {};
         for (const [id, qty] of Object.entries(editCart)) {
             if (qty > 0) finalCart[id] = qty;
         }
 
-        const stored = JSON.parse(localStorage.getItem('unverifiedBills') || '[]');
-        const updated = stored.map((b: Bill) => {
-            if (b.id === editingBill.id) {
-                return { ...b, cart: finalCart, customRates: editRates };
-            }
-            return b;
-        });
-        localStorage.setItem('unverifiedBills', JSON.stringify(updated));
-
-        setUnverifiedBills(updated.filter((b: Bill) => b.createdBy === userProfileName));
-        setEditingBill(null);
+        try {
+            await api().put(`/api/bills/${editingBill.id}`, { cart: finalCart, custom_rates: editRates });
+            showToast('Bill updated successfully', 'success');
+            setEditingBill(null);
+            loadUnverifiedBills();
+        } catch {
+            showToast('Failed to update bill', 'error');
+        }
     };
 
     return (

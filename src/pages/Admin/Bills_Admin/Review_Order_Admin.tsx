@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { getCartItems } from '../../../constants/productData';
 
 interface Props {
@@ -7,11 +8,12 @@ interface Props {
     cart: Record<string, number>;
     updateQuantity: (id: string, delta: number) => void;
     onBack: () => void;
-    onPlaceOrder: () => void;
+    onPlaceOrder: () => Promise<void> | void;
 }
 
 const ReviewOrderAdmin = ({ shopName, villageName, theme, cart, updateQuantity, onBack, onPlaceOrder }: Props) => {
     const isDark = theme === 'dark';
+    const [placing, setPlacing] = useState(false);
 
     const cartItems = getCartItems(cart);
 
@@ -157,10 +159,26 @@ const ReviewOrderAdmin = ({ shopName, villageName, theme, cart, updateQuantity, 
                         ← Back to Items
                     </button>
                     <button
-                        onClick={onPlaceOrder}
-                        className="px-10 py-5 bg-blue-600 hover:bg-blue-700 text-white font-black rounded-2xl text-sm uppercase tracking-widest transition-all shadow-xl shadow-blue-600/30 hover:-translate-y-0.5 active:scale-95"
+                        onClick={async () => {
+                            setPlacing(true);
+                            try {
+                                await onPlaceOrder();
+                            } finally {
+                                setPlacing(false);
+                            }
+                        }}
+                        disabled={placing}
+                        className="px-10 py-5 bg-blue-600 hover:bg-blue-700 disabled:opacity-60 disabled:cursor-not-allowed text-white font-black rounded-2xl text-sm uppercase tracking-widest transition-all shadow-xl shadow-blue-600/30 hover:-translate-y-0.5 active:scale-95 flex items-center gap-3"
                     >
-                        Place Order Now →
+                        {placing ? (
+                            <>
+                                <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
+                                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z" />
+                                </svg>
+                                Submitting...
+                            </>
+                        ) : 'Place Order Now →'}
                     </button>
                 </div>
             )}

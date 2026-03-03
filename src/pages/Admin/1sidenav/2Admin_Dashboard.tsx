@@ -96,30 +96,53 @@ const AdminDashboard = () => {
     const [bills, setBills] = useState<Array<{ id: number; shopName: string; villageName: string; cart: Record<string, number>; customRates?: Record<string, number>; date: string; invoiceNo: number }>>([]);
     const [unverifiedCount, setUnverifiedCount] = useState(0);
 
-    const loadBills = () => {
-        const stored = JSON.parse(localStorage.getItem('placedBills') || '[]');
-        setBills(stored);
+    const loadBills = async () => {
+        try {
+            const res = await api().get('/api/bills');
+            const mappedBills = res.data.map((b: any) => ({
+                id: b.id,
+                shopName: b.shop_name || b.shopName,
+                villageName: b.village_name || b.villageName,
+                cart: b.cart,
+                customRates: b.custom_rates || b.customRates || {},
+                date: b.bill_date || b.date,
+                invoiceNo: b.invoice_no || b.invoiceNo,
+                createdBy: b.created_by || b.createdBy
+            }));
+            setBills(mappedBills);
 
-        const unv = JSON.parse(localStorage.getItem('unverifiedBills') || '[]');
-        const adminUnv = unv.filter((b: any) => b.createdBy === 'Admin');
-        setUnverifiedCount(adminUnv.length);
+            const unvRes = await api().get('/api/bills/unverified');
+            setUnverifiedCount(unvRes.data.length);
+        } catch (err) {
+            console.error("Error loading bills:", err);
+            showToast("Failed to sync bills with server", "error");
+        }
     };
 
-    const handleDeleteBill = (id: number) => {
-        const updated = bills.filter(b => b.id !== id);
-        setBills(updated);
-        localStorage.setItem('placedBills', JSON.stringify(updated));
+    const handleDeleteBill = async (id: number) => {
+        askConfirm("Are you sure you want to permanently delete this verified bill from the ledger?", async () => {
+            try {
+                await api().delete(`/api/bills/${id}`);
+                showToast("Bill deleted successfully", "success");
+                loadBills();
+            } catch {
+                showToast("Failed to delete bill", "error");
+            }
+        });
     };
 
     const handleClearAllBills = () => {
-        setBills([]);
-        localStorage.setItem('placedBills', '[]');
+        showToast("Clear all is disabled for primary ledger for safety. Delete individual bills if needed.", "info");
     };
 
-    const handleEditBill = (id: number, newCart: Record<string, number>, newRates?: Record<string, number>) => {
-        const updated = bills.map(b => b.id === id ? { ...b, cart: newCart, customRates: newRates } : b);
-        setBills(updated);
-        localStorage.setItem('placedBills', JSON.stringify(updated));
+    const handleEditBill = async (id: number, newCart: Record<string, number>, newRates?: Record<string, number>) => {
+        try {
+            await api().put(`/api/bills/${id}`, { cart: newCart, custom_rates: newRates });
+            showToast("Bill updated successfully", "success");
+            loadBills();
+        } catch {
+            showToast("Failed to update bill", "error");
+        }
     };
 
     useEffect(() => {
@@ -137,7 +160,7 @@ const AdminDashboard = () => {
     }, [companyName, theme]);
 
     useEffect(() => {
-        if (activeTab === 'bills') loadBills();
+        if (activeTab === 'bills' || activeTab === 'bill-check') loadBills();
     }, [activeTab]);
 
     const api = () => getAuthAxios();
