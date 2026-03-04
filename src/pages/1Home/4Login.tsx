@@ -129,7 +129,7 @@ const LoginPage: React.FC = () => {
 
                         <img
                             src={nishaLogo}
-                            className="w-20 h-16 mx-auto mb-4 rounded-xl shadow"
+                            className="w- h-16 mx-auto mb-4 rounded-xl shadow"
                             alt="Logo"
                         />
 
