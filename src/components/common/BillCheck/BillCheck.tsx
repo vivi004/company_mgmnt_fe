@@ -17,10 +17,13 @@ interface Bill {
 
 interface Props {
     theme: string;
+    type: 'admin' | 'staff';
+    userProfileName?: string; // Required for staff type
 }
 
-const AdminBillCheck = ({ theme }: Props) => {
+const BillCheck = ({ theme, type, userProfileName }: Props) => {
     const isDark = theme === 'dark';
+    const isAdmin = type === 'admin';
     const [unverifiedBills, setUnverifiedBills] = useState<Bill[]>([]);
     const { showToast } = useToast();
     const api = () => getAuthAxios();
@@ -34,25 +37,30 @@ const AdminBillCheck = ({ theme }: Props) => {
 
     useEffect(() => {
         loadUnverifiedBills();
-    }, []);
+    }, [userProfileName, type]);
 
     const loadUnverifiedBills = async () => {
         try {
             const res = await api().get('/api/bills/unverified');
-            const mapped = res.data
-                .map((b: any) => ({
-                    id: b.id,
-                    shopName: b.shop_name || b.shopName,
-                    villageName: b.village_name || b.villageName,
-                    cart: b.cart,
-                    customRates: b.custom_rates || b.customRates || {},
-                    date: b.bill_date || b.date,
-                    invoiceNo: b.invoice_no || b.invoiceNo,
-                    createdBy: b.created_by || b.createdBy
-                }));
+            let data = res.data;
+
+            if (type === 'staff' && userProfileName) {
+                data = data.filter((b: any) => (b.created_by || b.createdBy) === userProfileName);
+            }
+
+            const mapped = data.map((b: any) => ({
+                id: b.id,
+                shopName: b.shop_name || b.shopName,
+                villageName: b.village_name || b.villageName,
+                cart: b.cart,
+                customRates: b.custom_rates || b.customRates || {},
+                date: b.bill_date || b.date,
+                invoiceNo: b.invoice_no || b.invoiceNo,
+                createdBy: b.created_by || b.createdBy
+            }));
             setUnverifiedBills(mapped);
         } catch {
-            showToast('Failed to load unverified bills', 'error');
+            showToast(isAdmin ? 'Failed to load unverified bills' : 'Failed to load pending bills', 'error');
         }
     };
 
@@ -159,25 +167,35 @@ const AdminBillCheck = ({ theme }: Props) => {
             <div className="flex items-center justify-between gap-6 flex-wrap">
                 <div>
                     <h2 className={`text-3xl font-black italic tracking-tighter ${isDark ? 'text-white' : 'text-slate-900'}`}>
-                        Bill Verifications
+                        {isAdmin ? 'Bill Verifications' : 'My Pending Bills'}
                     </h2>
-                    <p className="text-sm font-bold text-slate-400 mt-1">Pending Orders Awaiting Approval</p>
+                    <p className="text-sm font-bold text-slate-400 mt-1">
+                        {isAdmin ? 'Pending Orders Awaiting Approval' : 'Orders awaiting Admin/Manager verification'}
+                    </p>
                 </div>
                 <div className={`px-4 py-2 rounded-2xl text-xs font-black uppercase tracking-widest border
                     ${isDark ? 'bg-amber-500/10 text-amber-400 border-amber-500/20' : 'bg-amber-50 text-amber-600 border-amber-100'}`}>
-                    {unverifiedBills.length} Pending
+                    {unverifiedBills.length} {isAdmin ? 'Pending' : 'In Queue'}
                 </div>
             </div>
 
             {unverifiedBills.length === 0 ? (
                 <div className={`py-20 text-center rounded-[40px] border ${isDark ? 'bg-slate-900 border-white/5' : 'bg-white border-slate-100 shadow-xl'}`}>
-                    <div className="text-5xl mb-4 opacity-50">📋</div>
-                    <p className={`font-black text-xl italic ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>No bills awaiting verification</p>
+                    <div className="text-5xl mb-4 opacity-50">{isAdmin ? '📋' : '🕒'}</div>
+                    <p className={`font-black text-xl italic ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
+                        {isAdmin ? 'No bills awaiting verification' : 'No bills in queue'}
+                    </p>
+                    {!isAdmin && <p className="text-slate-500 mt-2 text-sm font-bold">Your submitted orders will appear here until verified.</p>}
                 </div>
             ) : (
                 <div className="space-y-4">
                     {unverifiedBills.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()).map(bill => (
-                        <div key={bill.id} className={`p-6 rounded-[30px] border transition-all ${isDark ? 'bg-slate-900 border-white/5' : 'bg-white border-slate-100 shadow-lg shadow-slate-200/50'}`}>
+                        <div key={bill.id}
+                            className={`p-6 rounded-[30px] border transition-all 
+                             ${isAdmin
+                                    ? (isDark ? 'bg-slate-900 border-white/5' : 'bg-white border-slate-100 shadow-lg shadow-slate-200/50')
+                                    : (isDark ? 'bg-slate-900 border-amber-500/20 shadow-lg shadow-amber-500/5' : 'bg-amber-50/50 border-amber-200 shadow-xl shadow-amber-500/10')
+                                }`}>
 
                             <div className="grid grid-cols-12 gap-6 items-center">
                                 {/* Details */}
@@ -186,7 +204,7 @@ const AdminBillCheck = ({ theme }: Props) => {
                                         <p className={`font-black tracking-tight text-lg ${isDark ? 'text-white' : 'text-slate-900'}`}>
                                             {bill.shopName}
                                         </p>
-                                        <span className={`px-2.5 py-1 rounded-lg text-[10px] font-black uppercase tracking-widest border ${isDark ? 'bg-slate-800 border-white/10 text-slate-300' : 'bg-slate-100 border-slate-200 text-slate-600'}`}>
+                                        <span className={`px-2.5 py-1 rounded-lg text-[10px] font-black uppercase tracking-widest border ${isDark ? 'bg-slate-800 border-white/10 text-slate-300' : 'bg-white border-slate-200 text-slate-600'}`}>
                                             INV-{bill.invoiceNo}
                                         </span>
                                     </div>
@@ -195,9 +213,11 @@ const AdminBillCheck = ({ theme }: Props) => {
 
                                 {/* Meta Info */}
                                 <div className="col-span-12 md:col-span-3">
-                                    <p className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 mb-1">Generated By</p>
-                                    <p className={`text-sm font-bold ${isDark ? 'text-blue-400' : 'text-blue-600'}`}>
-                                        {bill.createdBy || 'Unknown'}
+                                    <p className={`text-[10px] font-black uppercase tracking-[0.2em] mb-1 ${isAdmin ? 'text-slate-400' : 'text-amber-500'}`}>
+                                        {isAdmin ? 'Generated By' : 'Status'}
+                                    </p>
+                                    <p className={`text-sm font-black italic tracking-tighter ${isAdmin ? (isDark ? 'text-blue-400' : 'text-blue-600') : (isDark ? 'text-amber-400' : 'text-amber-600')}`}>
+                                        {isAdmin ? (bill.createdBy || 'Unknown') : 'AWAITING VERIFICATION'}
                                     </p>
                                     <p className="text-xs font-semibold text-slate-500 mt-0.5">
                                         {new Date(bill.date).toLocaleString('en-IN', {
@@ -223,7 +243,8 @@ const AdminBillCheck = ({ theme }: Props) => {
                                 </div>
                             </div>
 
-                            <div className="mt-6 pt-6 border-t border-dashed flex items-center justify-end gap-3 border-slate-200 dark:border-white/10">
+                            <div className={`mt-6 pt-6 border-t border-dashed flex items-center justify-end gap-3 
+                                ${isAdmin ? 'border-slate-200 dark:border-white/10' : 'border-amber-200 dark:border-white/10'}`}>
                                 <button
                                     onClick={() => previewBill(bill)}
                                     className={`p-2.5 rounded-xl transition-all border shrink-0
@@ -267,7 +288,10 @@ const AdminBillCheck = ({ theme }: Props) => {
             {editingBill && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
                     <div className="absolute inset-0 bg-slate-950/80 backdrop-blur-xl animate-in fade-in duration-300" onClick={() => setEditingBill(null)} />
-                    <div className={`relative rounded-[40px] w-full max-w-4xl max-h-[90vh] flex flex-col shadow-2xl animate-in zoom-in-95 duration-500 border ${isDark ? 'bg-slate-900 border-white/10' : 'bg-white border-slate-100'}`}>
+                    <div className={`relative rounded-[40px] w-full max-w-4xl max-h-[90vh] flex flex-col shadow-2xl animate-in zoom-in-95 duration-500 border 
+                        ${isAdmin
+                            ? (isDark ? 'bg-slate-900 border-white/10' : 'bg-white border-slate-100')
+                            : (isDark ? 'bg-slate-900 border-amber-500/20' : 'bg-white border-slate-100')}`}>
                         {/* Header */}
                         <div className="p-8 border-b border-white/10 flex justify-between items-center shrink-0">
                             <div>
@@ -282,7 +306,7 @@ const AdminBillCheck = ({ theme }: Props) => {
                         </div>
 
                         {/* Filters */}
-                        <div className={`px-8 pb-4 flex gap-4 border-b shrink-0 ${isDark ? 'border-white/10' : 'border-slate-100'}`}>
+                        <div className={`px-8 pb-4 flex gap-4 border-b shrink-0 ${isAdmin ? (isDark ? 'border-white/10' : 'border-slate-100') : (isDark ? 'border-amber-500/20' : 'border-slate-100')}`}>
                             <div className="relative flex-1">
                                 <svg className={`absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 ${isDark ? 'text-slate-500' : 'text-slate-400'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
                                 <input
@@ -317,7 +341,7 @@ const AdminBillCheck = ({ theme }: Props) => {
                                         const qty = editCart[p.id] || 0;
                                         const customRate = editRates[p.id] ?? p.price;
                                         return (
-                                            <div key={p.id} className={`p-4 rounded-[24px] border flex flex-col justify-between transition-all ${isDark ? 'bg-slate-800/50 border-white/5' : 'bg-white border-slate-100 shadow-sm'} ${qty > 0 ? (isDark ? 'border-blue-500/50 bg-blue-500/5' : 'border-blue-500/50 shadow-md bg-blue-50/50') : ''}`}>
+                                            <div key={p.id} className={`p-4 rounded-[24px] border flex flex-col justify-between transition-all ${isDark ? 'bg-slate-800/30 border-white/5' : 'bg-white border-slate-100 shadow-sm'} ${qty > 0 ? (isDark ? 'border-amber-500/50 bg-amber-500/5' : 'border-blue-500/50 shadow-md bg-blue-50/50') : ''}`}>
                                                 <div className="flex items-start justify-between mb-3">
                                                     <div className="flex-1 min-w-0 pr-2">
                                                         <div className={`font-black uppercase tracking-tight text-sm truncate ${isDark ? 'text-white' : 'text-slate-900'}`}>{p.name}</div>
@@ -328,7 +352,7 @@ const AdminBillCheck = ({ theme }: Props) => {
                                                         <input
                                                             type="number"
                                                             value={customRate === 0 ? '' : customRate}
-                                                            onChange={(e) => setEditRates(prev => ({ ...prev, [p.id]: Number(e.target.value) }))}
+                                                            onChange={(e) => setEditRates((prev: Record<string, number>) => ({ ...prev, [p.id]: Number(e.target.value) }))}
                                                             className={`w-16 px-2 py-1.5 rounded-xl border text-xs font-black outline-none text-center transition-all focus:border-blue-500
                                                             ${isDark ? 'bg-slate-900/50 border-white/10 text-white' : 'bg-white border-slate-200 text-slate-900 shadow-inner'}`}
                                                         />
@@ -336,19 +360,19 @@ const AdminBillCheck = ({ theme }: Props) => {
                                                 </div>
 
                                                 <div className="flex items-center justify-between mt-auto pt-3 border-t border-dashed border-slate-200 dark:border-white/5">
-                                                    <div className={`font-black text-sm ${isDark ? 'text-blue-400' : 'text-blue-600'}`}>
+                                                    <div className={`font-black text-sm ${isAdmin ? (isDark ? 'text-blue-400' : 'text-blue-600') : (isDark ? 'text-amber-400' : 'text-blue-600')}`}>
                                                         ₹{((customRate) * qty).toLocaleString('en-IN', { minimumFractionDigits: 2 })}
                                                     </div>
                                                     <div className={`flex items-center gap-1 rounded-xl p-1 border shadow-inner ${isDark ? 'bg-slate-900/80 border-white/10' : 'bg-slate-50 border-slate-200'}`}>
                                                         <button
-                                                            onClick={() => setEditCart(prev => ({ ...prev, [p.id]: Math.max(0, qty - 1) }))}
+                                                            onClick={() => setEditCart((prev: Record<string, number>) => ({ ...prev, [p.id]: Math.max(0, qty - 1) }))}
                                                             className={`w-8 h-8 rounded-lg flex items-center justify-center transition-all ${isDark ? 'hover:bg-slate-800 text-slate-400' : 'hover:bg-white hover:shadow text-slate-600'}`}
                                                         >
                                                             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M20 12H4" /></svg>
                                                         </button>
                                                         <div className={`w-8 text-center font-black text-sm ${isDark ? 'text-white' : 'text-slate-900'}`}>{qty}</div>
                                                         <button
-                                                            onClick={() => setEditCart(prev => ({ ...prev, [p.id]: qty + 1 }))}
+                                                            onClick={() => setEditCart((prev: Record<string, number>) => ({ ...prev, [p.id]: qty + 1 }))}
                                                             className={`w-8 h-8 rounded-lg flex items-center justify-center transition-all ${isDark ? 'hover:bg-slate-800 text-slate-400' : 'hover:bg-white hover:shadow text-slate-600'}`}
                                                         >
                                                             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M12 4v16m8-8H4" /></svg>
@@ -362,7 +386,9 @@ const AdminBillCheck = ({ theme }: Props) => {
                         </div>
 
                         {/* Footer Totals */}
-                        <div className={`p-8 border-t shrink-0 flex items-center justify-between rounded-b-[40px] ${isDark ? 'bg-slate-900/90 border-white/10 backdrop-blur-md' : 'bg-slate-50/90 border-slate-200 backdrop-blur-md'}`}>
+                        <div className={`p-8 border-t shrink-0 flex items-center justify-between rounded-b-[40px] 
+                            ${isAdmin ? (isDark ? 'bg-slate-900/90 border-white/10 backdrop-blur-md' : 'bg-slate-50/90 border-slate-200 backdrop-blur-md')
+                                : (isDark ? 'bg-slate-900/90 border-amber-500/20 backdrop-blur-md' : 'bg-slate-50/90 border-slate-200 backdrop-blur-md')}`}>
                             <div>
                                 <p className="text-slate-500 text-[10px] font-black uppercase tracking-[0.2em] mb-1">Revised Total</p>
                                 <p className={`text-4xl font-black italic tracking-tighter ${isDark ? 'text-white' : 'text-slate-900'}`}>
@@ -393,4 +419,4 @@ const AdminBillCheck = ({ theme }: Props) => {
     );
 };
 
-export default AdminBillCheck;
+export default BillCheck;

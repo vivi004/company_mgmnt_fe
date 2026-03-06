@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import ShopNamesStaff from '../2orderlines/Shop_names_staff1';
+import ShopManager from '../../../components/common/ShopManager/ShopManager';
 
 
 interface OrderLine {
@@ -22,11 +22,12 @@ const StaffOrderLines = ({ orderLines, olLoading, theme, setShowOlModal, handleD
     // If a village is selected, show its shop list
     if (selectedVillage) {
         return (
-            <ShopNamesStaff
+            <ShopManager
                 orderLineId={selectedVillage.id}
                 villageName={selectedVillage.name}
                 theme={theme}
                 onBack={() => setSelectedVillage(null)}
+                type="staff"
             />
         );
     }

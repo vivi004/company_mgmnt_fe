@@ -10,9 +10,10 @@ interface Props {
     cart: Record<string, number>;
     onNewOrder: () => void;
     onEditOrder: () => void;
+    type?: 'admin' | 'staff';
 }
 
-const BillPageAdmin = ({ shopName, villageName, theme, invoiceNo, cart, onNewOrder, onEditOrder }: Props) => {
+const Bills = ({ shopName, villageName, theme, invoiceNo, cart, onNewOrder, onEditOrder, type = 'admin' }: Props) => {
     const isDark = theme === 'dark';
     const printRef = useRef<HTMLDivElement>(null);
     const cartItems = getCartItems(cart);
@@ -187,6 +188,8 @@ td,th{border:1px solid #000;padding:3px 5px;vertical-align:top}
         </div>
     );
 
+    const primaryColor = type === 'admin' ? 'blue' : 'emerald';
+
     return (
         <div className={`min-h-screen pb-10 animate-in fade-in slide-in-from-right-5 duration-500 ${isDark ? 'text-white' : 'text-slate-900'}`}>
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-6 md:mb-8">
@@ -194,7 +197,10 @@ td,th{border:1px solid #000;padding:3px 5px;vertical-align:top}
                     Invoice Generated ✓
                 </h2>
                 <div className="flex flex-wrap gap-3 md:gap-4 w-full md:w-auto">
-                    <button onClick={handlePDF} className="flex-1 md:flex-none justify-center px-4 md:px-8 py-3 md:py-4 bg-blue-600 hover:bg-blue-700 text-white font-black rounded-xl md:rounded-2xl text-xs md:text-sm uppercase tracking-widest transition-all shadow-xl shadow-blue-600/30 hover:-translate-y-0.5 active:scale-95 flex items-center gap-2">
+                    <button
+                        onClick={handlePDF}
+                        className={`flex-1 md:flex-none justify-center px-4 md:px-8 py-3 md:py-4 bg-${primaryColor}-600 hover:bg-${primaryColor}-700 text-white font-black rounded-xl md:rounded-2xl text-xs md:text-sm uppercase tracking-widest transition-all shadow-xl shadow-${primaryColor}-600/30 hover:-translate-y-0.5 active:scale-95 flex items-center gap-2`}
+                    >
                         <svg className="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
                         <span>Download PDF</span>
                     </button>
@@ -221,4 +227,4 @@ td,th{border:1px solid #000;padding:3px 5px;vertical-align:top}
     );
 };
 
-export default BillPageAdmin;
+export default Bills;

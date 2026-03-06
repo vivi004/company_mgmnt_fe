@@ -9,9 +9,10 @@ interface Props {
     updateQuantity: (id: string, delta: number) => void;
     onBack: () => void;
     onPlaceOrder: () => Promise<void> | void;
+    type?: 'admin' | 'staff';
 }
 
-const ReviewOrderAdmin = ({ shopName, villageName, theme, cart, updateQuantity, onBack, onPlaceOrder }: Props) => {
+const ReviewOrder = ({ shopName, villageName, theme, cart, updateQuantity, onBack, onPlaceOrder, type = 'admin' }: Props) => {
     const isDark = theme === 'dark';
     const [placing, setPlacing] = useState(false);
 
@@ -19,6 +20,8 @@ const ReviewOrderAdmin = ({ shopName, villageName, theme, cart, updateQuantity, 
 
     const totalItems = cartItems.reduce((acc, item) => acc + item.quantity, 0);
     const totalPrice = cartItems.reduce((acc, item) => acc + (item.price * item.quantity), 0);
+
+    const primaryColor = type === 'admin' ? 'blue' : 'emerald';
 
     return (
         <div className={`min-h-screen pb-10 animate-in fade-in slide-in-from-right-5 duration-500 ${isDark ? 'text-white' : 'text-slate-900'}`}>
@@ -39,7 +42,7 @@ const ReviewOrderAdmin = ({ shopName, villageName, theme, cart, updateQuantity, 
                         Review Order
                     </h2>
                     <p className="text-sm font-bold text-slate-500 mt-1 uppercase tracking-widest flex items-center gap-2">
-                        <span className="text-blue-500 font-black">{shopName}</span>
+                        <span className={`text-${primaryColor}-500 font-black`}>{shopName}</span>
                         <span className="w-1 h-1 rounded-full bg-slate-300" />
                         <span>{villageName}</span>
                     </p>
@@ -69,22 +72,16 @@ const ReviewOrderAdmin = ({ shopName, villageName, theme, cart, updateQuantity, 
 
                             {/* Table Body */}
                             {cartItems.map((item, index) => {
-                                // cart[p.id] stores LITRES for 2L.
-                                // cart[p.id + '_ltr'] stores LITRES for 500ml.
-                                // Boxes always increment by 1.
                                 const isBox = item.id.includes('_box');
                                 const is2L_Base = !isBox && item.size.toLowerCase() === '2 ltr' && !item.id.includes('_ltr');
                                 const is500_Ltr = !isBox && item.id.includes('_ltr');
                                 const cartDelta = is2L_Base ? 2 : is500_Ltr ? 0.5 : 1;
 
-
-
-
                                 return (
                                     <div
                                         key={item.id}
                                         className={`grid grid-cols-12 gap-4 px-8 py-6 items-center border-b transition-all
-                                            ${isDark ? 'border-white/5 hover:bg-white/[0.02]' : 'border-slate-50 hover:bg-blue-50/30'}`}
+                                            ${isDark ? 'border-white/5 hover:bg-white/[0.02]' : `border-slate-50 hover:bg-${primaryColor}-50/30`}`}
                                     >
                                         <div className={`col-span-1 font-black ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>{index + 1}</div>
 
@@ -110,7 +107,7 @@ const ReviewOrderAdmin = ({ shopName, villageName, theme, cart, updateQuantity, 
                                             </span>
                                             <button
                                                 onClick={() => updateQuantity(item.id, cartDelta)}
-                                                className="w-8 h-8 rounded-xl flex items-center justify-center bg-blue-500 border border-blue-400 text-white hover:bg-blue-600 transition-all active:scale-90"
+                                                className={`w-8 h-8 rounded-xl flex items-center justify-center bg-${primaryColor}-500 border border-${primaryColor}-400 text-white hover:bg-${primaryColor}-600 transition-all active:scale-90`}
                                             >
                                                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M12 4v16m8-8H4" />
@@ -131,9 +128,9 @@ const ReviewOrderAdmin = ({ shopName, villageName, theme, cart, updateQuantity, 
 
                             {/* Total Row */}
                             <div className={`grid grid-cols-12 gap-4 px-8 py-6 items-center
-                                ${isDark ? 'bg-blue-500/5' : 'bg-blue-50/50'}`}>
+                                ${isDark ? `bg-${primaryColor}-500/5` : `bg-${primaryColor}-50/50`}`}>
                                 <div className="col-span-6"></div>
-                                <div className={`col-span-2 text-center font-black text-lg ${isDark ? 'text-blue-400' : 'text-blue-600'}`}>
+                                <div className={`col-span-2 text-center font-black text-lg ${isDark ? `text-${primaryColor}-400` : `text-${primaryColor}-600`}`}>
                                     {totalItems} items
                                 </div>
                                 <div className={`col-span-2 text-right pr-4 font-black uppercase text-xs tracking-widest ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
@@ -168,7 +165,7 @@ const ReviewOrderAdmin = ({ shopName, villageName, theme, cart, updateQuantity, 
                             }
                         }}
                         disabled={placing}
-                        className="px-10 py-5 bg-blue-600 hover:bg-blue-700 disabled:opacity-60 disabled:cursor-not-allowed text-white font-black rounded-2xl text-sm uppercase tracking-widest transition-all shadow-xl shadow-blue-600/30 hover:-translate-y-0.5 active:scale-95 flex items-center gap-3"
+                        className={`px-10 py-5 bg-${primaryColor}-600 hover:bg-${primaryColor}-700 disabled:opacity-60 disabled:cursor-not-allowed text-white font-black rounded-2xl text-sm uppercase tracking-widest transition-all shadow-xl shadow-${primaryColor}-600/30 hover:-translate-y-0.5 active:scale-95 flex items-center gap-3`}
                     >
                         {placing ? (
                             <>
@@ -186,4 +183,4 @@ const ReviewOrderAdmin = ({ shopName, villageName, theme, cart, updateQuantity, 
     );
 };
 
-export default ReviewOrderAdmin;
+export default ReviewOrder;

@@ -3,7 +3,7 @@ import StaffSidenav from "./1Staff_Sidenav";
 import StaffDirectory from "./3Staff_Directory";
 import StaffOrderLines from "./4Staff_OrderLines";
 import StaffSettings from "./5Staff_Settings";
-import StaffBillCheck from "./6Staff_Bill_Check";
+import BillCheck from "../../../components/common/BillCheck/BillCheck";
 import { Drawer, IconButton } from "@mui/material";
 import MenuIcon from "@mui/icons-material/Menu";
 import { useToast, ToastContainer } from "../../../components/Toast";
@@ -271,8 +271,9 @@ const StaffDashboard = () => {
                             />
                         )}
                         {activeTab === 'bill-check' && (
-                            <StaffBillCheck
+                            <BillCheck
                                 theme={theme}
+                                type="staff"
                                 userProfileName={userProfile.first_name ? `${userProfile.first_name} ${userProfile.last_name || ''}`.trim() : 'Staff'}
                             />
                         )}

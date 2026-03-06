@@ -5,7 +5,7 @@ import AdminRequests from "./4Admin_Requests";
 import AdminOrderLines from "./5Admin_OrderLines";
 import AdminSettings from "./6Admin_Settings";
 import AdminBills from "./7Admin_Bills";
-import AdminBillCheck from "./8Admin_Bill_Check";
+import BillCheck from "../../../components/common/BillCheck/BillCheck";
 import { Drawer, IconButton } from "@mui/material";
 import MenuIcon from "@mui/icons-material/Menu";
 import { useToast, ToastContainer } from "../../../components/Toast";
@@ -474,7 +474,7 @@ const AdminDashboard = () => {
                             />
                         )}
                         {activeTab === 'bill-check' && (
-                            <AdminBillCheck theme={theme} />
+                            <BillCheck theme={theme} type="admin" />
                         )}
                         {activeTab === 'settings' && (
                             <AdminSettings

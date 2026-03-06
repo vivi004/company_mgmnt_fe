@@ -13,10 +13,12 @@ interface Props {
     theme: string;
     onBack: () => void;
     onSelectCategory: (category: string) => void;
+    type?: 'admin' | 'staff';
 }
 
-const OilCatAdmin = ({ shopName, theme, onBack, onSelectCategory }: Props) => {
+const OilCategory = ({ shopName, theme, onBack, onSelectCategory, type = 'admin' }: Props) => {
     const isDark = theme === 'dark';
+    const isAdmin = type === 'admin';
     const [categories, setCategories] = useState<Category[]>([]);
     const [loading, setLoading] = useState(true);
     const [showManageModal, setShowManageModal] = useState(false);
@@ -24,6 +26,7 @@ const OilCatAdmin = ({ shopName, theme, onBack, onSelectCategory }: Props) => {
     const { toasts, showToast, removeToast } = useToast();
 
     const api = getAuthAxios();
+    const primaryColor = isAdmin ? 'blue' : 'emerald';
 
     useEffect(() => {
         fetchCategories();
@@ -70,7 +73,7 @@ const OilCatAdmin = ({ shopName, theme, onBack, onSelectCategory }: Props) => {
             <ToastContainer toasts={toasts} removeToast={removeToast} />
 
             {/* Header */}
-            <div className="flex justify-between items-center">
+            <div className="flex justify-between items-center flex-wrap gap-6">
                 <div className="flex items-center gap-6">
                     <button
                         onClick={onBack}
@@ -83,29 +86,31 @@ const OilCatAdmin = ({ shopName, theme, onBack, onSelectCategory }: Props) => {
                         <h2 className={`text-4xl font-black italic tracking-tighter ${isDark ? 'text-white' : 'text-slate-900'}`}>
                             Select Category
                         </h2>
-                        <p className="text-sm font-bold text-slate-500 mt-1">
-                            Shop: <span className="text-blue-400 font-black">{shopName}</span>
+                        <p className="text-sm font-bold text-slate-500 mt-1 uppercase tracking-widest">
+                            Shop: <span className={`text-${primaryColor}-400 font-black`}>{shopName}</span>
                             <span className="ml-4 opacity-50">Step 3 of 4</span>
                         </p>
                     </div>
                 </div>
-                <button
-                    onClick={() => setShowManageModal(true)}
-                    className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-2xl font-black text-sm uppercase tracking-widest shadow-lg shadow-blue-500/30 transition-all hover:-translate-y-1 active:scale-95"
-                >
-                    Manage Categories
-                </button>
+                {isAdmin && (
+                    <button
+                        onClick={() => setShowManageModal(true)}
+                        className={`bg-${primaryColor}-600 hover:bg-${primaryColor}-700 text-white px-6 py-3 rounded-2xl font-black text-sm uppercase tracking-widest shadow-lg shadow-${primaryColor}-500/30 transition-all hover:-translate-y-1 active:scale-95`}
+                    >
+                        Manage Categories
+                    </button>
+                )}
             </div>
 
             {/* Category Grid */}
             {loading ? (
                 <div className="flex flex-col items-center justify-center py-20 animate-pulse">
-                    <div className="w-16 h-16 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mb-4" />
-                    <p className="font-black italic text-slate-500 uppercase tracking-widest">Fetching Dynamic Nodes...</p>
+                    <div className={`w-16 h-16 border-4 border-${primaryColor}-500 border-t-transparent rounded-full animate-spin mb-4`} />
+                    <p className="font-black italic text-slate-500 uppercase tracking-widest">{isAdmin ? 'Fetching Dynamic Nodes...' : 'Syncing Nodes...'}</p>
                 </div>
             ) : categories.length === 0 ? (
                 <div className="text-center py-20 bg-slate-100 rounded-[40px] border border-dashed border-slate-300">
-                    <p className="text-slate-500 font-bold italic text-xl">No categories found. Add some to get started!</p>
+                    <p className="text-slate-500 font-bold italic text-xl">{isAdmin ? 'No categories found. Add some to get started!' : 'No categories available.'}</p>
                 </div>
             ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pb-20">
@@ -115,25 +120,25 @@ const OilCatAdmin = ({ shopName, theme, onBack, onSelectCategory }: Props) => {
                             onClick={() => onSelectCategory(cat.name)}
                             className={`group relative flex flex-col items-center justify-center p-12 rounded-[40px] border transition-all cursor-pointer hover:-translate-y-2
                                 ${isDark
-                                    ? 'bg-slate-900/50 border-white/5 hover:bg-slate-800 hover:border-blue-500/30 hover:shadow-2xl hover:shadow-blue-500/10'
-                                    : 'bg-white border-slate-100 shadow-xl shadow-slate-200/20 hover:border-blue-200 hover:shadow-blue-500/15'}`}
+                                    ? `bg-slate-900/50 border-white/5 hover:bg-slate-800 hover:border-${primaryColor}-500/30 hover:shadow-2xl hover:shadow-${primaryColor}-500/10`
+                                    : `bg-white border-slate-100 shadow-xl shadow-slate-200/20 hover:border-${primaryColor}-200 hover:shadow-${primaryColor}-500/15`}`}
                         >
                             {/* Icon */}
                             <div className={`w-20 h-20 rounded-[28px] flex items-center justify-center text-4xl mb-6 transition-transform group-hover:scale-110 group-hover:rotate-6
-                                ${isDark ? 'bg-slate-800 text-blue-400 border border-white/5' : 'bg-blue-50 text-blue-600 border border-blue-100'}`}>
+                                ${isDark ? `bg-slate-800 text-${primaryColor}-400 border border-white/5` : `bg-${primaryColor}-50 text-${primaryColor}-600 border border-${primaryColor}-100`}`}>
                                 {cat.icon}
                             </div>
 
                             {/* Name */}
-                            <h3 className={`text-2xl font-black italic tracking-tight uppercase group-hover:text-blue-500 transition-colors
+                            <h3 className={`text-2xl font-black italic tracking-tight uppercase group-hover:text-${primaryColor}-500 transition-colors
                                 ${isDark ? 'text-slate-100' : 'text-slate-900'}`}>
                                 {cat.name}
                             </h3>
 
                             {/* Hover Decoration */}
                             <div className="absolute top-6 right-6 opacity-0 group-hover:opacity-100 transition-opacity">
-                                <div className="w-8 h-8 rounded-full border-2 border-blue-500/30 flex items-center justify-center">
-                                    <div className="w-2 h-2 rounded-full bg-blue-500" />
+                                <div className={`w-8 h-8 rounded-full border-2 border-${primaryColor}-500/30 flex items-center justify-center`}>
+                                    <div className={`w-2 h-2 rounded-full bg-${primaryColor}-500`} />
                                 </div>
                             </div>
                         </div>
@@ -141,8 +146,8 @@ const OilCatAdmin = ({ shopName, theme, onBack, onSelectCategory }: Props) => {
                 </div>
             )}
 
-            {/* Manage Modal */}
-            {showManageModal && (
+            {/* Manage Modal (Admin Only) */}
+            {isAdmin && showManageModal && (
                 <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
                     <div className="absolute inset-0 bg-slate-950/80 backdrop-blur-xl animate-in fade-in duration-300" onClick={() => setShowManageModal(false)} />
                     <div className={`relative rounded-[50px] w-full max-w-2xl max-h-[85vh] overflow-y-auto shadow-2xl animate-in zoom-in-95 duration-500 border overflow-hidden hide-scrollbar
@@ -170,13 +175,13 @@ const OilCatAdmin = ({ shopName, theme, onBack, onSelectCategory }: Props) => {
                                         required
                                         type="text"
                                         placeholder="Enter category name..."
-                                        className={`flex-grow rounded-2xl px-6 py-4 border transition-all font-bold text-sm focus:outline-none focus:ring-4 ${isDark ? 'bg-white/5 border-white/10 text-white focus:ring-blue-500/20' : 'bg-slate-50 border-slate-100 text-slate-900 focus:ring-blue-500/10'}`}
+                                        className={`flex-grow rounded-2xl px-6 py-4 border transition-all font-bold text-sm focus:outline-none focus:ring-4 ${isDark ? `bg-white/5 border-white/10 text-white focus:ring-${primaryColor}-500/20` : `bg-slate-50 border-slate-100 text-slate-900 focus:ring-${primaryColor}-500/10`}`}
                                         value={newCatName}
                                         onChange={e => setNewCatName(e.target.value)}
                                     />
                                     <button
                                         type="submit"
-                                        className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-4 rounded-2xl font-black text-sm uppercase tracking-widest transition-all shadow-lg"
+                                        className={`bg-${primaryColor}-600 hover:bg-${primaryColor}-700 text-white px-8 py-4 rounded-2xl font-black text-sm uppercase tracking-widest transition-all shadow-lg`}
                                     >
                                         Add
                                     </button>
@@ -188,7 +193,7 @@ const OilCatAdmin = ({ shopName, theme, onBack, onSelectCategory }: Props) => {
                                 <h3 className={`text-sm font-black uppercase tracking-widest ml-4 ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>Active Nodes</h3>
                                 <div className={`rounded-[30px] border divide-y ${isDark ? 'bg-slate-800/50 border-white/5 divide-white/5' : 'bg-slate-50 border-slate-100 divide-slate-100'}`}>
                                     {categories.map((cat) => (
-                                        <div key={cat.id} className="flex justify-between items-center px-6 py-4 transition-all hover:bg-blue-500/5 overflow-hidden group">
+                                        <div key={cat.id} className={`flex justify-between items-center px-6 py-4 transition-all hover:bg-${primaryColor}-500/5 overflow-hidden group`}>
                                             <div className="flex items-center gap-4">
                                                 <span className="text-xl">{cat.icon}</span>
                                                 <span className={`font-black italic tracking-tight ${isDark ? 'text-slate-100' : 'text-slate-900'}`}>{cat.name}</span>
@@ -213,4 +218,4 @@ const OilCatAdmin = ({ shopName, theme, onBack, onSelectCategory }: Props) => {
     );
 };
 
-export default OilCatAdmin;
+export default OilCategory;
