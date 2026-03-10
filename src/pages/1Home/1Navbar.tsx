@@ -22,10 +22,10 @@ const Navbar = ({ scrolled }: NavbarProps) => {
                 </div>
 
                 <div className={`hidden md:flex space-x-15 font-black uppercase text-xl tracking-widest ${scrolled ? "text-slate-600" : "text-white"}`}>
-                    <a href="#" className="hover:text-blue-400 transition-colors">Home</a>
-                    <a href="#" className="hover:text-blue-400 transition-colors">Services</a>
-                    <a href="#" className="hover:text-blue-400 transition-colors">About</a>
-                    <a href="#" className="hover:text-blue-400 transition-colors">Contact</a>
+                    <Link to="/" className="hover:text-blue-400 transition-colors">Home</Link>
+                    <Link to="/services" className="hover:text-blue-400 transition-colors">Services</Link>
+                    <Link to="/about" className="hover:text-blue-400 transition-colors">About</Link>
+                    <Link to="/contact" className="hover:text-blue-400 transition-colors">Contact</Link>
                 </div>
 
                 <div className="hidden md:block">
@@ -51,10 +51,10 @@ const Navbar = ({ scrolled }: NavbarProps) => {
             {/* Mobile Menu */}
             <div className={`md:hidden absolute top-full left-0 w-full bg-white border-b border-slate-100 p-8 space-y-6 shadow-2xl transition-all duration-500 overflow-hidden ${menuOpen ? 'max-h-[400px] opacity-100 translate-y-0' : 'max-h-0 opacity-0 -translate-y-10'}`}>
                 <div className="flex flex-col space-y-4">
-                    <a href="#" className="text-xl font-black uppercase tracking-widest text-slate-500 hover:text-blue-600">Home</a>
-                    <a href="#" className="text-xl font-black uppercase tracking-widest text-slate-500 hover:text-blue-600">Services</a>
-                    <a href="#" className="text-xl font-black uppercase tracking-widest text-slate-500 hover:text-blue-600">About</a>
-                    <a href="#" className="text-xl font-black uppercase tracking-widest text-slate-500 hover:text-blue-600">Contact</a>
+                    <Link to="/" className="text-xl font-black uppercase tracking-widest text-slate-500 hover:text-blue-600" onClick={() => setMenuOpen(false)}>Home</Link>
+                    <Link to="/services" className="text-xl font-black uppercase tracking-widest text-slate-500 hover:text-blue-600" onClick={() => setMenuOpen(false)}>Services</Link>
+                    <Link to="/about" className="text-xl font-black uppercase tracking-widest text-slate-500 hover:text-blue-600" onClick={() => setMenuOpen(false)}>About</Link>
+                    <Link to="/contact" className="text-xl font-black uppercase tracking-widest text-slate-500 hover:text-blue-600" onClick={() => setMenuOpen(false)}>Contact</Link>
                 </div>
                 <Link to="/login" className="block w-full pt-4">
                     <button className="w-full bg-blue-600 text-white py-5 rounded-3xl font-black text-xs uppercase tracking-widest hover:bg-blue-700 active:scale-95 transition-all shadow-xl shadow-blue-500/30">

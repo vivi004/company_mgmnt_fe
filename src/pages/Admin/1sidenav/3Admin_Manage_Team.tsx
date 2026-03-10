@@ -1,15 +1,5 @@
 
-interface Employee {
-    id: number;
-    first_name: string;
-    last_name: string;
-    email: string;
-    role: string;
-    status: string;
-    joined_at: string;
-    username?: string;
-    password?: string;
-}
+import type { Employee } from '../../../types/DashboardTypes';
 
 interface ManageTeamProps {
     employees: Employee[];

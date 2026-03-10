@@ -4,12 +4,18 @@ import LoginPage from "./pages/1Home/4Login";
 import AdminDashboard from "./pages/Admin/1sidenav/2Admin_Dashboard";
 import StaffDashboard from "./pages/Staff/1sidenav_staff/2Staff_Dashboard";
 import ProtectedRoute from "./components/ProtectedRoute";
+import ServicesPage from "./pages/1Home/services";
+import AboutPage from "./pages/1Home/About";
+import ContactPage from "./pages/1Home/Contact";
 
 function App() {
   return (
     <BrowserRouter>
       <Routes>
         <Route path="/" element={<HomePage />} />
+        <Route path="/services" element={<ServicesPage />} />
+        <Route path="/about" element={<AboutPage />} />
+        <Route path="/contact" element={<ContactPage />} />
         <Route path="/login" element={<LoginPage />} />
         <Route
           path="/admin/dashboard"
