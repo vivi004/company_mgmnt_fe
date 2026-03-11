@@ -93,26 +93,21 @@ const ReviewOrder = ({ shopName, villageName, theme, cart, updateQuantity, onBac
                                         </div>
 
                                         {/* Quantity Controls */}
-                                        <div className="col-span-2 flex items-center justify-center gap-3">
-                                            <button
-                                                onClick={() => updateQuantity(item.id, -cartDelta)}
-                                                className="w-8 h-8 rounded-xl flex items-center justify-center bg-red-500/10 border border-red-500/20 text-red-500 hover:bg-red-500 hover:text-white transition-all active:scale-90"
-                                            >
-                                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M20 12H4" />
-                                                </svg>
-                                            </button>
-                                            <span className={`w-20 text-center text-lg font-black ${isDark ? 'text-white' : 'text-slate-900'}`}>
-                                                {item.quantity} {item.id.includes('_box') ? 'BOX' : 'BOTTLE'}
-                                            </span>
-                                            <button
-                                                onClick={() => updateQuantity(item.id, cartDelta)}
-                                                className={`w-8 h-8 rounded-xl flex items-center justify-center bg-${primaryColor}-500 border border-${primaryColor}-400 text-white hover:bg-${primaryColor}-600 transition-all active:scale-90`}
-                                            >
-                                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M12 4v16m8-8H4" />
-                                                </svg>
-                                            </button>
+                                        <div className="col-span-2 flex flex-col items-center gap-1">
+                                            <div className="flex items-center gap-2">
+                                                <button onClick={() => updateQuantity(item.id, -cartDelta)} className="w-8 h-8 rounded-full flex items-center justify-center bg-red-50 text-red-500 hover:bg-red-100 transition-colors">
+                                                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 12H4" /></svg>
+                                                </button>
+                                                <div className="text-center min-w-[3rem]">
+                                                    <span className="block font-black text-slate-900">{item.quantity}</span>
+                                                    <span className="block text-[10px] font-black uppercase tracking-widest text-slate-500">
+                                                        {item.id.includes('_box') ? 'BOX' : (item.unit === 'CAN' ? 'CANS' : (item.unit || 'UNIT').toUpperCase())}
+                                                    </span>
+                                                </div>
+                                                <button onClick={() => updateQuantity(item.id, cartDelta)} className={`w-8 h-8 rounded-full flex items-center justify-center bg-${primaryColor}-500 text-white hover:bg-${primaryColor}-600 shadow-md shadow-${primaryColor}-500/20 transition-all`}>
+                                                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" /></svg>
+                                                </button>
+                                            </div>
                                         </div>
 
                                         <div className={`col-span-2 text-right pr-4 font-black ${isDark ? 'text-slate-300' : 'text-slate-700'}`}>

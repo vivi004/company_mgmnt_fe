@@ -117,7 +117,7 @@ td,th{border:1px solid #000;padding:3px 5px;vertical-align:top}
                             <td style={{ ...B, textAlign: 'center' }}>{i + 1}</td>
                             <td style={{ ...B, fontWeight: 'bold' }}>{item.name.toUpperCase()} {item.size.toUpperCase()}</td>
                             <td style={{ ...B, textAlign: 'center', fontWeight: 'bold' }}>
-                                {item.quantity} {item.id.includes('_box') ? 'BOX' : 'BOTTLE'}
+                                {item.quantity} {item.id.includes('_box') ? 'BOX' : (item.unit === 'CAN' ? 'CANS' : (item.unit || 'UNIT').toUpperCase())}
                                 {item.weight && <><br /><span style={{ fontSize: '9px', fontStyle: 'italic', fontWeight: 'normal' }}>({item.weight})</span></>}
                             </td>
                             <td style={{ ...B, textAlign: 'right' }}>{item.price.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</td>

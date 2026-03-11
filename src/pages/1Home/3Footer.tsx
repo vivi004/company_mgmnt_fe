@@ -1,3 +1,4 @@
+import { Link } from "react-router-dom";
 import nishaLogo from "../../assets/Logos/NISHA LOGO .jpg";
 
 const Footer = () => {
@@ -55,24 +56,24 @@ const Footer = () => {
 
                     <ul className="space-y-2 text-sm text-slate-600">
                         <li>
-                            <a href="/" className="hover:text-blue-600">
+                            <Link to="/" className="hover:text-blue-600">
                                 Home
-                            </a>
+                            </Link>
                         </li>
                         <li>
-                            <a href="#products" className="hover:text-blue-600">
+                            <Link to="/services" className="hover:text-blue-600">
                                 Products
-                            </a>
+                            </Link>
                         </li>
                         <li>
-                            <a href="#about" className="hover:text-blue-600">
+                            <Link to="/about" className="hover:text-blue-600">
                                 About Us
-                            </a>
+                            </Link>
                         </li>
                         <li>
-                            <a href="#contact" className="hover:text-blue-600">
+                            <Link to="/contact" className="hover:text-blue-600">
                                 Contact
-                            </a>
+                            </Link>
                         </li>
                     </ul>
                 </div>
