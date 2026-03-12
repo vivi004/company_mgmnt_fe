@@ -6,6 +6,8 @@ import NishaPure from '../Oils/NishaPure';
 import NishaSubcat from '../Oils/NishaSubcat';
 import MixedOil from '../Oils/MixedOil';
 import PalmOil from '../Oils/PalmOil';
+import Burfi from '../Oils/Burfi';
+import OilCake from '../Oils/OilCake';
 import Bills from '../Billpage/Bills';
 import ReviewOrder from '../ReviewOrder/ReviewOrder';
 
@@ -262,6 +264,36 @@ const ShopManager = ({ orderLineId, villageName, theme, onBack, type }: Props) =
     if (selectedShop && selectedCategory?.trim().toLowerCase() === 'palm oil') {
         return (
             <PalmOil
+                shopName={selectedShop.shop_name}
+                villageName={villageName}
+                theme={theme}
+                cart={cart}
+                updateQuantity={updateQuantity}
+                onBack={() => setSelectedCategory(null)}
+                onReviewOrder={() => setShowReview(true)}
+                type={type}
+            />
+        );
+    }
+
+    if (selectedShop && selectedCategory?.trim().toLowerCase() === 'burfi') {
+        return (
+            <Burfi
+                shopName={selectedShop.shop_name}
+                villageName={villageName}
+                theme={theme}
+                cart={cart}
+                updateQuantity={updateQuantity}
+                onBack={() => setSelectedCategory(null)}
+                onReviewOrder={() => setShowReview(true)}
+                type={type}
+            />
+        );
+    }
+
+    if (selectedShop && selectedCategory?.trim().toLowerCase() === 'oil cake') {
+        return (
+            <OilCake
                 shopName={selectedShop.shop_name}
                 villageName={villageName}
                 theme={theme}

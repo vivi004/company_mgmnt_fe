@@ -115,7 +115,7 @@ td,th{border:1px solid #000;padding:3px 5px;vertical-align:top}
                     {cartItems.map((item, i) => (
                         <tr key={item.id}>
                             <td style={{ ...B, textAlign: 'center' }}>{i + 1}</td>
-                            <td style={{ ...B, fontWeight: 'bold' }}>{item.name.toUpperCase()} {item.size.toUpperCase()}</td>
+                            <td style={{ ...B, fontWeight: 'bold' }}>{item.brand !== 'Nisha' ? `${item.brand.toUpperCase()} ${item.size.toUpperCase()}` : `${item.name.toUpperCase()} ${item.size.toUpperCase()}`}</td>
                             <td style={{ ...B, textAlign: 'center', fontWeight: 'bold' }}>
                                 {item.quantity} {item.id.includes('_box') ? 'BOX' : (item.unit === 'CAN' ? 'CANS' : (item.unit || 'UNIT').toUpperCase())}
                                 {item.weight && <><br /><span style={{ fontSize: '9px', fontStyle: 'italic', fontWeight: 'normal' }}>({item.weight})</span></>}

@@ -65,6 +65,32 @@ const NishaPureProductCard = ({ product, cart, isDark, isAdmin, primaryColor, up
     const renderSizeControls = () => {
         const sizeLower = product.size.toLowerCase();
 
+        if (sizeLower === '100 ml') {
+            return (
+                <div className="flex flex-wrap lg:flex-nowrap items-center justify-between mt-auto gap-4 w-full">
+                    <div className="flex-shrink-0">
+                        <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1">Unit Price</p>
+                        <p className={`text-2xl font-black tracking-tighter ${isDark ? 'text-white' : 'text-slate-900'}`}>₹{product.price.toFixed(2)}</p>
+                        <AdminActions />
+                    </div>
+                    <BoxLitreControls boxId={product.id + '_box'} litreId={product.id + '_ltr'} boxMultiplier={50} litreStep={1} litreMultiplier={10} litreLabel="litre" />
+                </div>
+            );
+        }
+
+        if (sizeLower === '200 ml') {
+            return (
+                <div className="flex flex-wrap lg:flex-nowrap items-center justify-between mt-auto gap-4 w-full">
+                    <div className="flex-shrink-0">
+                        <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1">Unit Price</p>
+                        <p className={`text-2xl font-black tracking-tighter ${isDark ? 'text-white' : 'text-slate-900'}`}>₹{product.price.toFixed(2)}</p>
+                        <AdminActions />
+                    </div>
+                    <BoxLitreControls boxId={product.id + '_box'} litreId={product.id + '_ltr'} boxMultiplier={25} litreStep={1} litreMultiplier={5} litreLabel="litre" />
+                </div>
+            );
+        }
+
         if (sizeLower === '500 ml') {
             return (
                 <div className="flex flex-wrap lg:flex-nowrap items-center justify-between mt-auto gap-4 w-full">
@@ -78,7 +104,7 @@ const NishaPureProductCard = ({ product, cart, isDark, isAdmin, primaryColor, up
             );
         }
 
-        if (sizeLower === '1 litre' || sizeLower === '1 ltr-pet') {
+        if (sizeLower === '1 litre' || sizeLower === '1 ltr-pet' || sizeLower === '1 ltr') {
             return (
                 <div className="flex flex-wrap lg:flex-nowrap items-center justify-between mt-auto gap-4 w-full">
                     <div className="flex-shrink-0">
