@@ -39,7 +39,17 @@ const OilCategory = ({ shopName, theme, onBack, onSelectCategory, type = 'admin'
         setLoading(true);
         try {
             const response = await api.get('/api/categories');
-            setCategories(response.data);
+            const data = response.data as Category[];
+            const order = ['nisha (pure oils)', 'mixed oil', 'palm oil', 'oil cake', 'burfi'];
+            data.sort((a, b) => {
+                const indexA = order.indexOf(a.name.toLowerCase().trim());
+                const indexB = order.indexOf(b.name.toLowerCase().trim());
+                if (indexA !== -1 && indexB !== -1) return indexA - indexB;
+                if (indexA !== -1) return -1;
+                if (indexB !== -1) return 1;
+                return a.name.localeCompare(b.name);
+            });
+            setCategories(data);
         } catch (err) {
             console.error('Error fetching categories:', err);
             showToast('Failed to load categories', 'error');

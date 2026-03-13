@@ -6,7 +6,12 @@ export const useAdminBills = (
     bills: Bill[],
     onEditBill: (id: number, newCart: Record<string, number>, newRates?: Record<string, number>) => void
 ) => {
-    const [selectedDate, setSelectedDate] = useState<string>('');
+    const getTodayLocal = () => {
+        const d = new Date();
+        return new Date(d.getTime() - (d.getTimezoneOffset() * 60000)).toISOString().split('T')[0];
+    };
+
+    const [selectedDate, setSelectedDate] = useState<string>(getTodayLocal());
     const [isCalendarOpen, setIsCalendarOpen] = useState(false);
     const [currentCalDate, setCurrentCalDate] = useState(new Date());
     const calendarRef = useRef<HTMLDivElement>(null);
@@ -30,7 +35,12 @@ export const useAdminBills = (
     }, []);
 
     const filteredBills = selectedDate
-        ? bills.filter(b => b.date.startsWith(selectedDate))
+        ? bills.filter(b => {
+             const d = new Date(b.date);
+             // Get local date string YYYY-MM-DD
+             const localDateStr = new Date(d.getTime() - (d.getTimezoneOffset() * 60000)).toISOString().split('T')[0];
+             return localDateStr === selectedDate;
+          })
         : bills;
 
     const groupedBills = filteredBills.reduce((acc, bill) => {
@@ -61,14 +71,25 @@ export const useAdminBills = (
         for (const [id, qty] of Object.entries(editCart)) {
             if (qty > 0) finalCart[id] = qty;
         }
-        onEditBill(editingBill.id, finalCart, editRates);
+
+        // Ensure newly added items capture the current price instead of staying dynamic
+        const finalRates = { ...editRates };
+        getAllProducts().forEach(p => {
+            if (finalCart[p.id] || finalCart[`${p.id}_box`] || finalCart[`${p.id}_ltr`]) {
+                if (finalRates[p.id] === undefined) {
+                    finalRates[p.id] = p.price;
+                }
+            }
+        });
+
+        onEditBill(editingBill.id, finalCart, finalRates);
         setEditingBill(null);
     };
 
     // Calendar Logic
     const minDate = new Date('2025-03-01T00:00:00');
     const maxDate = new Date('2026-04-30T23:59:59');
-    const todayStr = new Date().toISOString().split('T')[0];
+    const todayStr = getTodayLocal();
 
     const generateCalendarDays = () => {
         const year = currentCalDate.getFullYear();

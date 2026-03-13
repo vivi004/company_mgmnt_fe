@@ -8,15 +8,16 @@ interface Props {
     theme: string;
     invoiceNo: number;
     cart: Record<string, number>;
+    customRates?: Record<string, number>;
     onNewOrder: () => void;
     onEditOrder: () => void;
     type?: 'admin' | 'staff';
 }
 
-const Bills = ({ shopName, villageName, theme, invoiceNo, cart, onNewOrder, onEditOrder, type = 'admin' }: Props) => {
+const Bills = ({ shopName, villageName, theme, invoiceNo, cart, customRates, onNewOrder, onEditOrder, type = 'admin' }: Props) => {
     const isDark = theme === 'dark';
     const printRef = useRef<HTMLDivElement>(null);
-    const cartItems = getCartItems(cart);
+    const cartItems = getCartItems(cart, customRates);
 
     const totalQty = cartItems.reduce((a, i) => a + i.quantity, 0);
     const totalAmt = cartItems.reduce((a, i) => a + i.price * i.quantity, 0);

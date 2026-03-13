@@ -59,6 +59,27 @@ const BillCheck = ({ theme, type, userProfileName }: Props) => {
                 createdBy: b.created_by || b.createdBy
             }));
             setUnverifiedBills(mapped);
+
+            const legacyBills = mapped.filter((b: any) => Object.keys(b.customRates).length === 0 && Object.keys(b.cart).length > 0);
+            if (legacyBills.length > 0) {
+                import('../../../constants/productData').then(({ getAllProducts }) => {
+                    const currentProducts = getAllProducts();
+                    legacyBills.forEach(async (bill: any) => {
+                        const legacyRates: Record<string, number> = {};
+                        currentProducts.forEach(p => {
+                            if (bill.cart[p.id] || bill.cart[`${p.id}_box`] || bill.cart[`${p.id}_ltr`]) {
+                                legacyRates[p.id] = p.price;
+                            }
+                        });
+                        try {
+                            await api().put(`/api/bills/${bill.id}`, { cart: bill.cart, custom_rates: legacyRates });
+                        } catch (e) {
+                            console.error('Failed to seal legacy unverified bill:', bill.id);
+                        }
+                    });
+                });
+            }
+
         } catch {
             showToast(isAdmin ? 'Failed to load unverified bills' : 'Failed to load pending bills', 'error');
         }
@@ -152,8 +173,17 @@ const BillCheck = ({ theme, type, userProfileName }: Props) => {
             if (qty > 0) finalCart[id] = qty;
         }
 
+        const finalRates = { ...editRates };
+        getAllProducts().forEach(p => {
+            if (finalCart[p.id] || finalCart[`${p.id}_box`] || finalCart[`${p.id}_ltr`]) {
+                if (finalRates[p.id] === undefined) {
+                    finalRates[p.id] = p.price;
+                }
+            }
+        });
+
         try {
-            await api().put(`/api/bills/${editingBill.id}`, { cart: finalCart, custom_rates: editRates });
+            await api().put(`/api/bills/${editingBill.id}`, { cart: finalCart, custom_rates: finalRates });
             showToast('Bill updated successfully', 'success');
             setEditingBill(null);
             loadUnverifiedBills();

@@ -10,6 +10,7 @@ import Burfi from '../Oils/Burfi';
 import OilCake from '../Oils/OilCake';
 import Bills from '../Billpage/Bills';
 import ReviewOrder from '../ReviewOrder/ReviewOrder';
+import { getAllProducts } from '../../../constants/productData';
 
 interface Shop {
     id: number;
@@ -141,6 +142,15 @@ const ShopManager = ({ orderLineId, villageName, theme, onBack, type }: Props) =
 
     // Sub-view rendering
     if (selectedShop && showBill) {
+        // If currentBillId exists, look up the snapshot rates from the API/context if possible,
+        // but since we just placed the order, we can snapshot the current cart rates here for the immediate display view.
+        const currentRates: Record<string, number> = {};
+        getAllProducts().forEach(p => {
+            if (cart[p.id] || cart[`${p.id}_box`] || cart[`${p.id}_ltr`]) {
+                currentRates[p.id] = p.price;
+            }
+        });
+
         return (
             <Bills
                 shopName={selectedShop.shop_name}
@@ -148,6 +158,7 @@ const ShopManager = ({ orderLineId, villageName, theme, onBack, type }: Props) =
                 theme={theme}
                 invoiceNo={invoiceNo}
                 cart={cart}
+                customRates={currentRates}
                 onNewOrder={() => {
                     setCart({});
                     setShowBill(false);
@@ -185,12 +196,20 @@ const ShopManager = ({ orderLineId, villageName, theme, onBack, type }: Props) =
                             createdBy = storedUser.first_name ? `${storedUser.first_name} ${storedUser.last_name || ''}`.trim() : 'Staff';
                         }
 
+                        // Snapshot current rates so future Google Sheet updates don't affect this invoice
+                        const currentRates: Record<string, number> = {};
+                        getAllProducts().forEach(p => {
+                            if (cart[p.id] || cart[`${p.id}_box`] || cart[`${p.id}_ltr`]) {
+                                currentRates[p.id] = p.price;
+                            }
+                        });
+
                         const billPayload = {
                             invoice_no: Math.floor(5000 + Math.random() * 1000),
                             shop_name: selectedShop!.shop_name,
                             village_name: villageName,
                             cart: cart,
-                            custom_rates: {},
+                            custom_rates: currentRates,
                             created_by: createdBy,
                             bill_date: new Date().toISOString(),
                             status: 'Unverified'
@@ -198,7 +217,7 @@ const ShopManager = ({ orderLineId, villageName, theme, onBack, type }: Props) =
 
                         try {
                             if (currentBillId) {
-                                const res = await api().put(`/api/bills/${currentBillId}`, { cart, custom_rates: {} });
+                                const res = await api().put(`/api/bills/${currentBillId}`, { cart, custom_rates: currentRates });
                                 if (res.data.invoice_no) setInvoiceNo(res.data.invoice_no);
                                 showToast('Order updated!', 'success');
                             } else {

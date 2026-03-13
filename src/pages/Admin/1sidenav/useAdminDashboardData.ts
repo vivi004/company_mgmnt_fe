@@ -49,7 +49,30 @@ export const useAdminDashboardData = () => {
                 invoiceNo: b.invoice_no || b.invoiceNo,
                 createdBy: b.created_by || b.createdBy
             }));
+            
             setBills(mappedBills);
+
+            // Auto-seal legacy bills that have empty customRates
+            const legacyBills = mappedBills.filter((b: any) => Object.keys(b.customRates).length === 0 && Object.keys(b.cart).length > 0);
+            if (legacyBills.length > 0 && activeTab === 'bills') {
+                import('../../../constants/productData').then(({ getAllProducts }) => {
+                    const currentProducts = getAllProducts();
+                    legacyBills.forEach(async (bill: any) => {
+                        const legacyRates: Record<string, number> = {};
+                        currentProducts.forEach(p => {
+                            if (bill.cart[p.id] || bill.cart[`${p.id}_box`] || bill.cart[`${p.id}_ltr`]) {
+                                legacyRates[p.id] = p.price;
+                            }
+                        });
+                        try {
+                            await api().put(`/api/bills/${bill.id}`, { cart: bill.cart, custom_rates: legacyRates });
+                        } catch (e) {
+                            console.error('Failed to seal legacy bill:', bill.id);
+                        }
+                    });
+                });
+            }
+
         } catch (err) {
             console.error("Error loading verified bills:", err);
             showToast("Failed to load bills from server", "error");

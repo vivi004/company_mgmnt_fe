@@ -1,4 +1,4 @@
-import { getAllProducts } from '../constants/productData';
+import { getCartItems } from '../constants/productData';
 import { numberToWordsINR } from './numberToWords';
 
 export interface Bill {
@@ -13,9 +13,9 @@ export interface Bill {
 }
 
 export const invoiceHTML = (bill: Bill) => {
-    const items = getAllProducts().filter(p => bill.cart[p.id]).map(p => ({ ...p, qty: bill.cart[p.id], activePrice: bill.customRates?.[p.id] ?? p.price }));
-    const totalQty = items.reduce((a, i) => a + i.qty, 0);
-    const totalAmt = items.reduce((a, i) => a + i.activePrice * i.qty, 0);
+    const items = getCartItems(bill.cart, bill.customRates);
+    const totalQty = items.reduce((a, i) => a + i.quantity, 0);
+    const totalAmt = items.reduce((a, i) => a + i.price * i.quantity, 0);
     const d = new Date(bill.date);
     const ds = `${d.getDate()}-${d.toLocaleString('en', { month: 'short' })}-${String(d.getFullYear()).slice(2)}`;
     const B = 'border:1px solid #000;padding:3px 5px;vertical-align:top;';
@@ -37,7 +37,7 @@ export const invoiceHTML = (bill: Bill) => {
     <tr><td colspan="4" style="${B}font-size:10px">Terms of Delivery</td></tr>
     <tr><td colspan="6" style="${B}line-height:1.6"><span style="font-size:9px">Buyer (Bill to)</span><br><b style="font-size:12px">${bill.shopName.toUpperCase()}</b><br>${bill.villageName.toUpperCase()}.<br>State Name&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;: Tamil Nadu, Code : 33</td></tr>
     <tr style="text-align:center;font-size:10px"><td style="${B}">SI<br>No.</td><td style="${B}">Description of Goods</td><td style="${B}">Quantity</td><td style="${B}">Rate</td><td style="${B}">per</td><td style="${B}">Amount</td></tr>
-    ${items.map((it, i) => `<tr><td style="${B}text-align:center">${i + 1}</td><td style="${B}font-weight:bold">${it.name.toUpperCase()} ${it.size.toUpperCase()}</td><td style="${B}text-align:center;font-weight:bold">${it.qty} ${it.unit}${it.weight ? `<br><span style="font-size:9px;font-style:italic;font-weight:normal">(${it.weight})</span>` : ''}</td><td style="${B}text-align:right">${it.activePrice.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</td><td style="${B}text-align:center">${it.unit}</td><td style="${B}text-align:right;font-weight:bold">${(it.activePrice * it.qty).toLocaleString('en-IN', { minimumFractionDigits: 2 })}</td></tr>`).join('')}
+    ${items.map((it, i) => `<tr><td style="${B}text-align:center">${i + 1}</td><td style="${B}font-weight:bold">${it.name.toUpperCase()} ${it.size.toUpperCase()}</td><td style="${B}text-align:center;font-weight:bold">${it.quantity} ${it.unit}${it.weight ? `<br><span style="font-size:9px;font-style:italic;font-weight:normal">(${it.weight})</span>` : ''}</td><td style="${B}text-align:right">${it.price.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</td><td style="${B}text-align:center">${it.unit}</td><td style="${B}text-align:right;font-weight:bold">${(it.price * it.quantity).toLocaleString('en-IN', { minimumFractionDigits: 2 })}</td></tr>`).join('')}
     <tr><td style="${B}height:40px"></td><td style="${B}"></td><td style="${B}"></td><td style="${B}"></td><td style="${B}"></td><td style="${B}"></td></tr>
     <tr style="font-weight:bold"><td style="${B}"></td><td style="${B}text-align:right">Total</td><td style="${B}text-align:center">${totalQty}</td><td style="${B}"></td><td style="${B}"></td><td style="${B}text-align:right;font-size:12px">₹ ${totalAmt.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</td></tr>
     <tr><td colspan="4" style="${B}"><span style="font-size:9px">Amount Chargeable (in words)</span><br><b style="font-style:italic">${numberToWordsINR(totalAmt)}</b></td><td colspan="2" style="${B}text-align:right;font-size:9px;vertical-align:bottom">E. & O.E</td></tr>
