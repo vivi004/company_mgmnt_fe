@@ -4,6 +4,7 @@ import AdminRequests from "./4Admin_Requests";
 import AdminOrderLines from "./5Admin_OrderLines";
 import AdminSettings from "./6Admin_Settings";
 import AdminBills from "./7Admin_Bills";
+import AdminSales from "./8Admin_Sales";
 import BillCheck from "../../../components/common/BillCheck/BillCheck";
 import { Drawer, IconButton } from "@mui/material";
 import MenuIcon from "@mui/icons-material/Menu";
@@ -73,7 +74,7 @@ const AdminDashboard = () => {
                         </div>
                         <div>
                             <h2 className={`text-2xl lg:text-4xl font-black italic tracking-tighter ${state.theme === 'dark' ? 'text-white' : 'text-slate-900'}`}>
-                                {state.activeTab === 'manage' ? 'Team Control' : state.activeTab === 'requests' ? 'Staff Requests' : state.activeTab === 'order-lines' ? 'Sector Management' : state.activeTab === 'bills' ? 'Bills Management' : state.activeTab === 'bill-check' ? 'Invoice Verifications' : 'Configuration'}
+                                {state.activeTab === 'manage' ? 'Team Control' : state.activeTab === 'requests' ? 'Staff Requests' : state.activeTab === 'order-lines' ? 'Sector Management' : state.activeTab === 'bills' ? 'Bills Management' : state.activeTab === 'bill-check' ? 'Invoice Verifications' : state.activeTab === 'sales' ? 'Sales Analytics' : 'Configuration'}
                             </h2>
                             <p className="text-slate-500 mt-1 font-medium italic text-xs lg:text-base">Powered by {state.companyName} Systems</p>
                         </div>
@@ -130,6 +131,9 @@ const AdminDashboard = () => {
                         )}
                         {state.activeTab === 'bill-check' && (
                             <BillCheck theme={state.theme} type="admin" />
+                        )}
+                        {state.activeTab === 'sales' && (
+                            <AdminSales theme={state.theme} />
                         )}
                         {state.activeTab === 'settings' && (
                             <AdminSettings
