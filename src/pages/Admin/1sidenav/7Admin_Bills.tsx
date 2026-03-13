@@ -3,6 +3,7 @@ import { useAdminBills } from './useAdminBills';
 import AdminBillsCalendar from './Admin_BillsCalendar';
 import AdminBillsEditModal from './Admin_BillsEditModal';
 import { previewBill, downloadBill, downloadAllFiltered, downloadStaffBillsPdf, type Bill } from '../../../utils/invoiceGenerator';
+import { previewLoadingSheet, printLoadingSheet } from '../../../utils/loadingSheetGenerator';
 
 interface Props {
     bills: Bill[];
@@ -76,6 +77,16 @@ const AdminBills: React.FC<Props> = ({ bills, theme, onDeleteBill, onClearAll, o
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                         </svg>
                         Download All PDF
+                    </button>
+                    <button
+                        onClick={() => printLoadingSheet(state.filteredBills, state.selectedDate || state.todayStr)}
+                        disabled={state.filteredBills.length === 0}
+                        className="px-6 py-3 bg-emerald-600 hover:bg-emerald-700 disabled:opacity-40 disabled:cursor-not-allowed text-white font-black rounded-2xl text-xs uppercase tracking-widest transition-all shadow-lg shadow-emerald-600/20 hover:-translate-y-0.5 active:scale-95 flex items-center gap-2"
+                    >
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                        </svg>
+                        Loading Sheet
                     </button>
                     <button
                         onClick={onClearAll}
