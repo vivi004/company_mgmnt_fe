@@ -34,11 +34,13 @@ const AdminSales = ({ theme }: Props) => {
                 <div className="flex-1 min-w-[160px]">
                     <label className={`block text-[10px] font-black uppercase tracking-widest mb-2 ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>Start Date</label>
                     <input type="date" value={state.startDate} onChange={e => actions.setStartDate(e.target.value)}
+                        style={{ colorScheme: isDark ? 'dark' : 'light' }}
                         className={`w-full px-4 py-3 rounded-2xl border font-bold text-sm focus:outline-none focus:ring-4 ${isDark ? 'bg-white/5 border-white/10 text-white focus:ring-blue-500/20' : 'bg-slate-50 border-slate-200 text-slate-900 focus:ring-blue-500/10'}`} />
                 </div>
                 <div className="flex-1 min-w-[160px]">
                     <label className={`block text-[10px] font-black uppercase tracking-widest mb-2 ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>End Date</label>
                     <input type="date" value={state.endDate} onChange={e => actions.setEndDate(e.target.value)}
+                        style={{ colorScheme: isDark ? 'dark' : 'light' }}
                         className={`w-full px-4 py-3 rounded-2xl border font-bold text-sm focus:outline-none focus:ring-4 ${isDark ? 'bg-white/5 border-white/10 text-white focus:ring-blue-500/20' : 'bg-slate-50 border-slate-200 text-slate-900 focus:ring-blue-500/10'}`} />
                 </div>
                 <button onClick={actions.fetchSalesData} disabled={state.loading}
