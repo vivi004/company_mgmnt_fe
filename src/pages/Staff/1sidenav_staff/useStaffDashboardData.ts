@@ -16,7 +16,7 @@ export const useStaffDashboardData = () => {
     const [companyName] = useState(() => localStorage.getItem('companyName') || "Nisha");
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
     const [unverifiedCount, setUnverifiedCount] = useState(0);
-    const [profilePic, setProfilePic] = useState(() => localStorage.getItem('staffProfilePic') || "");
+    const [profilePic, setProfilePic] = useState("");
 
 
     const storedUser = JSON.parse(localStorage.getItem('user') || '{}');
@@ -106,6 +106,7 @@ export const useStaffDashboardData = () => {
             const me = response.data.find((e: Employee) => e.id === storedUser.id);
             if (me) {
                 setUserProfile(me);
+                setProfilePic(me.profile_pic || "");
                 setFormData({
                     first_name: me.first_name,
                     last_name: me.last_name,
@@ -196,7 +197,19 @@ export const useStaffDashboardData = () => {
         actions: {
             setActiveTab, setShowModal, setTheme, setIsMobileMenuOpen,
             setFormData, setShowOlModal, setNewSector, removeToast,
-            handleRequestSubmit, handleAddSector, handleDeleteRequest, setProfilePic
+            handleRequestSubmit, handleAddSector, handleDeleteRequest,
+            setProfilePic: async (pic: string) => {
+                setProfilePic(pic);
+                try {
+                    // Instantly sync with backend when profile pic changes
+                    await api().put(`/api/employees/${userProfile.id}`, { 
+                        ...userProfile, // Keep current profile data
+                        profile_pic: pic 
+                    });
+                } catch (err) {
+                    console.error("Error syncing profile pic to backend:", err);
+                }
+            }
         }
     };
 };

@@ -25,7 +25,7 @@ export const useAdminDashboardData = () => {
     const [pushNotifications, setPushNotifications] = useState(() => localStorage.getItem('pushNotifications') === 'true');
     const [isSyncing, setIsSyncing] = useState(false);
     const [nextInvoiceNo, setNextInvoiceNo] = useState(() => parseInt(localStorage.getItem('nextInvoiceNo') || '1001', 10));
-    const [profilePic, setProfilePic] = useState(() => localStorage.getItem('adminProfilePic') || "");
+    const [profilePic, setProfilePic] = useState("");
 
 
     const [formData, setFormData] = useState<EmployeeFormData>({
@@ -152,6 +152,12 @@ export const useAdminDashboardData = () => {
         try {
             const response = await api().get('/api/employees');
             setEmployees(response.data);
+            
+            // Also sync the current user's profile picture if found
+            const me = response.data.find((e: Employee) => e.id === storedUser.id);
+            if (me) {
+                setProfilePic(me.profile_pic || "");
+            }
         } catch (err) {
             console.error("Error fetching employees:", err);
         } finally {
@@ -380,7 +386,18 @@ export const useAdminDashboardData = () => {
         actions: {
             setActiveTab, setConfirmModal, setIsMobileMenuOpen, setCompanyName,
             setTheme, setFormData, setShowModal, setShowOlModal, setOlFormData,
-            setEmailForwarding, setPushNotifications, setNextInvoiceNo, setProfilePic,
+            setEmailForwarding, setPushNotifications, setNextInvoiceNo,
+            setProfilePic: async (pic: string) => {
+                setProfilePic(pic);
+                try {
+                    await api().put(`/api/employees/${storedUser.id}`, {
+                        ...storedUser,
+                        profile_pic: pic
+                    });
+                } catch (err) {
+                    console.error("Error syncing admin profile pic:", err);
+                }
+            },
             removeToast, handleDeleteBill, handleClearAllBills, handleEditBill,
             handleApproveRequest, handleRejectRequest, handleApproveOl, handleRejectOl,
             handleDeleteOl, handleOpenOlModal, handleOlSubmit, handleSubmit,

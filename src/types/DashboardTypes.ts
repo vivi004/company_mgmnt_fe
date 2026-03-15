@@ -8,6 +8,7 @@ export interface Employee {
     joined_at?: string;
     username?: string;
     accessible_orderlines?: number[];
+    profile_pic?: string;
 }
 
 export interface ProfileRequest {
