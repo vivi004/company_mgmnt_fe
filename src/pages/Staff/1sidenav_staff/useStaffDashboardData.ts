@@ -2,11 +2,14 @@ import { useState, useEffect } from "react";
 import { useToast } from "../../../components/Toast";
 import { getAuthAxios } from "../../../utils/apiClient";
 import type { Employee, OrderLine } from "../../../types/DashboardTypes";
+import { getAllProducts } from "../../../constants/productData";
+import type { Product } from "../../../constants/productData";
+import { syncRatesFromSheet } from "../../../services/googleSheetSync";
 
 export const useStaffDashboardData = () => {
-    const [employees, setEmployees] = useState<Employee[]>([]);
+    const [products, setProducts] = useState<Product[]>([]);
     const [loading, setLoading] = useState(true);
-    const [activeTab, setActiveTab] = useState("directory");
+    const [activeTab, setActiveTab] = useState("product-rates");
     const [showModal, setShowModal] = useState(false);
 
     const [theme, setTheme] = useState(() => localStorage.getItem('staffTheme') || "light");
@@ -40,7 +43,7 @@ export const useStaffDashboardData = () => {
     const api = () => getAuthAxios();
 
     useEffect(() => {
-        fetchEmployees();
+        fetchProducts();
         if (storedUser.id) {
             checkNotifications();
         }
@@ -69,33 +72,25 @@ export const useStaffDashboardData = () => {
                     showToast(`✅ Profile approved! ${req.first_name} ${req.last_name} — ${req.email}`, 'success');
                     api().put(`/api/requests/acknowledge/${req.id}`);
                 });
-                fetchEmployees();
             }
         } catch (err) {
             console.error("Error checking notifications:", err);
         }
     };
 
-    const fetchEmployees = async () => {
+    const fetchProducts = async () => {
+        setLoading(true);
         try {
-            const response = await api().get('/api/employees');
-            setEmployees(response.data);
-
-            if (storedUser.id) {
-                const me = response.data.find((e: Employee) => e.id === storedUser.id);
-                if (me) {
-                    setUserProfile(me);
-                    setFormData({
-                        first_name: me.first_name,
-                        last_name: me.last_name,
-                        email: me.email
-                    });
-                    setUserProfile(prev => ({ ...prev, accessible_orderlines: me.accessible_orderlines || [] }));
-                    fetchOrderLines(me.accessible_orderlines || []);
-                }
-            }
+            await syncRatesFromSheet();
+            const allProducts = getAllProducts();
+            setProducts(allProducts);
+            
+            // Still need to get my profile data for settings/orders if not loaded elsewhere
+            // (Assuming user is already in local storage, we skip employee API call to save load time if not strictly needed)
         } catch (err) {
-            console.error("Error fetching employees:", err);
+            console.error("Error fetching products:", err);
+            // Default to local products if sheet fails
+            setProducts(getAllProducts());
         } finally {
             setLoading(false);
         }
@@ -162,7 +157,7 @@ export const useStaffDashboardData = () => {
 
     return {
         state: {
-            employees, loading, activeTab, showModal, theme, companyName,
+            products, loading, activeTab, showModal, theme, companyName,
             isMobileMenuOpen, unverifiedCount, userProfile, formData,
             orderLines, olLoading, showOlModal, newSector, toasts
         },

@@ -1,5 +1,5 @@
 import StaffSidenav from "./1Staff_Sidenav";
-import StaffDirectory from "./3Staff_Directory";
+import StaffProductRates from "./3Staff_Directory";
 import StaffOrderLines from "./4Staff_OrderLines";
 import StaffSettings from "./5Staff_Settings";
 import BillCheck from "../../../components/common/BillCheck/BillCheck";
@@ -69,12 +69,11 @@ const StaffDashboard = () => {
 
                 <main className="flex-grow overflow-y-auto p-10 hide-scrollbar scroll-smooth">
                     <div className="max-w-6xl mx-auto">
-                        {state.activeTab === 'directory' && (
-                            <StaffDirectory
-                                employees={state.employees}
+                        {state.activeTab === 'product-rates' && (
+                            <StaffProductRates
+                                products={state.products}
                                 loading={state.loading}
                                 theme={state.theme}
-                                userProfileId={state.userProfile.id}
                             />
                         )}
                         {state.activeTab === 'order-lines' && (

@@ -38,15 +38,15 @@ const StaffSidenav = ({ activeTab, setActiveTab, companyName, unverifiedCount, o
 
             <nav className="flex-grow px-4 space-y-2 mt-4 overflow-y-auto hide-scrollbar pb-6">
                 <button
-                    onClick={() => setActiveTab("directory")}
-                    className={`w-full flex items-center space-x-4 px-5 py-4 rounded-2xl transition-all duration-300 group ${activeTab === 'directory' ? 'bg-blue-600 text-white shadow-xl shadow-blue-600/30' : 'text-slate-400 hover:bg-white/10 hover:text-white'}`}
+                    onClick={() => setActiveTab("product-rates")}
+                    className={`w-full flex items-center space-x-4 px-5 py-4 rounded-2xl transition-all duration-300 group ${activeTab === 'product-rates' ? 'bg-blue-600 text-white shadow-xl shadow-blue-600/30' : 'text-slate-400 hover:bg-white/10 hover:text-white'}`}
                 >
-                    <div className={`p-2 rounded-xl border ${activeTab === 'directory' ? 'bg-white/20 border-white/30' : 'bg-slate-800 border-slate-700'} group-hover:scale-110 transition-transform`}>
+                    <div className={`p-2 rounded-xl border ${activeTab === 'product-rates' ? 'bg-white/20 border-white/30' : 'bg-slate-800 border-slate-700'} group-hover:scale-110 transition-transform`}>
                         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
                         </svg>
                     </div>
-                    <span className="font-bold tracking-tight">Directory</span>
+                    <span className="font-bold tracking-tight">Product Rates</span>
                 </button>
 
                 <button
