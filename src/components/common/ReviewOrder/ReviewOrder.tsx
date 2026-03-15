@@ -101,7 +101,7 @@ const ReviewOrder = ({ shopName, villageName, theme, cart, updateQuantity, onBac
                                                 <div className="text-center min-w-[3rem]">
                                                     <span className="block font-black text-slate-900">{item.quantity}</span>
                                                     <span className="block text-[10px] font-black uppercase tracking-widest text-slate-500">
-                                                        {item.id.includes('_box') ? 'BOX' : (item.unit === 'CAN' ? 'CANS' : (item.unit || 'UNIT').toUpperCase())}
+                                                        {item.id.includes('_box') ? 'BOX' : (item.unit === 'CAN' ? 'CANS' : (item.unit === 'Litre' ? 'PCS' : (item.unit || 'UNIT').toUpperCase()))}
                                                     </span>
                                                 </div>
                                                 <button onClick={() => updateQuantity(item.id, cartDelta)} className={`w-8 h-8 rounded-full flex items-center justify-center bg-${primaryColor}-500 text-white hover:bg-${primaryColor}-600 shadow-md shadow-${primaryColor}-500/20 transition-all`}>

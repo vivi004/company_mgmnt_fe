@@ -47,7 +47,7 @@ const NishaPureProductCard = ({ product, cart, isDark, isAdmin, primaryColor, up
             </div>
             <div className="hidden sm:block w-px h-16 bg-slate-300 dark:bg-slate-700"></div>
             <div className="flex flex-col items-center flex-1 sm:flex-none">
-                <span className="text-sm font-black uppercase tracking-widest text-slate-500">Litre</span>
+                <span className="text-sm font-black uppercase tracking-widest text-slate-500">PCS</span>
                 <div className={`flex items-center gap-1 mt-1 p-1 rounded-2xl border ${isDark ? 'bg-slate-950 border-white/10' : 'bg-white border-slate-200 shadow-sm'}`}>
                     <button onClick={() => updateQuantity(litreId, -litreStep)} className={`w-8 h-8 rounded-xl flex items-center justify-center transition-all ${cart[litreId] > 0 ? 'hover:bg-red-100 hover:text-red-500' : ''} text-slate-400`} disabled={!cart[litreId]}>
                         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M20 12H4" /></svg>
@@ -73,7 +73,7 @@ const NishaPureProductCard = ({ product, cart, isDark, isAdmin, primaryColor, up
                         <p className={`text-2xl font-black tracking-tighter ${isDark ? 'text-white' : 'text-slate-900'}`}>₹{product.price.toFixed(2)}</p>
                         <AdminActions />
                     </div>
-                    <BoxLitreControls boxId={product.id + '_box'} litreId={product.id + '_ltr'} boxMultiplier={50} litreStep={1} litreMultiplier={10} litreLabel="litre" />
+                    <BoxLitreControls boxId={product.id + '_box'} litreId={product.id + '_ltr'} boxMultiplier={50} litreStep={1} litreMultiplier={10} litreLabel="PCS" />
                 </div>
             );
         }
@@ -86,7 +86,7 @@ const NishaPureProductCard = ({ product, cart, isDark, isAdmin, primaryColor, up
                         <p className={`text-2xl font-black tracking-tighter ${isDark ? 'text-white' : 'text-slate-900'}`}>₹{product.price.toFixed(2)}</p>
                         <AdminActions />
                     </div>
-                    <BoxLitreControls boxId={product.id + '_box'} litreId={product.id + '_ltr'} boxMultiplier={25} litreStep={1} litreMultiplier={5} litreLabel="litre" />
+                    <BoxLitreControls boxId={product.id + '_box'} litreId={product.id + '_ltr'} boxMultiplier={25} litreStep={1} litreMultiplier={5} litreLabel="PCS" />
                 </div>
             );
         }
@@ -99,7 +99,7 @@ const NishaPureProductCard = ({ product, cart, isDark, isAdmin, primaryColor, up
                         <p className={`text-2xl font-black tracking-tighter ${isDark ? 'text-white' : 'text-slate-900'}`}>₹{product.price.toFixed(2)}</p>
                         <AdminActions />
                     </div>
-                    <BoxLitreControls boxId={product.id + '_box'} litreId={product.id + '_ltr'} boxMultiplier={20} litreStep={1} litreMultiplier={2} litreLabel="litre" />
+                    <BoxLitreControls boxId={product.id + '_box'} litreId={product.id + '_ltr'} boxMultiplier={20} litreStep={1} litreMultiplier={2} litreLabel="PCS" />
                 </div>
             );
         }
@@ -112,7 +112,7 @@ const NishaPureProductCard = ({ product, cart, isDark, isAdmin, primaryColor, up
                         <p className={`text-2xl font-black tracking-tighter ${isDark ? 'text-white' : 'text-slate-900'}`}>₹{product.price.toFixed(2)}</p>
                         <AdminActions />
                     </div>
-                    <BoxLitreControls boxId={product.id + '_box'} litreId={product.id} boxMultiplier={10} litreStep={1} litreMultiplier={1} litreLabel="litre" />
+                    <BoxLitreControls boxId={product.id + '_box'} litreId={product.id} boxMultiplier={10} litreStep={1} litreMultiplier={1} litreLabel="PCS" />
                 </div>
             );
         }
