@@ -25,7 +25,7 @@ export const useAdminDashboardData = () => {
     const [pushNotifications, setPushNotifications] = useState(() => localStorage.getItem('pushNotifications') === 'true');
     const [isSyncing, setIsSyncing] = useState(false);
     const [nextInvoiceNo, setNextInvoiceNo] = useState(() => parseInt(localStorage.getItem('nextInvoiceNo') || '1001', 10));
-    const [profilePic, setProfilePic] = useState("");
+    const [profilePic, setProfilePic] = useState(() => localStorage.getItem('adminProfilePic') || "");
 
 
     const [formData, setFormData] = useState<EmployeeFormData>({
@@ -156,7 +156,9 @@ export const useAdminDashboardData = () => {
             // Also sync the current user's profile picture if found
             const me = response.data.find((e: Employee) => e.id === storedUser.id);
             if (me) {
-                setProfilePic(me.profile_pic || "");
+                const backendPic = me.profile_pic || "";
+                setProfilePic(backendPic);
+                localStorage.setItem('adminProfilePic', backendPic);
             }
         } catch (err) {
             console.error("Error fetching employees:", err);
@@ -389,9 +391,9 @@ export const useAdminDashboardData = () => {
             setEmailForwarding, setPushNotifications, setNextInvoiceNo,
             setProfilePic: async (pic: string) => {
                 setProfilePic(pic);
+                localStorage.setItem('adminProfilePic', pic);
                 try {
-                    await api().put(`/api/employees/${storedUser.id}`, {
-                        ...storedUser,
+                    await api().put(`/api/employees/${storedUser.id}/profile-pic`, {
                         profile_pic: pic
                     });
                 } catch (err) {

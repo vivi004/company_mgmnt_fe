@@ -16,7 +16,7 @@ export const useStaffDashboardData = () => {
     const [companyName] = useState(() => localStorage.getItem('companyName') || "Nisha");
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
     const [unverifiedCount, setUnverifiedCount] = useState(0);
-    const [profilePic, setProfilePic] = useState("");
+    const [profilePic, setProfilePic] = useState(() => localStorage.getItem('staffProfilePic') || "");
 
 
     const storedUser = JSON.parse(localStorage.getItem('user') || '{}');
@@ -106,7 +106,9 @@ export const useStaffDashboardData = () => {
             const me = response.data.find((e: Employee) => e.id === storedUser.id);
             if (me) {
                 setUserProfile(me);
-                setProfilePic(me.profile_pic || "");
+                const backendPic = me.profile_pic || "";
+                setProfilePic(backendPic);
+                localStorage.setItem('staffProfilePic', backendPic);
                 setFormData({
                     first_name: me.first_name,
                     last_name: me.last_name,
@@ -200,10 +202,9 @@ export const useStaffDashboardData = () => {
             handleRequestSubmit, handleAddSector, handleDeleteRequest,
             setProfilePic: async (pic: string) => {
                 setProfilePic(pic);
+                localStorage.setItem('staffProfilePic', pic);
                 try {
-                    // Instantly sync with backend when profile pic changes
-                    await api().put(`/api/employees/${userProfile.id}`, { 
-                        ...userProfile, // Keep current profile data
+                    await api().put(`/api/employees/${userProfile.id}/profile-pic`, { 
                         profile_pic: pic 
                     });
                 } catch (err) {
