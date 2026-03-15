@@ -44,6 +44,7 @@ export const useStaffDashboardData = () => {
 
     useEffect(() => {
         fetchProducts();
+        fetchMyProfile();
         if (storedUser.id) {
             checkNotifications();
         }
@@ -93,6 +94,35 @@ export const useStaffDashboardData = () => {
             setProducts(getAllProducts());
         } finally {
             setLoading(false);
+        }
+    };
+
+    const fetchMyProfile = async () => {
+        if (!storedUser.id) return;
+        try {
+            const response = await api().get('/api/employees');
+            const me = response.data.find((e: Employee) => e.id === storedUser.id);
+            if (me) {
+                setUserProfile(me);
+                setFormData({
+                    first_name: me.first_name,
+                    last_name: me.last_name,
+                    email: me.email
+                });
+                
+                // Parse accessible_orderlines from the DB (could be a string or array)
+                let parsedOrderLines: number[] = [];
+                if (typeof me.accessible_orderlines === 'string') {
+                    try { parsedOrderLines = JSON.parse(me.accessible_orderlines); } catch (e) { console.error("Error parsing order lines", e); }
+                } else if (Array.isArray(me.accessible_orderlines)) {
+                    parsedOrderLines = me.accessible_orderlines;
+                }
+                
+                setUserProfile(prev => ({ ...prev, accessible_orderlines: parsedOrderLines }));
+                fetchOrderLines(parsedOrderLines);
+            }
+        } catch (err) {
+            console.error("Error fetching my profile to get order lines:", err);
         }
     };
 
