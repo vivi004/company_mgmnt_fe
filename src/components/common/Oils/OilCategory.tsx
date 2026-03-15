@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { getAuthAxios } from '../../../utils/apiClient';
 import { useToast, ToastContainer } from '../../../components/Toast';
-import { syncRatesFromSheet, getLastSyncTime } from '../../../services/googleSheetSync';
+
 
 interface Category {
     id: number;
@@ -24,8 +24,6 @@ const OilCategory = ({ shopName, theme, onBack, onSelectCategory, type = 'admin'
     const [loading, setLoading] = useState(true);
     const [showManageModal, setShowManageModal] = useState(false);
     const [newCatName, setNewCatName] = useState("");
-    const [syncing, setSyncing] = useState(false);
-    const [lastSync, setLastSync] = useState<string | null>(getLastSyncTime());
     const { toasts, showToast, removeToast } = useToast();
 
     const api = getAuthAxios();
@@ -81,24 +79,7 @@ const OilCategory = ({ shopName, theme, onBack, onSelectCategory, type = 'admin'
         }
     };
 
-    const handleSyncRates = async () => {
-        setSyncing(true);
-        try {
-            const result = await syncRatesFromSheet();
-            if (result.success) {
-                showToast(`Synced ${result.rateCount} product rates successfully!`, 'success');
-                setLastSync(getLastSyncTime());
-                // Refresh categories to refresh the whole page state (or just window.location.reload if easier)
-                setTimeout(() => window.location.reload(), 1500);
-            } else {
-                showToast(result.error || 'Sync failed', 'error');
-            }
-        } catch (err) {
-            showToast('Failed to connect to Google Sheets', 'error');
-        } finally {
-            setSyncing(false);
-        }
-    };
+
 
     return (
         <div className={`space-y-10 animate-in fade-in slide-in-from-right-5 duration-500 ${isDark ? 'text-white' : 'text-slate-900'}`}>
@@ -126,31 +107,7 @@ const OilCategory = ({ shopName, theme, onBack, onSelectCategory, type = 'admin'
                 </div>
                 {isAdmin && (
                     <div className="flex gap-4 items-center">
-                        <div className="text-right hidden sm:block">
-                            <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Sheet Rates</p>
-                            <p className="text-[11px] font-bold text-slate-500 italic">
-                                {lastSync ? `Last: ${new Date(lastSync).toLocaleTimeString()}` : 'Not Synced'}
-                            </p>
-                        </div>
-                        <button
-                            onClick={handleSyncRates}
-                            disabled={syncing}
-                            className={`flex items-center gap-2 bg-white border border-slate-200 hover:border-${primaryColor}-500 text-slate-700 px-6 py-3 rounded-2xl font-black text-sm uppercase tracking-widest shadow-sm hover:shadow-md transition-all active:scale-95 disabled:opacity-50`}
-                        >
-                            {syncing ? (
-                                <>
-                                    <div className={`w-4 h-4 border-2 border-${primaryColor}-500 border-t-transparent rounded-full animate-spin`} />
-                                    Syncing...
-                                </>
-                            ) : (
-                                <>
-                                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-                                    </svg>
-                                    Sync Rates
-                                </>
-                            )}
-                        </button>
+
                         <button
                             onClick={() => setShowManageModal(true)}
                             className={`bg-${primaryColor}-600 hover:bg-${primaryColor}-700 text-white px-6 py-3 rounded-2xl font-black text-sm uppercase tracking-widest shadow-lg shadow-${primaryColor}-500/30 transition-all hover:-translate-y-1 active:scale-95`}

@@ -5,12 +5,13 @@ interface ManageTeamProps {
     employees: Employee[];
     loading: boolean;
     theme: string;
+    billCount: number;
     handleEdit: (emp: Employee) => void;
     handleDelete: (id: number) => void;
     handleAddNew: () => void;
 }
 
-const AdminManageTeam = ({ employees, loading, theme, handleEdit, handleDelete, handleAddNew }: ManageTeamProps) => {
+const AdminManageTeam = ({ employees, loading, theme, billCount, handleEdit, handleDelete, handleAddNew }: ManageTeamProps) => {
     return (
         <div className="space-y-10 animate-in fade-in slide-in-from-bottom-5 duration-700">
             {/* Stats grid */}
@@ -49,21 +50,16 @@ const AdminManageTeam = ({ employees, loading, theme, handleEdit, handleDelete, 
                 <div className={`p-8 rounded-[40px] border transition-all hover:-translate-y-2 group ${theme === 'dark' ? 'bg-slate-900 border-white/5' : 'bg-white border-slate-100 shadow-xl shadow-slate-200/20'}`}>
                     <div className="flex justify-between items-start">
                         <div>
-                            <p className="text-slate-500 text-xs font-black uppercase tracking-widest">System Vitality</p>
-                            <h3 className="text-6xl font-black mt-3 text-green-500 uppercase tracking-tighter">
-                                {((employees.filter(e => e.status === 'Active').length / (employees.length || 1)) * 100).toFixed(0)}%
+                            <p className="text-slate-500 text-xs font-black uppercase tracking-widest">Bills Processed</p>
+                            <h3 className={`text-6xl font-black mt-3 text-amber-500 uppercase tracking-tighter`}>
+                                {billCount}
                             </h3>
                         </div>
-                        <div className="w-16 h-16 bg-green-500 rounded-3xl flex items-center justify-center text-3xl shadow-lg shadow-green-500/40 group-hover:rotate-12 transition-transform">
-                            🔥
+                        <div className="w-16 h-16 bg-amber-500 rounded-3xl flex items-center justify-center text-3xl shadow-lg shadow-amber-500/40 group-hover:rotate-12 transition-transform">
+                            🧾
                         </div>
                     </div>
-                    <div className="mt-8 w-full bg-slate-200/50 h-3 rounded-full p-0.5">
-                        <div
-                            className="bg-green-500 h-full rounded-full shadow-[0_0_15px_rgba(34,197,94,0.5)] transition-all duration-1000"
-                            style={{ width: `${(employees.filter(e => e.status === 'Active').length / (employees.length || 1)) * 100}%` }}
-                        />
-                    </div>
+                    <p className="mt-8 text-slate-400 text-sm font-bold italic">Total bills in ledger</p>
                 </div>
             </div>
 

@@ -143,13 +143,15 @@ const AdminBills: React.FC<Props> = ({ bills, theme, onDeleteBill, onClearAll, o
                                 </div>
 
                                 {/* Rows */}
-                                {staffBills.map((bill, idx) => (
+                                {staffBills.map((bill) => (
                                     <div
                                         key={bill.id}
                                         className={`grid grid-cols-12 gap-4 px-8 py-5 items-center border-b transition-all
                                             ${isDark ? 'border-white/5 hover:bg-white/[0.02]' : 'border-slate-50 hover:bg-blue-50/30'}`}
                                     >
-                                        <div className={`col-span-1 font-black ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>{idx + 1}</div>
+                                         <div className={`col-span-1 font-black text-xs ${isDark ? 'text-violet-400' : 'text-violet-600'}`}>
+                                                #{bill.invoiceNo}
+                                            </div>
                                         <div className="col-span-3">
                                             <p className={`font-black ${isDark ? 'text-white' : 'text-slate-900'}`}>{bill.shopName}</p>
                                             <p className="text-xs text-slate-500 font-medium">{bill.villageName}</p>

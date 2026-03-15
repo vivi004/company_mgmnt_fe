@@ -204,8 +204,11 @@ const ShopManager = ({ orderLineId, villageName, theme, onBack, type }: Props) =
                             }
                         });
 
+                        const currentInvoiceNo = parseInt(localStorage.getItem('nextInvoiceNo') || '1001', 10);
+                        localStorage.setItem('nextInvoiceNo', String(currentInvoiceNo + 1));
+
                         const billPayload = {
-                            invoice_no: Math.floor(5000 + Math.random() * 1000),
+                            invoice_no: currentInvoiceNo,
                             shop_name: selectedShop!.shop_name,
                             village_name: villageName,
                             cart: cart,

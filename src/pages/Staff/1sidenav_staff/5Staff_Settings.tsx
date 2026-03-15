@@ -1,4 +1,4 @@
-
+import React from 'react';
 
 interface StaffSettingsProps {
     theme: string;
@@ -10,12 +10,96 @@ interface StaffSettingsProps {
         email: string;
     };
     setShowModal: (show: boolean) => void;
+    profilePic: string;
+    setProfilePic: (pic: string) => void;
 }
 
-const StaffSettings = ({ theme, setTheme, userProfile, setShowModal }: StaffSettingsProps) => {
+const StaffSettings = ({ theme, setTheme, userProfile, setShowModal, profilePic, setProfilePic }: StaffSettingsProps) => {
+    const fileInputRef = React.useRef<HTMLInputElement>(null);
+
+    const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onloadend = () => {
+                const base64String = reader.result as string;
+                setProfilePic(base64String);
+                localStorage.setItem('staffProfilePic', base64String);
+            };
+            reader.readAsDataURL(file);
+        }
+    };
+
     return (
         <div className="animate-in zoom-in-95 fade-in duration-500">
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-10">
+                {/* Profile Image Card */}
+                <div className={`p-10 rounded-[50px] border lg:col-span-2 ${theme === 'dark' ? 'bg-slate-900 border-white/5 shadow-2xl shadow-indigo-500/5' : 'bg-white border-slate-100 shadow-2xl shadow-slate-200/40'}`}>
+                    <div className="flex items-center space-x-5 mb-10">
+                        <div className="w-16 h-16 bg-emerald-600 rounded-[20px] flex items-center justify-center text-3xl shadow-xl shadow-emerald-500/40">📸</div>
+                        <div>
+                            <h3 className={`text-2xl font-black italic tracking-tighter ${theme === 'dark' ? 'text-white' : 'text-slate-900'}`}>Profile Identity</h3>
+                            <p className="text-slate-500 font-bold text-xs uppercase tracking-widest">Personalize Your Presence</p>
+                        </div>
+                    </div>
+
+                    <div className="flex flex-col md:flex-row items-center gap-10">
+                        <div 
+                            className="relative group cursor-pointer"
+                            onClick={() => fileInputRef.current?.click()}
+                        >
+                            <div className={`w-40 h-40 rounded-full border-4 overflow-hidden transition-all duration-500 shadow-2xl group-hover:scale-105 group-hover:rotate-2 ${theme === 'dark' ? 'border-white/10' : 'border-slate-50'}`}>
+                                {profilePic ? (
+                                    <img src={profilePic} alt="Profile" className="w-full h-full object-cover" />
+                                ) : (
+                                    <div className={`w-full h-full flex items-center justify-center text-5xl font-black italic ${theme === 'dark' ? 'bg-slate-800 text-slate-500' : 'bg-slate-50 text-slate-300'}`}>
+                                        {userProfile.first_name?.[0]}
+                                    </div>
+                                )}
+                            </div>
+                            <div className="absolute inset-0 bg-black/40 rounded-full opacity-0 group-hover:opacity-100 flex items-center justify-center transition-all duration-300 backdrop-blur-sm">
+                                <span className="text-white font-black text-xs uppercase tracking-widest px-4 py-2 border border-white/40 rounded-full">Change Photo</span>
+                            </div>
+                        </div>
+
+                        <div className="flex-grow space-y-4 text-center md:text-left">
+                            <h4 className={`text-lg font-black italic ${theme === 'dark' ? 'text-white' : 'text-slate-800'}`}>Customize your Avatar</h4>
+                            <p className="text-slate-500 text-sm font-medium max-w-sm">
+                                Upload a profile image to make your dashboard unique. Recommended size: 400x400px.
+                            </p>
+                            
+                            <input 
+                                type="file" 
+                                hidden 
+                                ref={fileInputRef} 
+                                accept="image/png, image/jpeg, image/jpg, image/gif"
+                                onChange={handleFileChange}
+                            />
+                            
+                            <div className="flex flex-wrap gap-3 justify-center md:justify-start">
+                                <button 
+                                    onClick={() => fileInputRef.current?.click()}
+                                    className="px-8 py-3 bg-indigo-600 text-white font-black rounded-2xl text-[10px] uppercase tracking-widest shadow-lg shadow-indigo-600/20 hover:bg-indigo-700 hover:-translate-y-0.5 transition-all"
+                                >
+                                    Browse Image
+                                </button>
+                                {profilePic && (
+                                    <button 
+                                        onClick={() => {
+                                            setProfilePic("");
+                                            localStorage.removeItem('staffProfilePic');
+                                        }}
+                                        className={`px-8 py-3 font-black rounded-2xl text-[10px] uppercase tracking-widest border transition-all ${theme === 'dark' ? 'bg-white/5 border-white/10 text-white hover:bg-red-500/10 hover:text-red-500 hover:border-red-500/20' : 'bg-white border-slate-100 text-slate-600 hover:bg-red-50 hover:text-red-500 hover:border-red-100'}`}
+                                    >
+                                        Remove Photo
+                                    </button>
+                                )}
+                            </div>
+                            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest pt-2">Supports .PNG, .JPG, .GIF</p>
+                        </div>
+                    </div>
+                </div>
+
                 <div className={`p-10 rounded-[50px] border ${theme === 'dark' ? 'bg-slate-900 border-white/5 shadow-2xl shadow-indigo-500/5' : 'bg-white border-slate-100 shadow-2xl shadow-slate-200/40'}`}>
                     <div className="flex items-center space-x-5 mb-10">
                         <div className="w-16 h-16 bg-indigo-600 rounded-[20px] flex items-center justify-center text-3xl shadow-xl shadow-indigo-500/40">🎨</div>
@@ -67,26 +151,6 @@ const StaffSettings = ({ theme, setTheme, userProfile, setShowModal }: StaffSett
                     </div>
                 </div>
 
-                <div className={`p-10 rounded-[50px] border lg:col-span-2 ${theme === 'dark' ? 'bg-slate-900 border-white/5 shadow-2xl shadow-indigo-500/5' : 'bg-white border-slate-100 shadow-2xl shadow-slate-200/40'}`}>
-                    <div className="flex items-center space-x-5 mb-10">
-                        <div className="w-16 h-16 bg-slate-800 rounded-[20px] flex items-center justify-center text-3xl shadow-xl shadow-slate-950/40">👤</div>
-                        <div>
-                            <h3 className={`text-2xl font-black italic tracking-tighter ${theme === 'dark' ? 'text-white' : 'text-slate-900'}`}>Security Status</h3>
-                            <p className="text-slate-500 font-bold text-xs uppercase tracking-widest">Node Identification</p>
-                        </div>
-                    </div>
-
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <div className={`p-6 rounded-[30px] border ${theme === 'dark' ? 'bg-white/5 border-white/10' : 'bg-slate-50 border-slate-100'}`}>
-                            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Employee ID</p>
-                            <p className={`font-black text-xl italic ${theme === 'dark' ? 'text-white' : 'text-slate-900'}`}>#EMP-{userProfile.id}</p>
-                        </div>
-                        <div className={`p-6 rounded-[30px] border ${theme === 'dark' ? 'bg-white/5 border-white/10' : 'bg-slate-50 border-slate-100'}`}>
-                            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Access Level</p>
-                            <p className={`font-black text-xl italic text-blue-500`}>Verified Staff Member</p>
-                        </div>
-                    </div>
-                </div>
             </div>
         </div>
     );

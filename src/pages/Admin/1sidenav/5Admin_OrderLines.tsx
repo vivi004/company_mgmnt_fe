@@ -37,14 +37,12 @@ const AdminOrderLines = ({ orderLines, theme, handleOpenOlModal, handleDeleteOl 
                     <h3 className={`text-3xl font-black tracking-tight ${theme === 'dark' ? 'text-white' : 'text-slate-900'}`}>Order Lines Management</h3>
                     <p className="text-slate-500 font-bold mt-1 uppercase text-xs tracking-[0.2em]">Click a village to view its shops</p>
                 </div>
-                <div className={`px-6 py-3 rounded-2xl border font-black text-xs uppercase tracking-[0.2em] ${theme === 'dark' ? 'bg-blue-500/10 text-blue-400 border-blue-500/20' : 'bg-blue-50 text-blue-600 border-blue-100'}`}>
-                    Nodes Online: {orderLines.length}
-                </div>
+
                 <button
                     onClick={() => handleOpenOlModal()}
                     className="px-8 py-3 bg-blue-600 text-white font-black rounded-2xl text-[10px] uppercase tracking-[0.3em] shadow-lg shadow-blue-600/20 hover:bg-blue-700 hover:-translate-y-0.5 active:scale-95 transition-all w-full sm:w-auto"
                 >
-                    + Deploy New Sector
+                    + New Shop Lines
                 </button>
             </div>
 
@@ -52,22 +50,20 @@ const AdminOrderLines = ({ orderLines, theme, handleOpenOlModal, handleDeleteOl 
             <div className="space-y-8">
                 <h4 className={`text-xl font-black italic uppercase tracking-widest flex items-center ${theme === 'dark' ? 'text-white' : 'text-slate-900'}`}>
                     <div className="w-10 h-10 bg-blue-500/10 rounded-xl flex items-center justify-center mr-4 text-blue-500">📍</div>
-                    Active Network Nodes
+                    Shop Lines
                 </h4>
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                     {orderLines.map((ol, idx) => (
                         <div
                             key={ol.id}
+                            onClick={() => setSelectedVillage(ol)}
                             className={`p-8 rounded-[40px] border group transition-all cursor-pointer hover:-translate-y-2 hover:shadow-2xl
                                 ${theme === 'dark'
                                     ? 'bg-slate-900 border-white/5 hover:border-blue-500/30 hover:shadow-blue-500/10'
                                     : 'bg-white border-slate-100 shadow-xl shadow-slate-200/20 hover:shadow-blue-500/15 hover:border-blue-200'}`}
                         >
                             {/* Clickable area — navigate to shops */}
-                            <div
-                                className="flex items-center space-x-6 mb-4"
-                                onClick={() => setSelectedVillage(ol)}
-                            >
+                            <div className="flex items-center space-x-6 mb-4">
                                 <div className={`w-12 h-12 rounded-2xl flex items-center justify-center text-xl font-black transition-transform group-hover:rotate-6
                                     ${theme === 'dark' ? 'bg-slate-800 text-blue-400' : 'bg-blue-50 text-blue-600'}`}>
                                     {idx + 1}
@@ -77,7 +73,6 @@ const AdminOrderLines = ({ orderLines, theme, handleOpenOlModal, handleDeleteOl 
                                         ${theme === 'dark' ? 'text-white' : 'text-slate-900'}`}>
                                         {ol.name}
                                     </p>
-                                    <p className="text-[10px] font-bold text-slate-400 mt-1 uppercase tracking-widest">Node ID: {ol.node_id}</p>
                                 </div>
                                 {/* Arrow hint */}
                                 <svg className="w-5 h-5 text-slate-400 group-hover:text-blue-500 group-hover:translate-x-1 transition-all"
@@ -86,11 +81,7 @@ const AdminOrderLines = ({ orderLines, theme, handleOpenOlModal, handleDeleteOl 
                                 </svg>
                             </div>
 
-                            <div className="flex justify-between items-center mt-6 pt-6 border-t border-slate-100/5">
-                                <div className="flex items-center text-[10px] font-black uppercase tracking-widest text-slate-500">
-                                    <span>Status: Operational</span>
-                                    <div className="w-2 h-2 rounded-full bg-green-500 ml-2 animate-pulse" />
-                                </div>
+                            <div className="flex justify-end items-center mt-6 pt-6 border-t border-slate-100/5">
                                 <div className="flex space-x-2">
                                     <button
                                         onClick={(e) => { e.stopPropagation(); handleOpenOlModal(ol); }}

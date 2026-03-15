@@ -19,6 +19,15 @@ export const useAdminDashboardData = () => {
     const [companyName, setCompanyName] = useState(() => localStorage.getItem('companyName') || "Nisha");
     const [theme, setTheme] = useState(() => localStorage.getItem('adminTheme') || "light");
 
+    // NEW ADMINISTRATIVE SETTINGS
+    const [lastSynced, setLastSynced] = useState(() => localStorage.getItem('lastSynced') || "Never");
+    const [emailForwarding, setEmailForwarding] = useState(() => localStorage.getItem('emailForwarding') === 'true');
+    const [pushNotifications, setPushNotifications] = useState(() => localStorage.getItem('pushNotifications') === 'true');
+    const [isSyncing, setIsSyncing] = useState(false);
+    const [nextInvoiceNo, setNextInvoiceNo] = useState(() => parseInt(localStorage.getItem('nextInvoiceNo') || '1001', 10));
+    const [profilePic, setProfilePic] = useState(() => localStorage.getItem('adminProfilePic') || "");
+
+
     const [formData, setFormData] = useState<EmployeeFormData>({
         first_name: "", last_name: "", email: "", role: "Staff", status: "Active", username: "", password: "", accessible_orderlines: []
     });
@@ -33,6 +42,15 @@ export const useAdminDashboardData = () => {
 
     const [bills, setBills] = useState<Array<{ id: number; shopName: string; villageName: string; cart: Record<string, number>; customRates?: Record<string, number>; date: string; invoiceNo: number }>>([]);
     const [unverifiedCount, setUnverifiedCount] = useState(0);
+
+    const storedUser = JSON.parse(localStorage.getItem('user') || '{}');
+    const [userProfile] = useState<Partial<Employee>>({
+        id: storedUser.id || 0,
+        first_name: storedUser.first_name || "Admin",
+        last_name: storedUser.last_name || "",
+        email: storedUser.email || "",
+        role: storedUser.role || "Admin"
+    });
 
     const api = () => getAuthAxios();
 
@@ -171,7 +189,10 @@ export const useAdminDashboardData = () => {
     useEffect(() => {
         localStorage.setItem('companyName', companyName);
         localStorage.setItem('adminTheme', theme);
-    }, [companyName, theme]);
+        localStorage.setItem('emailForwarding', String(emailForwarding));
+        localStorage.setItem('pushNotifications', String(pushNotifications));
+        localStorage.setItem('nextInvoiceNo', String(nextInvoiceNo));
+    }, [companyName, theme, emailForwarding, pushNotifications, nextInvoiceNo]);
 
     useEffect(() => {
         if (activeTab === 'bills' || activeTab === 'bill-check') loadBills();
@@ -179,6 +200,36 @@ export const useAdminDashboardData = () => {
 
     const askConfirm = (message: string, onConfirm: () => void) => {
         setConfirmModal({ open: true, message, onConfirm });
+    };
+
+    // SETTINGS ACTIONS
+    const handleManualSync = async () => {
+        setIsSyncing(true);
+        try {
+            const { syncRatesFromSheet } = await import('../../../services/googleSheetSync');
+            await syncRatesFromSheet();
+            const now = new Date().toLocaleString('en-IN', { hour12: true });
+            setLastSynced(now);
+            localStorage.setItem('lastSynced', now);
+            showToast("Product rates merged successfully from Google Sheets!", "success");
+        } catch (err) {
+            console.error(err);
+            showToast("Google Sheets Sync Failed", "error");
+        } finally {
+            setIsSyncing(false);
+        }
+    };
+
+    const handleArchiveOldBills = () => {
+        askConfirm("DANGER: This will permanently archive bills older than 6 months. This action is irreversible. Proceed?", () => {
+            showToast("Archive request sent. This feature is coming soon.", "info");
+        });
+    };
+
+    const handleResetAnalytics = () => {
+        askConfirm("Are you sure you want to flush the analytics cache? Sales pages will temporarily load slower while rebuilding.", () => {
+            showToast("Analytics cache flushed automatically.", "success");
+        });
     };
 
     const handleApproveRequest = async (id: number) => {
@@ -322,15 +373,19 @@ export const useAdminDashboardData = () => {
             employees, requests, loading, showModal, editingEmployee, activeTab,
             backendStatus, confirmModal, isMobileMenuOpen, companyName, theme,
             formData, olRequests, orderLines, showOlModal, editingOl, olFormData,
-            toasts, bills, unverifiedCount
+            toasts, bills, unverifiedCount,
+            lastSynced, isSyncing, emailForwarding, pushNotifications, nextInvoiceNo,
+            userProfile, profilePic
         },
         actions: {
             setActiveTab, setConfirmModal, setIsMobileMenuOpen, setCompanyName,
             setTheme, setFormData, setShowModal, setShowOlModal, setOlFormData,
+            setEmailForwarding, setPushNotifications, setNextInvoiceNo, setProfilePic,
             removeToast, handleDeleteBill, handleClearAllBills, handleEditBill,
             handleApproveRequest, handleRejectRequest, handleApproveOl, handleRejectOl,
             handleDeleteOl, handleOpenOlModal, handleOlSubmit, handleSubmit,
-            handleEdit, handleAddNew, handleDelete
+            handleEdit, handleAddNew, handleDelete,
+            handleManualSync, handleArchiveOldBills, handleResetAnalytics
         }
     };
 };

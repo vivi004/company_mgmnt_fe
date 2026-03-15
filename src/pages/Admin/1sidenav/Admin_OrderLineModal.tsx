@@ -40,10 +40,7 @@ const AdminOrderLineModal: React.FC<AdminOrderLineModalProps> = ({
                             <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-4">Village Name</label>
                             <input required type="text" placeholder="Enter Sector Name" className={`w-full rounded-[25px] px-8 py-5 border transition-all font-black text-sm focus:outline-none focus:ring-4 ${theme === 'dark' ? 'bg-slate-800 border-white/10 text-white focus:ring-emerald-500/20 focus:border-emerald-500' : 'bg-slate-50 border-slate-100 text-slate-900 focus:ring-emerald-600/10 focus:border-emerald-600'}`} value={olFormData.name} onChange={e => setOlFormData({ ...olFormData, name: e.target.value })} />
                         </div>
-                        <div className="space-y-3">
-                            <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-4">Network Node ID</label>
-                            <input required type="text" placeholder="Node Identifier" className={`w-full rounded-[25px] px-8 py-5 border transition-all font-black text-sm focus:outline-none focus:ring-4 ${theme === 'dark' ? 'bg-slate-800 border-white/10 text-white focus:ring-emerald-500/20 focus:border-emerald-500' : 'bg-slate-50 border-slate-100 text-slate-900 focus:ring-emerald-600/10 focus:border-emerald-600'}`} value={olFormData.node_id} onChange={e => setOlFormData({ ...olFormData, node_id: e.target.value })} />
-                        </div>
+
                         <button type="submit" className="w-full py-6 bg-emerald-600 text-white rounded-[30px] font-black text-sm uppercase tracking-[0.2em] shadow-2xl shadow-emerald-600/30 hover:bg-emerald-700 hover:-translate-y-1 active:scale-95 transition-all mt-8">
                             {editingOl ? "Confirm Configuration" : "Establish Node"}
                         </button>

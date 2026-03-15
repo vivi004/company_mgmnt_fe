@@ -16,6 +16,8 @@ export const useStaffDashboardData = () => {
     const [companyName] = useState(() => localStorage.getItem('companyName') || "Nisha");
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
     const [unverifiedCount, setUnverifiedCount] = useState(0);
+    const [profilePic, setProfilePic] = useState(() => localStorage.getItem('staffProfilePic') || "");
+
 
     const storedUser = JSON.parse(localStorage.getItem('user') || '{}');
     const [userProfile, setUserProfile] = useState<Employee>({
@@ -189,12 +191,12 @@ export const useStaffDashboardData = () => {
         state: {
             products, loading, activeTab, showModal, theme, companyName,
             isMobileMenuOpen, unverifiedCount, userProfile, formData,
-            orderLines, olLoading, showOlModal, newSector, toasts
+            orderLines, olLoading, showOlModal, newSector, toasts, profilePic
         },
         actions: {
             setActiveTab, setShowModal, setTheme, setIsMobileMenuOpen,
             setFormData, setShowOlModal, setNewSector, removeToast,
-            handleRequestSubmit, handleAddSector, handleDeleteRequest
+            handleRequestSubmit, handleAddSector, handleDeleteRequest, setProfilePic
         }
     };
 };

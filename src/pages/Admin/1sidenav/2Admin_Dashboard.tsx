@@ -79,12 +79,19 @@ const AdminDashboard = () => {
                             <p className="text-slate-500 mt-1 font-medium italic text-xs lg:text-base">Powered by {state.companyName} Systems</p>
                         </div>
                     </div>
-                    <div className="flex items-center space-x-6">
-                        <div className={`px-5 py-2.5 rounded-2xl font-black text-xs uppercase tracking-widest border hidden sm:block ${state.theme === 'dark' ? 'bg-indigo-500/10 text-indigo-400 border-indigo-500/20' : 'bg-blue-50 text-blue-600 border-blue-100'}`}>
-                            Auth: Admin Level 4
+                    <div 
+                        className="flex items-center space-x-6 cursor-pointer group"
+                        onClick={() => actions.setActiveTab('settings')}
+                    >
+                        <div className={`px-5 py-2.5 rounded-2xl font-black text-xs uppercase tracking-widest border hidden sm:block transition-all group-hover:scale-105 ${state.theme === 'dark' ? 'bg-indigo-500/10 text-indigo-400 border-indigo-500/20 group-hover:bg-indigo-500/20' : 'bg-blue-50 text-blue-600 border-blue-100 group-hover:bg-blue-100'}`}>
+                            Hi {state.userProfile.first_name}
                         </div>
-                        <div className={`w-14 h-14 rounded-[20px] flex items-center justify-center font-black text-2xl border transition-all ${state.theme === 'dark' ? 'bg-slate-800 text-blue-400 border-white/10 ring-4 ring-white/5' : 'bg-white text-slate-800 border-slate-200 shadow-xl shadow-slate-200/50'}`}>
-                            A
+                        <div className={`w-14 h-14 rounded-[20px] flex items-center justify-center font-black text-2xl border transition-all group-hover:scale-110 group-active:scale-95 overflow-hidden ${state.theme === 'dark' ? 'bg-slate-800 text-blue-400 border-white/10 ring-4 ring-white/5' : 'bg-white text-slate-800 border-slate-200 shadow-xl shadow-slate-200/50'}`}>
+                            {state.profilePic ? (
+                                <img src={state.profilePic} alt="Profile" className="w-full h-full object-cover" />
+                            ) : (
+                                "A"
+                            )}
                         </div>
                     </div>
                 </header>
@@ -96,6 +103,7 @@ const AdminDashboard = () => {
                                 employees={state.employees}
                                 loading={state.loading}
                                 theme={state.theme}
+                                billCount={state.bills.length}
                                 handleEdit={actions.handleEdit}
                                 handleDelete={actions.handleDelete}
                                 handleAddNew={actions.handleAddNew}
@@ -142,6 +150,20 @@ const AdminDashboard = () => {
                                 companyName={state.companyName}
                                 setCompanyName={actions.setCompanyName}
                                 backendStatus={state.backendStatus}
+                                lastSynced={state.lastSynced}
+                                isSyncing={state.isSyncing}
+                                emailForwarding={state.emailForwarding}
+                                pushNotifications={state.pushNotifications}
+                                handleManualSync={actions.handleManualSync}
+                                handleArchiveOldBills={actions.handleArchiveOldBills}
+                                handleResetAnalytics={actions.handleResetAnalytics}
+                                setEmailForwarding={actions.setEmailForwarding}
+                                setPushNotifications={actions.setPushNotifications}
+                                nextInvoiceNo={state.nextInvoiceNo}
+                                setNextInvoiceNo={actions.setNextInvoiceNo}
+                                profilePic={state.profilePic}
+                                setProfilePic={actions.setProfilePic}
+
                             />
                         )}
                     </div>
