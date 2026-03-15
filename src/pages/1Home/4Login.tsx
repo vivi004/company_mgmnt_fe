@@ -198,13 +198,7 @@ const LoginPage: React.FC = () => {
 
                         </div>
 
-                        <div className="flex justify-end">
 
-                            <span className="text-xs font-bold text-blue-600">
-                                Need help logging in?
-                            </span>
-
-                        </div>
 
                         {error && (
                             <div className="text-red-500 text-xs font-bold text-center bg-red-50 py-2 rounded-lg border border-red-100">
