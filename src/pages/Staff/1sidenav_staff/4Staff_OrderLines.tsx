@@ -76,20 +76,20 @@ const StaffOrderLines = ({ orderLines, olLoading, theme, setShowOlModal, handleD
                                         ? 'bg-slate-900 border-white/5 hover:bg-slate-800 hover:border-emerald-500/30 hover:shadow-2xl hover:shadow-emerald-500/10'
                                         : 'bg-white border-slate-100 shadow-xl shadow-slate-200/20 hover:shadow-2xl hover:shadow-emerald-500/10 hover:border-emerald-200'}`}
                             >
-                                <div className="flex items-center space-x-6">
-                                    <div className={`w-14 h-14 rounded-2xl flex items-center justify-center text-2xl font-black shadow-lg shadow-emerald-500/20 group-hover:rotate-12 transition-transform
+                                <div className="flex items-center space-x-6 flex-1 min-w-0 mr-4">
+                                    <div className={`w-14 h-14 shrink-0 rounded-2xl flex items-center justify-center text-2xl font-black shadow-lg shadow-emerald-500/20 group-hover:rotate-12 transition-transform
                                         ${theme === 'dark' ? 'bg-slate-800 text-emerald-400' : 'bg-emerald-50 text-emerald-600 border border-emerald-100'}`}>
                                         {idx + 1}
                                     </div>
-                                    <div>
-                                        <p className={`font-black text-lg tracking-tight uppercase italic group-hover:text-emerald-500 transition-colors
-                                            ${theme === 'dark' ? 'text-white' : 'text-slate-900'}`}>
+                                    <div className="flex-1 min-w-0">
+                                        <p className={`font-black tracking-tight uppercase italic group-hover:text-emerald-500 transition-colors
+                                            ${theme === 'dark' ? 'text-white' : 'text-slate-900'} text-base sm:text-lg lg:text-[17px] leading-tight text-balance break-words`} title={ol.name}>
                                             {ol.name}
                                         </p>
-                                        <p className="text-[10px] font-bold text-slate-400 mt-1 uppercase tracking-widest">Node ID: {ol.node_id}</p>
+                                        <p className="text-[10px] font-bold text-slate-400 mt-2 uppercase tracking-widest break-words">Node ID: {ol.node_id}</p>
                                     </div>
                                 </div>
-                                <div className="flex items-center gap-3">
+                                <div className="flex items-center gap-3 shrink-0">
                                     {/* Delete request button */}
                                     <button
                                         onClick={(e) => { e.stopPropagation(); handleDeleteRequest(ol.id); }}
