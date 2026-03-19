@@ -42,7 +42,7 @@ const Footer = () => {
                         <li>Groundnut Oil</li>
                         <li>Coconut Oil</li>
                         <li>Sesame Oil (Gingelly Oil)</li>
-                        <li>Castor Oil</li>
+                        <li>Castoor Oil</li>
                         <li>Neem Oil</li>
                         <li>Palm Oil</li>
                         <li>Lamp Oil (Puja Oil)</li>
