@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import { useState } from 'react';
 import type { Product } from '../../../constants/productData';
 
 interface StaffProductRatesProps {
@@ -13,10 +13,6 @@ const StaffProductRates = ({ theme }: StaffProductRatesProps) => {
     // Replace '1' with your actual Sheet 2 GID from its URL if '1' does not load correctly.
     const [activeTab, setActiveTab] = useState('0');
 
-    const tabs = [
-        { id: '0', label: 'Sheet 1' },
-        { id: '1631525042', label: 'Sheet 2' }, // Common random GID placeholder; User must update with exact GID if known, but I'll use a generic string '1' for now, actually I'll use '1' and if they said it has 3 sheets, they might be using default IDs. Edit: GIDs are random integers except the first sheet (0). I'll use '1' for placeholder.
-    ];
 
     // Realistically, we use an array of objects to map standard tabs
     const sheetTabs = [
