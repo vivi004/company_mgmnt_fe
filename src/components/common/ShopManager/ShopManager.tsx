@@ -1,16 +1,10 @@
 import { useState, useEffect } from 'react';
 import { getAuthAxios } from '../../../utils/apiClient';
 import { useToast, ToastContainer } from '../../../components/Toast';
-import OilCategory from '../Oils/OilCategory';
-import NishaPure from '../Oils/NishaPure';
-import NishaSubcat from '../Oils/NishaSubcat';
-import MixedOil from '../Oils/MixedOil';
-import PalmOil from '../Oils/PalmOil';
-import Burfi from '../Oils/Burfi';
-import OilCake from '../Oils/OilCake';
 import Bills from '../Billpage/Bills';
 import ReviewOrder from '../ReviewOrder/ReviewOrder';
 import { getAllProducts } from '../../../constants/productData';
+import UnifiedOrderingView from './UnifiedOrderingView';
 
 interface Shop {
     id: number;
@@ -42,8 +36,6 @@ const ShopManager = ({ orderLineId, villageName, theme, onBack, type }: Props) =
     const [formData, setFormData] = useState({ shop_name: '', owner_name: '', phone: '', balance: '' });
     const { toasts, showToast, removeToast } = useToast();
     const [selectedShop, setSelectedShop] = useState<Shop | null>(null);
-    const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
-    const [selectedSubCategory, setSelectedSubCategory] = useState<string | null>(null);
     const [cart, setCart] = useState<Record<string, number>>({});
     const [showReview, setShowReview] = useState(false);
     const [showBill, setShowBill] = useState(false);
@@ -163,8 +155,6 @@ const ShopManager = ({ orderLineId, villageName, theme, onBack, type }: Props) =
                     setCart({});
                     setShowBill(false);
                     setShowReview(false);
-                    setSelectedSubCategory(null);
-                    setSelectedCategory(null);
                     setSelectedShop(null);
                     setCurrentBillId(null);
                     setInvoiceNo(0);
@@ -241,102 +231,19 @@ const ShopManager = ({ orderLineId, villageName, theme, onBack, type }: Props) =
         );
     }
 
-    if (selectedShop && selectedCategory?.trim().toLowerCase() === 'nisha (pure oils)') {
-        if (!selectedSubCategory) {
-            return (
-                <NishaSubcat
-                    shopName={selectedShop.shop_name}
-                    theme={theme}
-                    onBack={() => setSelectedCategory(null)}
-                    onSelectCategory={(subcat) => setSelectedSubCategory(subcat)}
-                    type={type}
-                />
-            );
-        }
-        return (
-            <NishaPure
-                shopName={selectedShop.shop_name}
-                villageName={villageName}
-                theme={theme}
-                cart={cart}
-                updateQuantity={updateQuantity}
-                filterSubCategory={selectedSubCategory}
-                onBack={() => setSelectedSubCategory(null)}
-                onReviewOrder={() => setShowReview(true)}
-                type={type}
-            />
-        );
-    }
-
-    if (selectedShop && selectedCategory?.trim().toLowerCase() === 'mixed oil') {
-        return (
-            <MixedOil
-                shopName={selectedShop.shop_name}
-                villageName={villageName}
-                theme={theme}
-                cart={cart}
-                updateQuantity={updateQuantity}
-                onBack={() => setSelectedCategory(null)}
-                onReviewOrder={() => setShowReview(true)}
-                type={type}
-            />
-        );
-    }
-
-    if (selectedShop && selectedCategory?.trim().toLowerCase() === 'palm oil') {
-        return (
-            <PalmOil
-                shopName={selectedShop.shop_name}
-                villageName={villageName}
-                theme={theme}
-                cart={cart}
-                updateQuantity={updateQuantity}
-                onBack={() => setSelectedCategory(null)}
-                onReviewOrder={() => setShowReview(true)}
-                type={type}
-            />
-        );
-    }
-
-    if (selectedShop && selectedCategory?.trim().toLowerCase() === 'burfi') {
-        return (
-            <Burfi
-                shopName={selectedShop.shop_name}
-                villageName={villageName}
-                theme={theme}
-                cart={cart}
-                updateQuantity={updateQuantity}
-                onBack={() => setSelectedCategory(null)}
-                onReviewOrder={() => setShowReview(true)}
-                type={type}
-            />
-        );
-    }
-
-    if (selectedShop && selectedCategory?.trim().toLowerCase() === 'oil cake') {
-        return (
-            <OilCake
-                shopName={selectedShop.shop_name}
-                villageName={villageName}
-                theme={theme}
-                cart={cart}
-                updateQuantity={updateQuantity}
-                onBack={() => setSelectedCategory(null)}
-                onReviewOrder={() => setShowReview(true)}
-                type={type}
-            />
-        );
-    }
-
     if (selectedShop) {
         return (
-            <OilCategory
-                shopName={selectedShop.shop_name}
-                theme={theme}
-                onBack={() => setSelectedShop(null)}
-                onSelectCategory={(cat) => setSelectedCategory(cat)}
-                type={type}
-            />
+            <>
+                <ToastContainer toasts={toasts} removeToast={removeToast} />
+                <UnifiedOrderingView
+                    shopName={selectedShop.shop_name}
+                    theme={theme}
+                    cart={cart}
+                    updateQuantity={updateQuantity}
+                    onBack={() => setSelectedShop(null)}
+                    onReviewOrder={() => setShowReview(true)}
+                />
+            </>
         );
     }
 
