@@ -7,6 +7,7 @@ import ProtectedRoute from "./components/ProtectedRoute";
 import ServicesPage from "./pages/1Home/services";
 import AboutPage from "./pages/1Home/About";
 import ContactPage from "./pages/1Home/Contact";
+import ShopCategoryPage from "./pages/Shop/ShopCategoryPage";
 
 function App() {
   return (
@@ -17,6 +18,7 @@ function App() {
         <Route path="/about" element={<AboutPage />} />
         <Route path="/contact" element={<ContactPage />} />
         <Route path="/login" element={<LoginPage />} />
+        <Route path="/shop/category" element={<ShopCategoryPage />} />
         <Route
           path="/admin/dashboard"
           element={

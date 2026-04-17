@@ -1,0 +1,101 @@
+import type { Category, Product } from '../types/shop';
+
+export const categories: Category[] = [
+  {
+    id: 'c1',
+    name: 'Oils and Ghee',
+    subcategories: [
+      { id: 'sc1', name: 'Sunflower & Other...', image: 'https://cdn-icons-png.flaticon.com/512/8213/8213320.png' },
+      { id: 'sc2', name: 'Mustard Oils', image: 'https://cdn-icons-png.flaticon.com/512/2824/2824040.png' },
+      { id: 'sc3', name: 'Ghee', image: 'https://cdn-icons-png.flaticon.com/512/9906/9906649.png' },
+      { id: 'sc4', name: 'Blended Oils', image: 'https://cdn-icons-png.flaticon.com/512/3052/3052824.png' },
+      { id: 'sc5', name: 'Rice Bran Oils', image: 'https://cdn-icons-png.flaticon.com/512/2824/2824040.png' },
+      { id: 'sc6', name: 'Olive Oils', image: 'https://cdn-icons-png.flaticon.com/512/8213/8213320.png' },
+    ],
+  },
+  {
+    id: 'c2',
+    name: 'Dal and Pulses',
+    subcategories: [
+      { id: 'sc2-1', name: 'Toor Dal', image: 'https://cdn-icons-png.flaticon.com/512/3052/3052824.png' },
+      { id: 'sc2-2', name: 'Moong Dal', image: 'https://cdn-icons-png.flaticon.com/512/3052/3052824.png' },
+    ],
+  }
+];
+
+export const products: Product[] = [
+  {
+    id: 'p1',
+    subcategoryId: 'sc1',
+    name: 'Anveshan Sunflower Oil (Wood Pressed)',
+    description: 'Mildly nutty, incredibly healthy!',
+    price: 379,
+    originalPrice: 475,
+    weightOrVolume: '1 ltr',
+    isAd: true,
+    rating: 4.6,
+    ratingCount: 680,
+    timeToDeliver: '15 MINS',
+    image: 'https://images.unsplash.com/photo-1474979266404-7eaacbcd87c5?auto=format&fit=crop&q=80&w=200',
+    discountPercentage: 20,
+  },
+  {
+    id: 'p2',
+    subcategoryId: 'sc1',
+    name: 'KARIKKU Coconut Oil',
+    description: 'Pure coconut oil for cooking & care',
+    price: 495,
+    originalPrice: 510,
+    weightOrVolume: '1000 ml',
+    isAd: true,
+    rating: 4.6,
+    ratingCount: 3900,
+    timeToDeliver: '15 MINS',
+    image: 'https://images.unsplash.com/photo-1620023605809-58ec7891cf19?auto=format&fit=crop&q=80&w=200',
+    discountPercentage: 2,
+  },
+  {
+    id: 'p3',
+    subcategoryId: 'sc1',
+    name: 'GEM\'S GOLD Cold Pressed Groundnut oil Bottle',
+    description: '100% natural, no preservatives',
+    price: 199,
+    originalPrice: 249,
+    weightOrVolume: '1 ltr',
+    isAd: false,
+    rating: 4.5,
+    ratingCount: 278,
+    timeToDeliver: '15 MINS',
+    image: 'https://images.unsplash.com/photo-1620023605809-58ec7891cf19?auto=format&fit=crop&q=80&w=200',
+    discountPercentage: 20,
+  },
+  {
+    id: 'p4',
+    subcategoryId: 'sc1',
+    name: 'Fortune Sunlite Refined Sunflower Oil',
+    description: 'Light refined oil for healthy cooking',
+    price: 155,
+    originalPrice: 175,
+    weightOrVolume: '1.74 kg',
+    isAd: false,
+    rating: 4.6,
+    ratingCount: 5900,
+    timeToDeliver: '15 MINS',
+    image: 'https://images.unsplash.com/photo-1474979266404-7eaacbcd87c5?auto=format&fit=crop&q=80&w=200',
+  },
+  {
+    id: 'p5',
+    subcategoryId: 'sc3', /* Ghee */
+    name: 'Amul Pure Ghee',
+    description: 'Authentic taste',
+    price: 520,
+    originalPrice: 550,
+    weightOrVolume: '1 ltr',
+    isAd: false,
+    rating: 4.8,
+    ratingCount: 12000,
+    timeToDeliver: '10 MINS',
+    image: 'https://images.unsplash.com/photo-1620023605809-58ec7891cf19?auto=format&fit=crop&q=80&w=200',
+    discountPercentage: 5,
+  }
+];
