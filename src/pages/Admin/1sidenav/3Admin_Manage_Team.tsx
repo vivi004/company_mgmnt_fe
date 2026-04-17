@@ -77,7 +77,8 @@ const AdminManageTeam = ({ employees, loading, theme, billCount, handleEdit, han
             </div>
 
             <div className={`rounded-[48px] border overflow-hidden transition-all ${theme === 'dark' ? 'bg-slate-900 border-white/5' : 'bg-white border-slate-100 shadow-2xl shadow-slate-200/30'}`}>
-                <div className="overflow-x-auto">
+                {/* Desktop Data Table */}
+                <div className="hidden lg:block overflow-x-auto">
                     <table className="w-full text-left border-collapse">
                         <thead>
                             <tr className={`${theme === 'dark' ? 'bg-white/5' : 'bg-slate-50'} border-b ${theme === 'dark' ? 'border-white/5' : 'border-slate-100'}`}>
@@ -95,7 +96,7 @@ const AdminManageTeam = ({ employees, loading, theme, billCount, handleEdit, han
                                 <tr><td colSpan={5} className="px-10 py-20 text-center text-slate-500 font-black italic uppercase tracking-widest">Network Empty</td></tr>
                             ) : (
                                 employees.map((emp) => (
-                                    <tr key={emp.id} className="hover:bg-blue-500/5 transition-all group">
+                                    <tr key={`desktop-${emp.id}`} className="hover:bg-blue-500/5 transition-all group">
                                         <td className="px-10 py-8">
                                             <div className="flex items-center">
                                                 <div className={`w-16 h-16 rounded-[24px] flex items-center justify-center font-black text-xl mr-6 border transition-all group-hover:rotate-6 ${theme === 'dark' ? 'bg-slate-800 text-blue-400 border-white/10' : 'bg-indigo-50 text-indigo-600 border-indigo-100'}`}>
@@ -152,6 +153,67 @@ const AdminManageTeam = ({ employees, loading, theme, billCount, handleEdit, han
                             )}
                         </tbody>
                     </table>
+                </div>
+
+                {/* Mobile Identity Cards */}
+                <div className={`lg:hidden flex flex-col divide-y ${theme === 'dark' ? 'divide-white/5' : 'divide-slate-50'}`}>
+                    {loading ? (
+                        <div className="p-16 text-center text-slate-500 font-black italic uppercase tracking-widest">Initializing Secure Stream...</div>
+                    ) : employees.length === 0 ? (
+                        <div className="p-16 text-center text-slate-500 font-black italic uppercase tracking-widest">Network Empty</div>
+                    ) : (
+                        employees.map((emp) => (
+                            <div key={`mobile-${emp.id}`} className="p-6 transition-all hover:bg-blue-500/5 group flex flex-col space-y-5">
+                                <div className="flex items-center justify-between">
+                                    <div className="flex items-center space-x-4">
+                                        <div className={`w-12 h-12 rounded-[16px] flex items-center justify-center font-black text-lg border transition-transform group-hover:rotate-6 shrink-0 ${theme === 'dark' ? 'bg-slate-800 text-blue-400 border-white/10' : 'bg-indigo-50 text-indigo-600 border-indigo-100'}`}>
+                                            {emp.first_name[0]}{emp.last_name[0]}
+                                        </div>
+                                        <div className="min-w-0 flex-1">
+                                            <p className={`font-black text-[17px] leading-tight tracking-tight truncate ${theme === 'dark' ? 'text-white' : 'text-slate-900 group-hover:text-blue-600'}`}>{emp.first_name} {emp.last_name}</p>
+                                            <code className="text-[9px] font-black bg-slate-500/10 px-2 py-0.5 mt-1 inline-block rounded-md text-slate-400 uppercase tracking-widest">
+                                                @{emp.username || 'null'}
+                                            </code>
+                                        </div>
+                                    </div>
+                                    <div className="flex items-center gap-2 shrink-0">
+                                        <button
+                                            onClick={() => handleEdit(emp)}
+                                            className={`p-2.5 rounded-xl transition-all border ${theme === 'dark' ? 'bg-slate-800 border-white/10 text-slate-400 hover:text-blue-400' : 'bg-blue-50 border-blue-100 text-blue-500 hover:bg-blue-600 hover:text-white'}`}
+                                            title="Edit Config"
+                                        >
+                                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+                                            </svg>
+                                        </button>
+                                        <button
+                                            onClick={() => handleDelete(emp.id)}
+                                            className={`p-2.5 rounded-xl transition-all border ${theme === 'dark' ? 'bg-slate-800 border-white/10 text-slate-400 hover:text-red-500' : 'bg-red-50 border-red-100 text-red-500 hover:bg-red-600 hover:text-white'}`}
+                                            title="Delete Node"
+                                        >
+                                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                            </svg>
+                                        </button>
+                                    </div>
+                                </div>
+                                <div className="flex flex-wrap items-center gap-3">
+                                    <span className={`inline-flex items-center px-4 py-1.5 rounded-xl text-[9px] font-black uppercase tracking-widest border ${emp.role.toLowerCase() === 'admin'
+                                            ? 'bg-indigo-500/10 text-indigo-400 border-indigo-500/20 shrink-0'
+                                            : 'bg-blue-500/10 text-blue-500 border-blue-500/20 shrink-0'
+                                        }`}>
+                                        {emp.role}
+                                    </span>
+                                    <div className="flex items-center shrink-0 ml-auto">
+                                        <div className={`w-2 h-2 rounded-full mr-2 border-2 ${emp.status === 'Active' ? 'bg-green-500 border-green-200' : 'bg-slate-300 border-slate-100'}`} />
+                                        <span className={`text-[10px] font-black uppercase tracking-tighter ${emp.status === 'Active' ? 'text-green-500' : 'text-slate-400'}`}>
+                                            {emp.status}
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                        ))
+                    )}
                 </div>
             </div>
         </div>
