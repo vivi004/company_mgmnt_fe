@@ -20,43 +20,48 @@ import type { Product, NishaSubcategory } from '../../constants/productData';
 const ShopProductCard: React.FC<{ product: Product }> = ({ product }) => {
   const [qty, setQty] = useState(0);
   return (
-    <div className="flex items-center gap-3 bg-white border border-gray-100 rounded-2xl shadow-sm p-3 hover:shadow-md transition-shadow duration-200">
-      <div className="w-16 h-16 shrink-0 rounded-xl bg-blue-50 flex items-center justify-center text-4xl">
+    <div className="flex items-center gap-4 bg-white border border-gray-100 rounded-2xl shadow-sm p-4 hover:shadow-md transition-all duration-200 group">
+
+      {/* Icon */}
+      <div className="w-16 h-16 sm:w-20 sm:h-20 shrink-0 rounded-2xl bg-gradient-to-br from-blue-50 to-indigo-50 flex items-center justify-center text-4xl sm:text-5xl group-hover:scale-105 transition-transform duration-200">
         {product.icon ?? '🛢️'}
       </div>
+
+      {/* Details */}
       <div className="flex-1 min-w-0">
-        <p className="text-[10px] font-bold uppercase tracking-widest text-blue-600 truncate">
-          {product.brand} · {product.size}
+        <p className="text-[10px] sm:text-xs font-bold uppercase tracking-widest text-blue-500">
+          {product.brand} &middot; {product.size}
         </p>
-        <h3 className="text-sm font-bold text-gray-800 leading-snug truncate">{product.name}</h3>
-        <p className="text-xs text-gray-500 mt-0.5">
-          Unit Price&nbsp;·&nbsp;
-          <span className="font-bold text-gray-700">₹{product.price.toFixed(2)}</span>
-        </p>
-        <p className="text-[10px] text-gray-400 uppercase">{product.unit}</p>
+        <h3 className="text-sm sm:text-base font-bold text-gray-800 leading-snug mt-0.5">{product.name}</h3>
+        <div className="flex items-baseline gap-2 mt-1">
+          <span className="text-base sm:text-lg font-black text-gray-900">₹{product.price.toFixed(2)}</span>
+          <span className="text-xs text-gray-400 font-medium">/ {product.unit}</span>
+        </div>
       </div>
-      <div className="flex flex-col items-center gap-1 shrink-0">
+
+      {/* Quantity Controls */}
+      <div className="shrink-0">
         {qty === 0 ? (
           <button
-            onClick={() => setQty(q => q + 1)}
-            className="w-9 h-9 bg-blue-600 text-white rounded-xl flex items-center justify-center hover:bg-blue-700 transition-colors shadow-sm"
+            onClick={() => setQty(1)}
+            className="w-10 h-10 sm:w-12 sm:h-12 bg-blue-600 text-white rounded-xl sm:rounded-2xl flex items-center justify-center hover:bg-blue-700 active:scale-95 transition-all duration-150 shadow-md"
           >
-            <AddIcon fontSize="small" />
+            <AddIcon />
           </button>
         ) : (
-          <div className="flex items-center gap-2 bg-blue-50 border border-blue-200 rounded-xl px-2 py-1">
+          <div className="flex items-center gap-2 sm:gap-3 bg-blue-50 border border-blue-200 rounded-xl sm:rounded-2xl px-2 sm:px-3 py-1.5">
             <button
               onClick={() => setQty(q => Math.max(0, q - 1))}
-              className="w-6 h-6 bg-white rounded-lg flex items-center justify-center text-blue-600 hover:bg-blue-100 transition-colors shadow-sm border border-blue-100"
+              className="w-7 h-7 sm:w-8 sm:h-8 bg-white rounded-lg flex items-center justify-center text-blue-600 border border-blue-100 hover:bg-blue-100 active:scale-95 transition-all"
             >
-              <RemoveIcon style={{ fontSize: 14 }} />
+              <RemoveIcon style={{ fontSize: 16 }} />
             </button>
-            <span className="text-sm font-bold text-blue-700 min-w-[16px] text-center">{qty}</span>
+            <span className="text-sm sm:text-base font-bold text-blue-700 min-w-[20px] text-center">{qty}</span>
             <button
               onClick={() => setQty(q => q + 1)}
-              className="w-6 h-6 bg-blue-600 rounded-lg flex items-center justify-center text-white hover:bg-blue-700 transition-colors shadow-sm"
+              className="w-7 h-7 sm:w-8 sm:h-8 bg-blue-600 rounded-lg flex items-center justify-center text-white hover:bg-blue-700 active:scale-95 transition-all"
             >
-              <AddIcon style={{ fontSize: 14 }} />
+              <AddIcon style={{ fontSize: 16 }} />
             </button>
           </div>
         )}
@@ -117,10 +122,8 @@ const SHOP_CATEGORIES: ShopCategory[] = [
 
 function filterProducts(products: Product[], subcatId: string): Product[] {
   if (subcatId === 'ALL') return products;
-  // Oil Cake: match by name
   const byName = products.filter(p => p.name === subcatId);
   if (byName.length > 0) return byName;
-  // Nisha: match by id prefix e.g. 'GN' → 'gn-'
   return products.filter(p => p.id.startsWith(subcatId.toLowerCase() + '-'));
 }
 
@@ -129,43 +132,66 @@ const ShopCategoryPage: React.FC = () => {
   const navigate = useNavigate();
   const [activeCatId, setActiveCatId] = useState(SHOP_CATEGORIES[0].id);
   const [activeSubcatId, setActiveSubcatId] = useState(SHOP_CATEGORIES[0].subcategories[0].id);
+  const [search, setSearch] = useState('');
+  const [showSearch, setShowSearch] = useState(false);
 
   const activeCat = SHOP_CATEGORIES.find(c => c.id === activeCatId)!;
-  const filtered = filterProducts(activeCat.getProducts(), activeSubcatId);
+  const allInSubcat = filterProducts(activeCat.getProducts(), activeSubcatId);
+  const filtered = search.trim()
+    ? allInSubcat.filter(p =>
+        p.name.toLowerCase().includes(search.toLowerCase()) ||
+        p.size.toLowerCase().includes(search.toLowerCase())
+      )
+    : allInSubcat;
 
   const handleCatChange = (catId: string) => {
     const cat = SHOP_CATEGORIES.find(c => c.id === catId)!;
     setActiveCatId(catId);
     setActiveSubcatId(cat.subcategories[0].id);
+    setSearch('');
   };
 
   return (
     <div className="flex flex-col h-screen bg-gray-50 font-sans">
 
-      {/* Header */}
-      <header className="flex items-center justify-between px-4 h-14 bg-white border-b border-gray-100 shrink-0 shadow-sm">
-        <div className="flex items-center gap-2">
+      {/* ── Header ── */}
+      <header className="flex items-center justify-between px-4 sm:px-6 h-14 sm:h-16 bg-white border-b border-gray-100 shrink-0 shadow-sm">
+        <div className="flex items-center gap-2 sm:gap-3">
           <IconButton size="small" onClick={() => navigate(-1)}>
-            <ArrowBackIcon fontSize="small" />
+            <ArrowBackIcon />
           </IconButton>
-          <h1 className="text-lg font-bold text-gray-900 tracking-tight">{activeCat.name}</h1>
+          <div>
+            <h1 className="text-base sm:text-xl font-bold text-gray-900 tracking-tight leading-none">{activeCat.name}</h1>
+            <p className="text-xs text-gray-400 mt-0.5 hidden sm:block">{filtered.length} products</p>
+          </div>
         </div>
-        <IconButton size="small">
-          <SearchIcon fontSize="small" />
-        </IconButton>
+        <div className="flex items-center gap-1">
+          {showSearch && (
+            <input
+              autoFocus
+              value={search}
+              onChange={e => setSearch(e.target.value)}
+              placeholder="Search products..."
+              className="border border-gray-200 rounded-xl px-3 py-1.5 text-sm text-gray-700 outline-none focus:border-blue-400 w-40 sm:w-64 transition-all"
+            />
+          )}
+          <IconButton size="small" onClick={() => { setShowSearch(s => !s); setSearch(''); }}>
+            <SearchIcon />
+          </IconButton>
+        </div>
       </header>
 
-      {/* Top Category Tabs */}
-      <div className="flex items-center gap-2 px-4 py-2 overflow-x-auto bg-white border-b border-gray-100 shrink-0 custom-scrollbar">
+      {/* ── Top Category Tabs ── */}
+      <div className="flex items-center gap-2 px-4 sm:px-6 py-2 sm:py-3 overflow-x-auto bg-white border-b border-gray-100 shrink-0 custom-scrollbar">
         {SHOP_CATEGORIES.map(cat => {
           const isActive = cat.id === activeCatId;
           return (
             <button
               key={cat.id}
               onClick={() => handleCatChange(cat.id)}
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-semibold whitespace-nowrap transition-all duration-200 shrink-0 border ${
+              className={`flex items-center gap-1.5 px-3 sm:px-4 py-1.5 sm:py-2 rounded-full text-xs sm:text-sm font-semibold whitespace-nowrap transition-all duration-200 shrink-0 border ${
                 isActive
-                  ? 'bg-blue-600 text-white border-blue-600 shadow-sm'
+                  ? 'bg-blue-600 text-white border-blue-600 shadow-sm scale-105'
                   : 'bg-white text-gray-600 border-gray-200 hover:border-blue-300 hover:text-blue-600'
               }`}
             >
@@ -176,49 +202,58 @@ const ShopCategoryPage: React.FC = () => {
         })}
       </div>
 
-      {/* Body */}
+      {/* ── Body ── */}
       <div className="flex flex-1 overflow-hidden">
 
-        {/* Sidebar */}
-        <div className="flex flex-col w-24 shrink-0 border-r border-gray-200 overflow-y-auto bg-gray-50 custom-scrollbar">
+        {/* ── Left Sidebar ── */}
+        <aside className="flex flex-col w-20 sm:w-36 shrink-0 border-r border-gray-200 overflow-y-auto bg-white custom-scrollbar">
           {activeCat.subcategories.map(sub => {
             const isSel = sub.id === activeSubcatId;
             return (
               <button
                 key={sub.id}
                 onClick={() => setActiveSubcatId(sub.id)}
-                className={`flex flex-col items-center justify-center gap-1 py-3 px-1 relative transition-all duration-200 ${
-                  isSel ? 'bg-white shadow-[inset_3px_0_0_#2563eb]' : 'hover:bg-gray-100'
+                className={`flex flex-col items-center justify-center gap-1 sm:gap-1.5 py-3 sm:py-4 px-1 sm:px-2 relative transition-all duration-200 border-b border-gray-50 ${
+                  isSel
+                    ? 'bg-blue-50 shadow-[inset_3px_0_0_#2563eb]'
+                    : 'hover:bg-gray-50'
                 }`}
               >
-                <span className="text-2xl leading-none">{sub.icon}</span>
-                <span className={`text-[9px] text-center leading-tight font-semibold ${isSel ? 'text-blue-600' : 'text-gray-500'}`}>
+                <span className="text-xl sm:text-3xl leading-none">{sub.icon}</span>
+                <span className={`text-[9px] sm:text-[11px] text-center leading-tight font-semibold ${isSel ? 'text-blue-600' : 'text-gray-500'}`}>
                   {sub.name}
                 </span>
+                {isSel && (
+                  <div className="absolute right-0 top-1/2 -translate-y-1/2 w-1 h-8 bg-blue-500 rounded-l-full" />
+                )}
               </button>
             );
           })}
-        </div>
+        </aside>
 
-        {/* Product List */}
-        <div className="flex-1 overflow-y-auto custom-scrollbar bg-white p-3 pb-10">
-          {filtered.length > 0 ? (
-            <div className="flex flex-col gap-3">
-              {filtered.map(product => (
-                <ShopProductCard key={product.id} product={product} />
-              ))}
-              <div className="text-center py-4">
-                <span className="inline-block text-xs text-gray-400 uppercase tracking-widest bg-gray-100 px-4 py-1.5 rounded-full">
-                  End of List
-                </span>
+        {/* ── Product List ── */}
+        <main className="flex-1 overflow-y-auto custom-scrollbar bg-gray-50 p-3 sm:p-6 pb-10">
+          <div className="flex flex-col gap-3 sm:gap-4 max-w-3xl mx-auto">
+            {filtered.length > 0 ? (
+              <>
+                {filtered.map(product => (
+                  <ShopProductCard key={product.id} product={product} />
+                ))}
+                <div className="text-center py-6">
+                  <span className="inline-block text-xs text-gray-400 uppercase tracking-widest bg-white border border-gray-100 px-5 py-2 rounded-full shadow-sm">
+                    {filtered.length} items · End of List
+                  </span>
+                </div>
+              </>
+            ) : (
+              <div className="flex flex-col items-center justify-center py-20 text-center">
+                <span className="text-5xl mb-4">🔍</span>
+                <p className="text-gray-500 font-semibold">No products found</p>
+                <p className="text-sm text-gray-400 mt-1">Try a different subcategory or search term</p>
               </div>
-            </div>
-          ) : (
-            <div className="flex flex-col items-center justify-center h-40 text-center">
-              <p className="text-gray-400 font-medium">No products found.</p>
-            </div>
-          )}
-        </div>
+            )}
+          </div>
+        </main>
 
       </div>
     </div>
