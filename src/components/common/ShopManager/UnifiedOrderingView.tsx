@@ -373,15 +373,10 @@ const UnifiedOrderingView: React.FC<Props> = ({ shopName, theme, cart, updateQua
           <div className="absolute bottom-6 left-1/2 -translate-x-1/2 w-[90%] max-w-md z-50">
             <button
               onClick={onReviewOrder}
-              className="w-full flex items-center justify-between p-4 rounded-3xl bg-blue-600 text-white shadow-xl shadow-blue-600/30 hover:bg-blue-700 active:scale-95 transition-all text-left"
+              className="w-full flex items-center justify-center gap-3 p-4 rounded-3xl bg-blue-600 text-white shadow-xl shadow-blue-600/30 hover:bg-blue-700 active:scale-95 transition-all text-center"
             >
-              <div>
-                <p className="opacity-80 text-xs font-black uppercase tracking-widest mb-1">Verify Cart Content</p>
-                <p className="font-extrabold text-xl leading-none">{totalItems} Total Variants Added</p>
-              </div>
-              <div className="w-12 h-12 bg-white/20 backdrop-blur-md rounded-full flex items-center justify-center">
-                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" /></svg>
-              </div>
+              <span className="font-black text-xl uppercase tracking-widest">Place Order</span>
+              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M14 5l7 7m0 0l-7 7m7-7H3" /></svg>
             </button>
           </div>
         )}
