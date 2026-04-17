@@ -113,11 +113,11 @@ const UnifiedProductCard: React.FC<CardProps> = ({ product, cart, isDark, update
           <button onClick={() => updateQuantity(boxId, -1)} className="w-6 h-6 sm:w-8 sm:h-8 rounded-lg flex items-center justify-center transition-all hover:bg-red-100 hover:text-red-500 text-slate-400">
             <RemoveIcon style={{ fontSize: 16 }} />
           </button>
-          <input 
-            type="number" min="0" value={cart[boxId] || ''} 
-            onChange={(e) => handleManualQuantity(boxId, parseInt(e.target.value) || 0)} 
-            placeholder="0" 
-            className={`w-8 sm:w-10 text-center text-sm sm:text-base font-black bg-transparent outline-none ${isDark ? 'text-white' : 'text-slate-900'} [-moz-appearance:_textfield][&::-webkit-inner-spin-button]:m-0[&::-webkit-inner-spin-button]:appearance-none`} 
+          <input
+            type="number" min="0" value={cart[boxId] || ''}
+            onChange={(e) => handleManualQuantity(boxId, parseInt(e.target.value) || 0)}
+            placeholder="0"
+            className={`w-8 sm:w-10 text-center text-sm sm:text-base font-black bg-transparent outline-none ${isDark ? 'text-white' : 'text-slate-900'} [-moz-appearance:_textfield][&::-webkit-inner-spin-button]:m-0[&::-webkit-inner-spin-button]:appearance-none`}
           />
           <button onClick={() => updateQuantity(boxId, 1)} className={`w-6 h-6 sm:w-8 sm:h-8 rounded-lg bg-${primaryColor}-500 text-white flex items-center justify-center transition-all hover:bg-${primaryColor}-600`}>
             <AddIcon style={{ fontSize: 16 }} />
@@ -125,20 +125,20 @@ const UnifiedProductCard: React.FC<CardProps> = ({ product, cart, isDark, update
         </div>
         <span className="text-[10px] sm:text-xs font-black text-slate-500 mt-1">{(product.price * boxMultiplier).toFixed(2)} /box</span>
       </div>
-      
+
       <div className="w-px h-12 bg-slate-200 dark:bg-slate-700"></div>
-      
+
       <div className="flex flex-col items-center flex-1">
         <span className="text-[10px] font-black uppercase tracking-widest text-slate-500">{litreLabel}</span>
         <div className={`flex items-center gap-1 mt-1 p-1 rounded-xl border ${isDark ? 'bg-slate-950 border-white/10' : 'bg-white border-slate-200 shadow-sm'}`}>
           <button onClick={() => updateQuantity(litreId, -litreStep)} className={`w-6 h-6 sm:w-8 sm:h-8 rounded-lg flex items-center justify-center transition-all ${(cart[litreId] || 0) > 0 ? 'hover:bg-red-100 hover:text-red-500' : ''} text-slate-400`} disabled={!(cart[litreId] || 0)}>
             <RemoveIcon style={{ fontSize: 16 }} />
           </button>
-          <input 
-            type="number" min="0" step={litreStep} value={cart[litreId] || ''} 
-            onChange={(e) => handleManualQuantity(litreId, parseFloat(e.target.value) || 0, product)} 
-            placeholder="0" 
-            className={`w-8 sm:w-10 text-center text-sm sm:text-base font-black bg-transparent outline-none ${isDark ? 'text-white' : 'text-slate-900'} [-moz-appearance:_textfield][&::-webkit-inner-spin-button]:m-0[&::-webkit-inner-spin-button]:appearance-none`} 
+          <input
+            type="number" min="0" step={litreStep} value={cart[litreId] || ''}
+            onChange={(e) => handleManualQuantity(litreId, parseFloat(e.target.value) || 0, product)}
+            placeholder="0"
+            className={`w-8 sm:w-10 text-center text-sm sm:text-base font-black bg-transparent outline-none ${isDark ? 'text-white' : 'text-slate-900'} [-moz-appearance:_textfield][&::-webkit-inner-spin-button]:m-0[&::-webkit-inner-spin-button]:appearance-none`}
           />
           <button onClick={() => updateQuantity(litreId, litreStep)} className={`w-6 h-6 sm:w-8 sm:h-8 rounded-lg bg-${primaryColor}-500 text-white flex items-center justify-center transition-all hover:bg-${primaryColor}-600`}>
             <AddIcon style={{ fontSize: 16 }} />
@@ -151,7 +151,7 @@ const UnifiedProductCard: React.FC<CardProps> = ({ product, cart, isDark, update
 
   const renderSizeControls = () => {
     const sizeLower = product.size.toLowerCase();
-    
+
     // Pattern matching exactly like old layout
     if (sizeLower === '100 ml') return <BoxLitreControls boxId={product.id + '_box'} litreId={product.id + '_ltr'} boxMultiplier={50} litreStep={1} litreMultiplier={10} litreLabel="LTR" />;
     if (sizeLower === '200 ml') return <BoxLitreControls boxId={product.id + '_box'} litreId={product.id + '_ltr'} boxMultiplier={25} litreStep={1} litreMultiplier={5} litreLabel="LTR" />;
@@ -165,11 +165,11 @@ const UnifiedProductCard: React.FC<CardProps> = ({ product, cart, isDark, update
         <button onClick={() => updateQuantity(product.id, -1)} className={`w-8 h-8 rounded-lg flex items-center justify-center transition-all ${(cart[product.id] || 0) > 0 ? 'hover:bg-red-100 hover:text-red-500 text-slate-600' : 'text-slate-300'}`} disabled={!(cart[product.id] || 0)}>
           <RemoveIcon style={{ fontSize: 16 }} />
         </button>
-        <input 
-          type="number" min="0" value={cart[product.id] || ''} 
-          onChange={(e) => handleManualQuantity(product.id, parseInt(e.target.value) || 0)} 
-          placeholder="0" 
-          className={`w-10 text-center text-base font-black bg-transparent outline-none ${isDark ? 'text-white' : 'text-slate-900'} [-moz-appearance:_textfield][&::-webkit-inner-spin-button]:m-0[&::-webkit-inner-spin-button]:appearance-none`} 
+        <input
+          type="number" min="0" value={cart[product.id] || ''}
+          onChange={(e) => handleManualQuantity(product.id, parseInt(e.target.value) || 0)}
+          placeholder="0"
+          className={`w-10 text-center text-base font-black bg-transparent outline-none ${isDark ? 'text-white' : 'text-slate-900'} [-moz-appearance:_textfield][&::-webkit-inner-spin-button]:m-0[&::-webkit-inner-spin-button]:appearance-none`}
         />
         <button onClick={() => updateQuantity(product.id, 1)} className={`w-8 h-8 rounded-lg bg-${primaryColor}-500 text-white flex items-center justify-center transition-all hover:bg-${primaryColor}-600`}>
           <AddIcon style={{ fontSize: 16 }} />
@@ -212,7 +212,7 @@ const UnifiedProductCard: React.FC<CardProps> = ({ product, cart, isDark, update
 
 const UnifiedOrderingView: React.FC<Props> = ({ shopName, theme, cart, updateQuantity, onBack, onReviewOrder }) => {
   const isDark = theme === 'dark';
-  
+
   const [activeCatId, setActiveCatId] = useState(SHOP_CATEGORIES[0].id);
   const [activeSubcatId, setActiveSubcatId] = useState(SHOP_CATEGORIES[0].subcategories[0].id);
   const [search, setSearch] = useState('');
@@ -220,12 +220,12 @@ const UnifiedOrderingView: React.FC<Props> = ({ shopName, theme, cart, updateQua
 
   const activeCat = SHOP_CATEGORIES.find(c => c.id === activeCatId)!;
   const allInSubcat = filterProducts(activeCat.getProducts(), activeSubcatId);
-  
+
   const filtered = search.trim()
     ? allInSubcat.filter(p =>
-        p.name.toLowerCase().includes(search.toLowerCase()) ||
-        p.size.toLowerCase().includes(search.toLowerCase())
-      )
+      p.name.toLowerCase().includes(search.toLowerCase()) ||
+      p.size.toLowerCase().includes(search.toLowerCase())
+    )
     : allInSubcat;
 
   const handleCatChange = (catId: string) => {
@@ -296,11 +296,10 @@ const UnifiedOrderingView: React.FC<Props> = ({ shopName, theme, cart, updateQua
             <button
               key={cat.id}
               onClick={() => handleCatChange(cat.id)}
-              className={`flex items-center gap-1.5 px-3 sm:px-4 py-1.5 sm:py-2 rounded-full text-xs sm:text-sm font-semibold whitespace-nowrap transition-all duration-200 shrink-0 border ${
-                isActive
+              className={`flex items-center gap-1.5 px-3 sm:px-4 py-1.5 sm:py-2 rounded-full text-xs sm:text-sm font-semibold whitespace-nowrap transition-all duration-200 shrink-0 border ${isActive
                   ? 'bg-blue-600 text-white border-blue-600 shadow-sm scale-105'
                   : isDark ? 'bg-slate-800 text-slate-300 border-white/10 hover:border-blue-400 hover:text-blue-400' : 'bg-white text-gray-600 border-gray-200 hover:border-blue-300 hover:text-blue-600'
-              }`}
+                }`}
             >
               <span>{cat.icon}</span>
               <span>{cat.name}</span>
@@ -320,13 +319,11 @@ const UnifiedOrderingView: React.FC<Props> = ({ shopName, theme, cart, updateQua
               <button
                 key={sub.id}
                 onClick={() => setActiveSubcatId(sub.id)}
-                className={`flex flex-col items-center justify-center py-4 px-1 relative transition-all duration-200 border-b ${
-                  isDark ? 'border-white/5' : 'border-gray-50'
-                } ${
-                  isSel
+                className={`flex flex-col items-center justify-center py-4 px-1 relative transition-all duration-200 border-b ${isDark ? 'border-white/5' : 'border-gray-50'
+                  } ${isSel
                     ? isDark ? 'bg-blue-900/30' : 'bg-blue-50'
                     : isDark ? 'hover:bg-slate-900' : 'hover:bg-gray-50'
-                }`}
+                  }`}
               >
                 <span className="text-2xl sm:text-3xl leading-none mb-1.5">{sub.icon}</span>
                 <span className={`text-[10px] text-center leading-tight font-bold ${isSel ? 'text-blue-500' : isDark ? 'text-slate-400' : 'text-gray-500'}`}>
@@ -346,13 +343,13 @@ const UnifiedOrderingView: React.FC<Props> = ({ shopName, theme, cart, updateQua
             {filtered.length > 0 ? (
               <>
                 {filtered.map(product => (
-                  <UnifiedProductCard 
-                    key={product.id} 
-                    product={product} 
-                    cart={cart} 
-                    isDark={isDark} 
-                    updateQuantity={updateQuantity} 
-                    handleManualQuantity={handleManualQuantity} 
+                  <UnifiedProductCard
+                    key={product.id}
+                    product={product}
+                    cart={cart}
+                    isDark={isDark}
+                    updateQuantity={updateQuantity}
+                    handleManualQuantity={handleManualQuantity}
                   />
                 ))}
                 <div className="text-center py-6">
