@@ -106,46 +106,55 @@ const UnifiedProductCard: React.FC<CardProps> = ({ product, cart, isDark, update
   const BoxLitreControls = ({ boxId, litreId, boxMultiplier, litreStep, litreMultiplier, litreLabel }: {
     boxId: string; litreId: string; boxMultiplier: number; litreStep: number; litreMultiplier: number; litreLabel: string;
   }) => (
-    <div className={`flex items-center gap-4 p-3 rounded-2xl border ${isDark ? 'bg-slate-900/50 border-white/5' : 'bg-slate-50 border-slate-200 shadow-inner'}`}>
-      <div className="flex flex-col items-center flex-1">
-        <span className="text-[10px] font-black uppercase tracking-widest text-slate-500">Box</span>
-        <div className={`flex items-center gap-1 mt-1 p-1 rounded-xl border ${isDark ? 'bg-slate-950 border-white/10' : 'bg-white border-slate-200 shadow-sm'}`}>
-          <button onClick={() => updateQuantity(boxId, -1)} className="w-6 h-6 sm:w-8 sm:h-8 rounded-lg flex items-center justify-center transition-all hover:bg-red-100 hover:text-red-500 text-slate-400">
+    <div className={`flex flex-col sm:flex-row items-stretch sm:items-center gap-2 sm:gap-4 p-2 sm:p-3 rounded-2xl border w-full ${isDark ? 'bg-slate-900/50 border-white/5' : 'bg-slate-50 border-slate-200 shadow-inner'}`}>
+      
+      {/* Box Row */}
+      <div className="flex flex-row sm:flex-col items-center justify-between sm:justify-center w-full sm:w-auto flex-1 gap-2 sm:gap-0">
+        <div className="flex flex-col items-start sm:items-center w-16 sm:w-auto shrink-0">
+          <span className="text-[10px] font-black uppercase tracking-widest text-slate-500">Box</span>
+          <span className="text-[9px] sm:text-[10px] font-bold text-slate-400 mt-0.5">{(product.price * boxMultiplier).toFixed(2)}</span>
+        </div>
+        <div className={`flex items-center gap-1 sm:mt-1 p-1 rounded-xl border ${isDark ? 'bg-slate-950 border-white/10' : 'bg-white border-slate-200 shadow-sm'}`}>
+          <button onClick={() => updateQuantity(boxId, -1)} className="w-8 h-8 rounded-lg flex items-center justify-center transition-all hover:bg-red-100 hover:text-red-500 text-slate-400">
             <RemoveIcon style={{ fontSize: 16 }} />
           </button>
           <input
             type="number" min="0" value={cart[boxId] || ''}
             onChange={(e) => handleManualQuantity(boxId, parseInt(e.target.value) || 0)}
             placeholder="0"
-            className={`w-8 sm:w-10 text-center text-sm sm:text-base font-black bg-transparent outline-none ${isDark ? 'text-white' : 'text-slate-900'} [-moz-appearance:_textfield][&::-webkit-inner-spin-button]:m-0[&::-webkit-inner-spin-button]:appearance-none`}
+            className={`w-10 text-center text-sm sm:text-base font-black bg-transparent outline-none ${isDark ? 'text-white' : 'text-slate-900'} [-moz-appearance:_textfield][&::-webkit-inner-spin-button]:m-0[&::-webkit-inner-spin-button]:appearance-none`}
           />
-          <button onClick={() => updateQuantity(boxId, 1)} className={`w-6 h-6 sm:w-8 sm:h-8 rounded-lg bg-${primaryColor}-500 text-white flex items-center justify-center transition-all hover:bg-${primaryColor}-600`}>
+          <button onClick={() => updateQuantity(boxId, 1)} className={`w-8 h-8 rounded-lg bg-${primaryColor}-500 text-white flex items-center justify-center transition-all hover:bg-${primaryColor}-600`}>
             <AddIcon style={{ fontSize: 16 }} />
           </button>
         </div>
-        <span className="text-[10px] sm:text-xs font-black text-slate-500 mt-1">{(product.price * boxMultiplier).toFixed(2)} /box</span>
       </div>
 
-      <div className="w-px h-12 bg-slate-200 dark:bg-slate-700"></div>
+      {/* Divider */}
+      <div className="w-full h-px sm:w-px sm:h-12 bg-slate-200 dark:bg-slate-700"></div>
 
-      <div className="flex flex-col items-center flex-1">
-        <span className="text-[10px] font-black uppercase tracking-widest text-slate-500">{litreLabel}</span>
-        <div className={`flex items-center gap-1 mt-1 p-1 rounded-xl border ${isDark ? 'bg-slate-950 border-white/10' : 'bg-white border-slate-200 shadow-sm'}`}>
-          <button onClick={() => updateQuantity(litreId, -litreStep)} className={`w-6 h-6 sm:w-8 sm:h-8 rounded-lg flex items-center justify-center transition-all ${(cart[litreId] || 0) > 0 ? 'hover:bg-red-100 hover:text-red-500' : ''} text-slate-400`} disabled={!(cart[litreId] || 0)}>
+      {/* Litre Row */}
+      <div className="flex flex-row sm:flex-col items-center justify-between sm:justify-center w-full sm:w-auto flex-1 gap-2 sm:gap-0">
+        <div className="flex flex-col items-start sm:items-center w-16 sm:w-auto shrink-0">
+          <span className="text-[10px] font-black uppercase tracking-widest text-slate-500">{litreLabel}</span>
+          <span className="text-[9px] sm:text-[10px] font-bold text-slate-400 mt-0.5">{(product.price * litreMultiplier).toFixed(2)}</span>
+        </div>
+        <div className={`flex items-center gap-1 sm:mt-1 p-1 rounded-xl border ${isDark ? 'bg-slate-950 border-white/10' : 'bg-white border-slate-200 shadow-sm'}`}>
+          <button onClick={() => updateQuantity(litreId, -litreStep)} className={`w-8 h-8 rounded-lg flex items-center justify-center transition-all ${(cart[litreId] || 0) > 0 ? 'hover:bg-red-100 hover:text-red-500' : ''} text-slate-400`} disabled={!(cart[litreId] || 0)}>
             <RemoveIcon style={{ fontSize: 16 }} />
           </button>
           <input
             type="number" min="0" step={litreStep} value={cart[litreId] || ''}
             onChange={(e) => handleManualQuantity(litreId, parseFloat(e.target.value) || 0, product)}
             placeholder="0"
-            className={`w-8 sm:w-10 text-center text-sm sm:text-base font-black bg-transparent outline-none ${isDark ? 'text-white' : 'text-slate-900'} [-moz-appearance:_textfield][&::-webkit-inner-spin-button]:m-0[&::-webkit-inner-spin-button]:appearance-none`}
+            className={`w-10 text-center text-sm sm:text-base font-black bg-transparent outline-none ${isDark ? 'text-white' : 'text-slate-900'} [-moz-appearance:_textfield][&::-webkit-inner-spin-button]:m-0[&::-webkit-inner-spin-button]:appearance-none`}
           />
-          <button onClick={() => updateQuantity(litreId, litreStep)} className={`w-6 h-6 sm:w-8 sm:h-8 rounded-lg bg-${primaryColor}-500 text-white flex items-center justify-center transition-all hover:bg-${primaryColor}-600`}>
+          <button onClick={() => updateQuantity(litreId, litreStep)} className={`w-8 h-8 rounded-lg bg-${primaryColor}-500 text-white flex items-center justify-center transition-all hover:bg-${primaryColor}-600`}>
             <AddIcon style={{ fontSize: 16 }} />
           </button>
         </div>
-        <span className="text-[10px] sm:text-xs font-black text-slate-500 mt-1">{(product.price * litreMultiplier).toFixed(2)} /{litreLabel}</span>
       </div>
+
     </div>
   );
 
