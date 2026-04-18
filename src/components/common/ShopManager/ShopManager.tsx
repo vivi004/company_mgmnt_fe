@@ -12,6 +12,7 @@ interface Shop {
     shop_name: string;
     village_name: string;
     owner_name: string;
+    shop_owner: string;
     phone: string;
     phone2: string;
     balance: number;
@@ -34,7 +35,7 @@ const ShopManager = ({ orderLineId, villageName, theme, onBack, type }: Props) =
     const [loading, setLoading] = useState(true);
     const [showModal, setShowModal] = useState(false);
     const [editingShop, setEditingShop] = useState<Shop | null>(null);
-    const [formData, setFormData] = useState({ shop_name: '', owner_name: '', phone: '', phone2: '', balance: '' });
+    const [formData, setFormData] = useState({ shop_name: '', owner_name: '', shop_owner: '', phone: '', phone2: '', balance: '' });
     const { toasts, showToast, removeToast } = useToast();
     const [selectedShop, setSelectedShop] = useState<Shop | null>(null);
     const [shopSearch, setShopSearch] = useState('');
@@ -77,7 +78,7 @@ const ShopManager = ({ orderLineId, villageName, theme, onBack, type }: Props) =
 
     const openAdd = () => {
         setEditingShop(null);
-        setFormData({ shop_name: '', owner_name: '', phone: '', phone2: '', balance: '' });
+        setFormData({ shop_name: '', owner_name: '', shop_owner: '', phone: '', phone2: '', balance: '' });
         setShowModal(true);
     };
 
@@ -86,6 +87,7 @@ const ShopManager = ({ orderLineId, villageName, theme, onBack, type }: Props) =
         setFormData({
             shop_name: shop.shop_name,
             owner_name: shop.owner_name,
+            shop_owner: shop.shop_owner || '',
             phone: shop.phone,
             phone2: shop.phone2 || '',
             balance: shop.balance.toString()
@@ -100,6 +102,7 @@ const ShopManager = ({ orderLineId, villageName, theme, onBack, type }: Props) =
             shop_name: formData.shop_name,
             village_name: villageName,
             owner_name: formData.owner_name,
+            shop_owner: formData.shop_owner,
             phone: formData.phone,
             phone2: formData.phone2,
             balance: parseFloat(formData.balance) || 0
@@ -314,6 +317,7 @@ const ShopManager = ({ orderLineId, villageName, theme, onBack, type }: Props) =
                     ? shops.filter(s =>
                         s.shop_name.toLowerCase().includes(shopSearch.toLowerCase()) ||
                         (s.owner_name && s.owner_name.toLowerCase().includes(shopSearch.toLowerCase())) ||
+                        (s.shop_owner && s.shop_owner.toLowerCase().includes(shopSearch.toLowerCase())) ||
                         (s.phone && s.phone.includes(shopSearch)) ||
                         (s.phone2 && s.phone2.includes(shopSearch))
                     )
@@ -346,7 +350,7 @@ const ShopManager = ({ orderLineId, villageName, theme, onBack, type }: Props) =
                             <div className="flex-grow min-w-0">
                                 <p className={`font-black text-xl leading-tight ${isDark ? 'text-white' : 'text-slate-900'}`}>{shop.shop_name}</p>
                                 <p className="text-xs font-bold text-slate-500 uppercase tracking-widest mt-1">
-                                    {(isAdmin ? shop.owner_name : shop.owner_name) || '—'}
+                                    {(isAdmin ? shop.owner_name : shop.owner_name) || '—'} {shop.shop_owner && <span className="text-blue-500 ml-1">• {shop.shop_owner}</span>}
                                 </p>
                                 <p className="text-sm text-slate-500 font-medium mt-0.5">{shop.phone || '—'}</p>
                                 {shop.phone2 && <p className="text-sm text-slate-500 font-medium">{shop.phone2}</p>}
@@ -395,9 +399,9 @@ const ShopManager = ({ orderLineId, villageName, theme, onBack, type }: Props) =
 
             {/* Modal */}
             {showModal && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-                    <div className="absolute inset-0 bg-slate-950/80 backdrop-blur-xl" onClick={() => setShowModal(false)} />
-                    <div className={`relative rounded-[40px] w-full max-w-md border shadow-2xl p-8 animate-in zoom-in-95 duration-300
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 overflow-y-auto no-scrollbar">
+                    <div className="fixed inset-0 bg-slate-950/80 backdrop-blur-xl" onClick={() => setShowModal(false)} />
+                    <div className={`relative my-auto rounded-[40px] w-full max-w-md border shadow-2xl p-8 animate-in zoom-in-95 duration-300
                         ${isDark ? 'bg-slate-900 border-white/10' : 'bg-white border-slate-100'}`}>
                         <div className="flex items-center justify-between mb-8">
                             <div>
@@ -413,7 +417,8 @@ const ShopManager = ({ orderLineId, villageName, theme, onBack, type }: Props) =
                         <form onSubmit={handleSubmit} className="space-y-5">
                             {[
                                 { label: 'Shop Name', key: 'shop_name', type: 'text', required: true, placeholder: 'e.g. Annai Store' },
-                                { label: isAdmin ? 'Area Name' : 'Owner Name', key: 'owner_name', type: 'text', required: false, placeholder: 'e.g. Ravi' },
+                                { label: 'Area Name', key: 'owner_name', type: 'text', required: false, placeholder: 'e.g. Entrance' },
+                                { label: 'Owner Name', key: 'shop_owner', type: 'text', required: false, placeholder: 'e.g. Ravi' },
                                 { label: 'Phone 1', key: 'phone', type: 'text', required: false, placeholder: 'e.g. 9876543210' },
                                 { label: 'Phone 2', key: 'phone2', type: 'text', required: false, placeholder: 'e.g. 9876543211' },
                                 { label: 'Balance (₹)', key: 'balance', type: 'number', required: false, placeholder: '0.00' },
