@@ -146,6 +146,7 @@ const AdminDashboard = () => {
                                 setPushNotifications={actions.setPushNotifications}
                                 nextInvoiceNo={state.nextInvoiceNo}
                                 setNextInvoiceNo={actions.setNextInvoiceNo}
+                                lastInvoiceNo={state.lastInvoiceNo}
                                 profilePic={state.profilePic}
                                 setProfilePic={actions.setProfilePic}
 

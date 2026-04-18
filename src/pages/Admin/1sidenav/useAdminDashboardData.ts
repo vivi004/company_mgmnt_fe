@@ -25,6 +25,7 @@ export const useAdminDashboardData = () => {
     const [pushNotifications, setPushNotifications] = useState(() => localStorage.getItem('pushNotifications') === 'true');
     const [isSyncing, setIsSyncing] = useState(false);
     const [nextInvoiceNo, setNextInvoiceNo] = useState(() => parseInt(localStorage.getItem('nextInvoiceNo') || '1001', 10));
+    const [lastInvoiceNo, setLastInvoiceNo] = useState(() => parseInt(localStorage.getItem('lastInvoiceNo') || '1000', 10));
     const [profilePic, setProfilePic] = useState(() => localStorage.getItem('adminProfilePic') || "");
 
 
@@ -185,6 +186,19 @@ export const useAdminDashboardData = () => {
         }
     };
 
+    const fetchInvoiceSettings = async () => {
+        try {
+            const res = await api().get('/api/settings/invoice');
+            const { next_invoice_no, last_invoice_no } = res.data;
+            setNextInvoiceNo(next_invoice_no);
+            setLastInvoiceNo(last_invoice_no);
+            localStorage.setItem('nextInvoiceNo', String(next_invoice_no));
+            localStorage.setItem('lastInvoiceNo', String(last_invoice_no));
+        } catch (err) {
+            console.error('Could not load invoice settings from backend, using localStorage fallback.');
+        }
+    };
+
     useEffect(() => {
         fetchEmployees();
         fetchRequests();
@@ -192,6 +206,7 @@ export const useAdminDashboardData = () => {
         fetchOlRequests();
         checkBackendHealth();
         loadBills();
+        fetchInvoiceSettings();
     }, []);
 
     useEffect(() => {
@@ -371,12 +386,22 @@ export const useAdminDashboardData = () => {
             formData, olRequests, orderLines, showOlModal, editingOl, olFormData,
             toasts, bills, unverifiedCount,
             lastSynced, isSyncing, emailForwarding, pushNotifications, nextInvoiceNo,
+            lastInvoiceNo,
             userProfile, profilePic
         },
         actions: {
             setActiveTab, setConfirmModal, setIsMobileMenuOpen, setCompanyName,
             setTheme, setFormData, setShowModal, setShowOlModal, setOlFormData,
-            setEmailForwarding, setPushNotifications, setNextInvoiceNo,
+            setEmailForwarding, setPushNotifications,
+            setNextInvoiceNo: async (val: number) => {
+                setNextInvoiceNo(val);
+                localStorage.setItem('nextInvoiceNo', String(val));
+                try {
+                    await api().put('/api/settings/invoice', { next_invoice_no: val });
+                } catch (err) {
+                    console.error('Failed to save invoice number to backend:', err);
+                }
+            },
             setProfilePic: async (pic: string) => {
                 setProfilePic(pic);
                 localStorage.setItem('adminProfilePic', pic);

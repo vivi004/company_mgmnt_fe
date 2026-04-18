@@ -16,6 +16,7 @@ interface SettingsProps {
     setPushNotifications: (val: boolean) => void;
     nextInvoiceNo: number;
     setNextInvoiceNo: (val: number) => void;
+    lastInvoiceNo: number;
     profilePic: string;
     setProfilePic: (val: string) => void;
 }
@@ -25,7 +26,7 @@ const AdminSettings = ({
     lastSynced, isSyncing, emailForwarding, pushNotifications,
     handleManualSync, 
     setEmailForwarding, setPushNotifications,
-    nextInvoiceNo, setNextInvoiceNo,
+    nextInvoiceNo, setNextInvoiceNo, lastInvoiceNo,
     profilePic, setProfilePic
 }: SettingsProps) => {
 
@@ -251,6 +252,13 @@ const AdminSettings = ({
                         <p className="text-xs font-medium text-slate-500 italic px-1">
                             New bills generated will start from this number and auto-increment. Current bills in the ledger are not affected.
                         </p>
+                        <div className={`p-4 rounded-2xl border flex items-center gap-4 ${theme === 'dark' ? 'bg-slate-800/50 border-white/5' : 'bg-slate-50 border-slate-200'}`}>
+                            <span className="text-xl">🧾</span>
+                            <div>
+                                <p className={`text-[10px] font-black uppercase tracking-widest ${theme === 'dark' ? 'text-slate-500' : 'text-slate-400'}`}>Last Generated Invoice</p>
+                                <p className={`font-black text-xl ${theme === 'dark' ? 'text-slate-300' : 'text-slate-700'}`}>#{lastInvoiceNo}</p>
+                            </div>
+                        </div>
                     </div>
                 </Card>
 

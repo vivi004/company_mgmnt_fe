@@ -202,7 +202,14 @@ const ShopManager = ({ orderLineId, villageName, theme, onBack, type }: Props) =
                         });
 
                         const currentInvoiceNo = parseInt(localStorage.getItem('nextInvoiceNo') || '1001', 10);
-                        localStorage.setItem('nextInvoiceNo', String(currentInvoiceNo + 1));
+                        const nextNo = currentInvoiceNo + 1;
+                        localStorage.setItem('nextInvoiceNo', String(nextNo));
+                        localStorage.setItem('lastInvoiceNo', String(currentInvoiceNo));
+                        // Sync to backend in background (non-blocking)
+                        api().put('/api/settings/invoice', {
+                            next_invoice_no: nextNo,
+                            last_invoice_no: currentInvoiceNo
+                        }).catch(e => console.error('Invoice sync failed:', e));
 
                         const billPayload = {
                             invoice_no: currentInvoiceNo,
