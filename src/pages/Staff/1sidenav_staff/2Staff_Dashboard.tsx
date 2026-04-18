@@ -40,41 +40,28 @@ const StaffDashboard = () => {
             </Drawer>
 
             <div className={`flex-grow flex flex-col min-w-0 overflow-hidden relative transition-colors duration-500 ${state.theme === 'dark' ? 'bg-slate-950 text-white' : 'bg-slate-50 text-slate-900'}`}>
-                <header className={`px-6 lg:px-10 py-6 lg:py-8 z-10 flex justify-between items-center transition-colors duration-500 border-b ${state.theme === 'dark' ? 'bg-slate-900/50 border-white/5' : 'bg-white border-slate-100 shadow-sm'}`}>
-                    <div className="flex items-center gap-4">
-                        <div className="lg:hidden">
-                            <IconButton
-                                onClick={() => actions.setIsMobileMenuOpen(true)}
-                                sx={{ color: state.theme === 'dark' ? 'white' : 'black' }}
-                            >
-                                <MenuIcon />
-                            </IconButton>
-                        </div>
-                        <div>
-                            <h2 className={`text-2xl lg:text-4xl font-black italic tracking-tighter ${state.theme === 'dark' ? 'text-white' : 'text-slate-900'}`}>
-                                {state.activeTab === 'settings' ? 'My Settings' : state.activeTab === 'order-lines' ? 'Order Lines' : state.activeTab === 'bill-check' ? 'Queue Verification' : 'Staff Portal'}
-                            </h2>
-                            <p className="text-slate-500 mt-1 font-medium italic text-xs lg:text-base">Welcome back, {state.userProfile.first_name || 'Staff'}</p>
-                        </div>
-                    </div>
-                    <div 
-                        className="flex items-center space-x-6 cursor-pointer group"
-                        onClick={() => actions.setActiveTab('settings')}
+                {/* Mobile hamburger menu button */}
+                <div className="lg:hidden fixed top-3 left-3 z-50">
+                    <IconButton
+                        onClick={() => actions.setIsMobileMenuOpen(true)}
+                        sx={{
+                            color: state.theme === 'dark' ? 'white' : '#1e293b',
+                            backgroundColor: state.theme === 'dark' ? 'rgba(30,41,59,0.9)' : 'rgba(255,255,255,0.95)',
+                            backdropFilter: 'blur(12px)',
+                            border: state.theme === 'dark' ? '1px solid rgba(255,255,255,0.1)' : '1px solid rgba(226,232,240,1)',
+                            borderRadius: '14px',
+                            width: 44,
+                            height: 44,
+                            boxShadow: state.theme === 'dark' ? '0 4px 20px rgba(0,0,0,0.4)' : '0 4px 20px rgba(0,0,0,0.08)',
+                            '&:hover': { transform: 'scale(1.05)' },
+                            transition: 'all 0.2s',
+                        }}
                     >
-                        <div className={`px-5 py-2.5 rounded-2xl font-black text-xs uppercase tracking-widest border hidden sm:block transition-all group-hover:scale-105 ${state.theme === 'dark' ? 'bg-indigo-500/10 text-indigo-400 border-indigo-500/20 group-hover:bg-indigo-500/20' : 'bg-blue-50 text-blue-600 border-blue-100 group-hover:bg-blue-100'}`}>
-                            Hi {state.userProfile.first_name}
-                        </div>
-                        <div className={`w-14 h-14 rounded-[20px] flex items-center justify-center font-black text-2xl border transition-all group-hover:scale-110 group-active:scale-95 overflow-hidden ${state.theme === 'dark' ? 'bg-slate-800 text-blue-400 border-white/10 ring-4 ring-white/5' : 'bg-white text-slate-800 border-slate-200 shadow-xl shadow-slate-200/50'}`}>
-                            {state.profilePic ? (
-                                <img src={state.profilePic} alt="Profile" className="w-full h-full object-cover" />
-                            ) : (
-                                state.userProfile.first_name?.[0] || 'S'
-                            )}
-                        </div>
-                    </div>
-                </header>
+                        <MenuIcon />
+                    </IconButton>
+                </div>
 
-                <main className="flex-grow overflow-y-auto p-10 hide-scrollbar scroll-smooth">
+                <main className="flex-grow overflow-y-auto px-4 pt-14 pb-6 lg:px-10 lg:pt-8 lg:pb-10 hide-scrollbar scroll-smooth">
                     <div className="max-w-6xl mx-auto">
                         {state.activeTab === 'product-rates' && (
                             <StaffProductRates
