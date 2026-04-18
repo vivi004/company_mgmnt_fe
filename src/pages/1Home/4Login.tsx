@@ -21,6 +21,7 @@ interface User {
     first_name: string;
     last_name: string;
     email?: string;
+    profile_pic?: string;
 }
 
 interface LoginResponse {
@@ -66,6 +67,18 @@ const LoginPage: React.FC = () => {
                     email: user.email || ''
                 })
             );
+
+            // Pre-load the profile picture into localstorage so the dashboard can render it immediately
+            if (user.profile_pic) {
+                if (role === 'admin') {
+                    localStorage.setItem('adminProfilePic', user.profile_pic);
+                } else {
+                    localStorage.setItem('staffProfilePic', user.profile_pic);
+                }
+            } else {
+                localStorage.removeItem('adminProfilePic');
+                localStorage.removeItem('staffProfilePic');
+            }
 
             if (role === 'admin') navigate('/admin/dashboard');
             else navigate('/staff/dashboard');
