@@ -228,18 +228,6 @@ export const useAdminDashboardData = () => {
         }
     };
 
-    const handleArchiveOldBills = () => {
-        askConfirm("DANGER: This will permanently archive bills older than 6 months. This action is irreversible. Proceed?", () => {
-            showToast("Archive request sent. This feature is coming soon.", "info");
-        });
-    };
-
-    const handleResetAnalytics = () => {
-        askConfirm("Are you sure you want to flush the analytics cache? Sales pages will temporarily load slower while rebuilding.", () => {
-            showToast("Analytics cache flushed automatically.", "success");
-        });
-    };
-
     const handleApproveRequest = async (id: number) => {
         try {
             await api().put(`/api/requests/${id}/approve`);
@@ -404,7 +392,7 @@ export const useAdminDashboardData = () => {
             handleApproveRequest, handleRejectRequest, handleApproveOl, handleRejectOl, setUnverifiedCount,
             handleDeleteOl, handleOpenOlModal, handleOlSubmit, handleSubmit,
             handleEdit, handleAddNew, handleDelete,
-            handleManualSync, handleArchiveOldBills, handleResetAnalytics
+            handleManualSync
         }
     };
 };

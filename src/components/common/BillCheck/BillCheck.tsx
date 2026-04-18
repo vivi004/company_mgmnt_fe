@@ -230,7 +230,7 @@ const BillCheck = ({ theme, type, userProfileName, onUnverifiedCountChange }: Pr
                         ${isDark ? 'bg-amber-500/10 text-amber-400 border-amber-500/20' : 'bg-amber-50 text-amber-600 border-amber-100'}`}>
                         {unverifiedBills.length} {isAdmin ? 'Pending' : 'In Queue'}
                     </div>
-                    {isAdmin && unverifiedBills.length > 0 && (
+                    {unverifiedBills.length > 0 && (
                         <button
                             onClick={handleVerifyAll}
                             className="px-4 sm:px-6 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-black rounded-2xl text-[10px] sm:text-xs uppercase tracking-widest shadow-lg shadow-emerald-600/30 transition-all hover:-translate-y-0.5 active:scale-95"

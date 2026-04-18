@@ -87,12 +87,12 @@ const AdminSales = ({ theme }: Props) => {
                 </div>
             </div>
 
-            {/* Staff Table (Individual View) */}
             {state.viewMode === 'individual' && (
-                <div className={`rounded-[28px] border overflow-hidden ${isDark ? 'bg-slate-900/50 border-white/5' : 'bg-white border-slate-100 shadow-xl'}`}>
-                    <div className={`grid grid-cols-12 gap-2 px-6 py-4 text-[10px] font-black uppercase tracking-widest border-b ${isDark ? 'bg-slate-800/50 border-white/5 text-slate-400' : 'bg-slate-50 border-slate-100 text-slate-500'}`}>
-                        <div className="col-span-1">#</div>
-                        <div className="col-span-3">Staff Name</div>
+                <div className={`rounded-[28px] border overflow-x-auto hide-scrollbar ${isDark ? 'bg-slate-900/50 border-white/5' : 'bg-white border-slate-100 shadow-xl'}`}>
+                    <div className="min-w-[800px]">
+                        <div className={`grid grid-cols-12 gap-2 px-6 py-4 text-[10px] font-black uppercase tracking-widest border-b ${isDark ? 'bg-slate-800/50 border-white/5 text-slate-400' : 'bg-slate-50 border-slate-100 text-slate-500'}`}>
+                            <div className="col-span-1">#</div>
+                            <div className="col-span-3">Staff Name</div>
                         <div className="col-span-2 text-center cursor-pointer hover:text-blue-500" onClick={() => actions.toggleSort('orders')}>
                             Orders {state.sortBy === 'orders' && (state.sortDir === 'desc' ? '↓' : '↑')}
                         </div>
@@ -136,15 +136,16 @@ const AdminSales = ({ theme }: Props) => {
                             );
                         })
                     )}
-                    {state.totalPages > 1 && (
-                        <div className={`flex items-center justify-between px-6 py-4 ${isDark ? 'bg-slate-800/50' : 'bg-slate-50'}`}>
-                            <button onClick={() => actions.setCurrentPage(Math.max(1, state.currentPage - 1))} disabled={state.currentPage === 1}
-                                className="px-4 py-2 rounded-xl text-xs font-black uppercase tracking-widest disabled:opacity-30 bg-blue-600 text-white hover:bg-blue-700 transition-all">← Prev</button>
-                            <span className={`text-xs font-black ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>Page {state.currentPage} of {state.totalPages}</span>
-                            <button onClick={() => actions.setCurrentPage(Math.min(state.totalPages, state.currentPage + 1))} disabled={state.currentPage === state.totalPages}
-                                className="px-4 py-2 rounded-xl text-xs font-black uppercase tracking-widest disabled:opacity-30 bg-blue-600 text-white hover:bg-blue-700 transition-all">Next →</button>
-                        </div>
-                    )}
+                        {state.totalPages > 1 && (
+                            <div className={`flex items-center justify-between px-6 py-4 ${isDark ? 'bg-slate-800/50' : 'bg-slate-50'}`}>
+                                <button onClick={() => actions.setCurrentPage(Math.max(1, state.currentPage - 1))} disabled={state.currentPage === 1}
+                                    className="px-4 py-2 rounded-xl text-xs font-black uppercase tracking-widest disabled:opacity-30 bg-blue-600 text-white hover:bg-blue-700 transition-all">← Prev</button>
+                                <span className={`text-xs font-black ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>Page {state.currentPage} of {state.totalPages}</span>
+                                <button onClick={() => actions.setCurrentPage(Math.min(state.totalPages, state.currentPage + 1))} disabled={state.currentPage === state.totalPages}
+                                    className="px-4 py-2 rounded-xl text-xs font-black uppercase tracking-widest disabled:opacity-30 bg-blue-600 text-white hover:bg-blue-700 transition-all">Next →</button>
+                            </div>
+                        )}
+                    </div>
                 </div>
             )}
 
@@ -244,17 +245,17 @@ const AdminSales = ({ theme }: Props) => {
                 {/* Staff Comparison */}
                 <div className={`p-6 rounded-[28px] border ${isDark ? 'bg-slate-900/50 border-white/5' : 'bg-white border-slate-100 shadow-xl'}`}>
                     <h3 className={`text-xl font-black italic tracking-tight mb-6 ${isDark ? 'text-white' : 'text-slate-900'}`}>⚡ Staff Comparison</h3>
-                    <div className="flex gap-4 mb-6">
+                    <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 mb-6 items-center">
                         <select value={state.compareStaff[0]} onChange={e => actions.setCompareStaff([e.target.value, state.compareStaff[1]])}
                             style={isDark ? { colorScheme: 'dark' } : {}}
-                            className={`flex-1 px-4 py-3 rounded-2xl border font-bold text-sm cursor-pointer focus:outline-none focus:ring-2 ${isDark ? 'bg-slate-800 border-slate-600 text-white focus:ring-blue-500/30' : 'bg-slate-50 border-slate-200 text-slate-900 focus:ring-blue-500/20'}`}>
+                            className={`w-full sm:flex-1 px-4 py-3 rounded-2xl border font-bold text-sm cursor-pointer focus:outline-none focus:ring-2 ${isDark ? 'bg-slate-800 border-slate-600 text-white focus:ring-blue-500/30' : 'bg-slate-50 border-slate-200 text-slate-900 focus:ring-blue-500/20'}`}>
                             <option value="" style={isDark ? { background: '#1e293b', color: '#94a3b8' } : {}}>Select Staff A</option>
                             {data.staffNames.map(n => <option key={n} value={n} style={isDark ? { background: '#1e293b', color: '#fff' } : {}}>{n}</option>)}
                         </select>
-                        <span className={`self-center font-black text-xl ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>VS</span>
+                        <span className={`font-black text-xl py-1 sm:py-0 ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>VS</span>
                         <select value={state.compareStaff[1]} onChange={e => actions.setCompareStaff([state.compareStaff[0], e.target.value])}
                             style={isDark ? { colorScheme: 'dark' } : {}}
-                            className={`flex-1 px-4 py-3 rounded-2xl border font-bold text-sm cursor-pointer focus:outline-none focus:ring-2 ${isDark ? 'bg-slate-800 border-slate-600 text-white focus:ring-blue-500/30' : 'bg-slate-50 border-slate-200 text-slate-900 focus:ring-blue-500/20'}`}>
+                            className={`w-full sm:flex-1 px-4 py-3 rounded-2xl border font-bold text-sm cursor-pointer focus:outline-none focus:ring-2 ${isDark ? 'bg-slate-800 border-slate-600 text-white focus:ring-blue-500/30' : 'bg-slate-50 border-slate-200 text-slate-900 focus:ring-blue-500/20'}`}>
                             <option value="" style={isDark ? { background: '#1e293b', color: '#94a3b8' } : {}}>Select Staff B</option>
                             {data.staffNames.map(n => <option key={n} value={n} style={isDark ? { background: '#1e293b', color: '#fff' } : {}}>{n}</option>)}
                         </select>

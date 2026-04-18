@@ -12,8 +12,6 @@ interface SettingsProps {
     emailForwarding: boolean;
     pushNotifications: boolean;
     handleManualSync: () => void;
-    handleArchiveOldBills: () => void;
-    handleResetAnalytics: () => void;
     setEmailForwarding: (val: boolean) => void;
     setPushNotifications: (val: boolean) => void;
     nextInvoiceNo: number;
@@ -25,8 +23,8 @@ interface SettingsProps {
 const AdminSettings = ({
     theme, setTheme, companyName, setCompanyName,
     lastSynced, isSyncing, emailForwarding, pushNotifications,
-    handleManualSync, handleArchiveOldBills,
-    handleResetAnalytics, setEmailForwarding, setPushNotifications,
+    handleManualSync, 
+    setEmailForwarding, setPushNotifications,
     nextInvoiceNo, setNextInvoiceNo,
     profilePic, setProfilePic
 }: SettingsProps) => {
@@ -265,30 +263,7 @@ const AdminSettings = ({
                     </div>
                 </Card>
 
-                {/* Danger Zone */}
-                <Card>
-                    <SectionHeader icon="⚠️" title="Danger Zone" subtitle="System Maintenance" colorClass="bg-red-600 text-red-500 shadow-red-500/40" />
-                    <div className="space-y-4">
-                        <div className={`p-4 rounded-3xl border flex flex-col sm:flex-row sm:items-center justify-between gap-4 ${theme === 'dark' ? 'bg-red-500/5 border-red-500/20' : 'bg-red-50 border-red-100'}`}>
-                            <div>
-                                <p className={`font-black text-sm mb-0.5 ${theme === 'dark' ? 'text-red-400' : 'text-red-700'}`}>Archive Legacy Bills</p>
-                                <p className={`text-xs ${theme === 'dark' ? 'text-red-400/70' : 'text-red-600/70'}`}>Move verified bills older than 6 months to cold storage.</p>
-                            </div>
-                            <button onClick={handleArchiveOldBills} className="px-5 py-2.5 rounded-xl text-xs font-black uppercase tracking-widest bg-red-600 hover:bg-red-700 text-white shadow-lg shadow-red-500/30 whitespace-nowrap transition-all">
-                                Archive Data
-                            </button>
-                        </div>
-                        <div className={`p-4 rounded-3xl border flex flex-col sm:flex-row sm:items-center justify-between gap-4 ${theme === 'dark' ? 'bg-orange-500/5 border-orange-500/20' : 'bg-orange-50 border-orange-100'}`}>
-                            <div>
-                                <p className={`font-black text-sm mb-0.5 ${theme === 'dark' ? 'text-orange-400' : 'text-orange-700'}`}>Reset Analytics Cache</p>
-                                <p className={`text-xs ${theme === 'dark' ? 'text-orange-400/70' : 'text-orange-600/70'}`}>Clear memoized sales calculations and force a rebuild.</p>
-                            </div>
-                            <button onClick={handleResetAnalytics} className="px-5 py-2.5 rounded-xl text-xs font-black uppercase tracking-widest bg-orange-500 hover:bg-orange-600 text-white shadow-lg shadow-orange-500/30 whitespace-nowrap transition-all">
-                                Flush Cache
-                            </button>
-                        </div>
-                    </div>
-                </Card>
+
 
             </div>
 
