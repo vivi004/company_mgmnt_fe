@@ -99,8 +99,12 @@ const AdminManageTeam = ({ employees, loading, theme, billCount, handleEdit, han
                                     <tr key={`desktop-${emp.id}`} className="hover:bg-blue-500/5 transition-all group">
                                         <td className="px-10 py-8">
                                             <div className="flex items-center">
-                                                <div className={`w-16 h-16 rounded-[24px] flex items-center justify-center font-black text-xl mr-6 border transition-all group-hover:rotate-6 ${theme === 'dark' ? 'bg-slate-800 text-blue-400 border-white/10' : 'bg-indigo-50 text-indigo-600 border-indigo-100'}`}>
-                                                    {emp.first_name[0]}{emp.last_name[0]}
+                                                <div className={`overflow-hidden w-16 h-16 rounded-[24px] flex items-center justify-center font-black text-xl mr-6 border transition-all group-hover:rotate-6 ${theme === 'dark' ? 'bg-slate-800 text-blue-400 border-white/10' : 'bg-indigo-50 text-indigo-600 border-indigo-100'}`}>
+                                                    {emp.profile_pic ? (
+                                                        <img src={emp.profile_pic} alt={`${emp.first_name}`} className="w-full h-full object-cover" />
+                                                    ) : (
+                                                        <>{emp.first_name[0]}{emp.last_name?.[0]}</>
+                                                    )}
                                                 </div>
                                                 <div>
                                                     <p className={`font-black text-xl tracking-tight transition-colors ${theme === 'dark' ? 'text-white' : 'text-slate-900 group-hover:text-blue-600'}`}>{emp.first_name} {emp.last_name}</p>
@@ -166,8 +170,12 @@ const AdminManageTeam = ({ employees, loading, theme, billCount, handleEdit, han
                             <div key={`mobile-${emp.id}`} className="p-6 transition-all hover:bg-blue-500/5 group flex flex-col space-y-5">
                                 <div className="flex items-center justify-between">
                                     <div className="flex items-center space-x-4">
-                                        <div className={`w-12 h-12 rounded-[16px] flex items-center justify-center font-black text-lg border transition-transform group-hover:rotate-6 shrink-0 ${theme === 'dark' ? 'bg-slate-800 text-blue-400 border-white/10' : 'bg-indigo-50 text-indigo-600 border-indigo-100'}`}>
-                                            {emp.first_name[0]}{emp.last_name[0]}
+                                        <div className={`overflow-hidden w-12 h-12 rounded-[16px] flex items-center justify-center font-black text-lg border transition-transform group-hover:rotate-6 shrink-0 ${theme === 'dark' ? 'bg-slate-800 text-blue-400 border-white/10' : 'bg-indigo-50 text-indigo-600 border-indigo-100'}`}>
+                                            {emp.profile_pic ? (
+                                                <img src={emp.profile_pic} alt={`${emp.first_name}`} className="w-full h-full object-cover" />
+                                            ) : (
+                                                <>{emp.first_name[0]}{emp.last_name?.[0]}</>
+                                            )}
                                         </div>
                                         <div className="min-w-0 flex-1">
                                             <p className={`font-black text-[17px] leading-tight tracking-tight truncate ${theme === 'dark' ? 'text-white' : 'text-slate-900 group-hover:text-blue-600'}`}>{emp.first_name} {emp.last_name}</p>
