@@ -104,6 +104,24 @@ const BillCheck = ({ theme, type, userProfileName }: Props) => {
         }
     };
 
+    const handleVerifyAll = async () => {
+        if (unverifiedBills.length === 0) return;
+        if (!window.confirm(`Verify ALL ${unverifiedBills.length} bills and push them to the primary ledger?`)) return;
+
+        let success = 0;
+        let failed = 0;
+        for (const bill of unverifiedBills) {
+            try {
+                await api().put(`/api/bills/verify/${bill.id}`);
+                success++;
+            } catch {
+                failed++;
+            }
+        }
+        showToast(`${success} bills verified${failed > 0 ? `, ${failed} failed` : ''}`, success > 0 ? 'success' : 'error');
+        loadUnverifiedBills();
+    };
+
     const handleReject = async (id: number) => {
         if (!window.confirm('Are you sure you want to permanently discard this unverified bill?')) return;
         try {
@@ -193,118 +211,126 @@ const BillCheck = ({ theme, type, userProfileName }: Props) => {
     };
 
     return (
-        <div className={`space-y-8 animate-in fade-in slide-in-from-right-5 duration-500 ${isDark ? 'text-white' : 'text-slate-900'}`}>
-            <div className="flex items-center justify-between gap-6 flex-wrap">
+        <div className={`space-y-6 sm:space-y-8 animate-in fade-in slide-in-from-right-5 duration-500 ${isDark ? 'text-white' : 'text-slate-900'}`}>
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 sm:gap-6">
                 <div>
-                    <h2 className={`text-3xl font-black italic tracking-tighter ${isDark ? 'text-white' : 'text-slate-900'}`}>
+                    <h2 className={`text-2xl sm:text-3xl font-black italic tracking-tighter ${isDark ? 'text-white' : 'text-slate-900'}`}>
                         {isAdmin ? 'Bill Verifications' : 'My Pending Bills'}
                     </h2>
-                    <p className="text-sm font-bold text-slate-400 mt-1">
+                    <p className="text-xs sm:text-sm font-bold text-slate-400 mt-1">
                         {isAdmin ? 'Pending Orders Awaiting Approval' : 'Orders awaiting Admin/Manager verification'}
                     </p>
                 </div>
-                <div className={`px-4 py-2 rounded-2xl text-xs font-black uppercase tracking-widest border
-                    ${isDark ? 'bg-amber-500/10 text-amber-400 border-amber-500/20' : 'bg-amber-50 text-amber-600 border-amber-100'}`}>
-                    {unverifiedBills.length} {isAdmin ? 'Pending' : 'In Queue'}
+                <div className="flex items-center gap-3 flex-wrap">
+                    <div className={`px-3 sm:px-4 py-2 rounded-2xl text-[10px] sm:text-xs font-black uppercase tracking-widest border
+                        ${isDark ? 'bg-amber-500/10 text-amber-400 border-amber-500/20' : 'bg-amber-50 text-amber-600 border-amber-100'}`}>
+                        {unverifiedBills.length} {isAdmin ? 'Pending' : 'In Queue'}
+                    </div>
+                    {isAdmin && unverifiedBills.length > 0 && (
+                        <button
+                            onClick={handleVerifyAll}
+                            className="px-4 sm:px-6 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-black rounded-2xl text-[10px] sm:text-xs uppercase tracking-widest shadow-lg shadow-emerald-600/30 transition-all hover:-translate-y-0.5 active:scale-95"
+                        >
+                            ✓ Verify All
+                        </button>
+                    )}
                 </div>
             </div>
 
             {unverifiedBills.length === 0 ? (
-                <div className={`py-20 text-center rounded-[40px] border ${isDark ? 'bg-slate-900 border-white/5' : 'bg-white border-slate-100 shadow-xl'}`}>
-                    <div className="text-5xl mb-4 opacity-50">{isAdmin ? '📋' : '🕒'}</div>
-                    <p className={`font-black text-xl italic ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
+                <div className={`py-16 sm:py-20 text-center rounded-[28px] sm:rounded-[40px] border ${isDark ? 'bg-slate-900 border-white/5' : 'bg-white border-slate-100 shadow-xl'}`}>
+                    <div className="text-4xl sm:text-5xl mb-4 opacity-50">{isAdmin ? '📋' : '🕒'}</div>
+                    <p className={`font-black text-lg sm:text-xl italic ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
                         {isAdmin ? 'No bills awaiting verification' : 'No bills in queue'}
                     </p>
-                    {!isAdmin && <p className="text-slate-500 mt-2 text-sm font-bold">Your submitted orders will appear here until verified.</p>}
+                    {!isAdmin && <p className="text-slate-500 mt-2 text-sm font-bold px-4">Your submitted orders will appear here until verified.</p>}
                 </div>
             ) : (
                 <div className="space-y-4">
                     {unverifiedBills.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()).map(bill => (
                         <div key={bill.id}
-                            className={`p-6 rounded-[30px] border transition-all 
+                            className={`p-4 sm:p-6 rounded-[20px] sm:rounded-[30px] border transition-all 
                              ${isAdmin
                                     ? (isDark ? 'bg-slate-900 border-white/5' : 'bg-white border-slate-100 shadow-lg shadow-slate-200/50')
                                     : (isDark ? 'bg-slate-900 border-amber-500/20 shadow-lg shadow-amber-500/5' : 'bg-amber-50/50 border-amber-200 shadow-xl shadow-amber-500/10')
                                 }`}>
 
-                            <div className="grid grid-cols-12 gap-6 items-center">
-                                {/* Details */}
-                                <div className="col-span-12 md:col-span-4">
-                                    <div className="flex items-center gap-3 mb-1">
-                                        <p className={`font-black tracking-tight text-lg ${isDark ? 'text-white' : 'text-slate-900'}`}>
-                                            {bill.shopName}
-                                        </p>
-                                        <span className={`px-2.5 py-1 rounded-lg text-[10px] font-black uppercase tracking-widest border ${isDark ? 'bg-slate-800 border-white/10 text-slate-300' : 'bg-white border-slate-200 text-slate-600'}`}>
-                                            INV-{bill.invoiceNo}
-                                        </span>
-                                    </div>
-                                    <p className="text-xs font-bold text-slate-500 uppercase tracking-widest">{bill.villageName}</p>
-                                </div>
+                            {/* Shop Name + Invoice */}
+                            <div className="flex flex-wrap items-center gap-2 sm:gap-3 mb-2">
+                                <p className={`font-black tracking-tight text-base sm:text-lg ${isDark ? 'text-white' : 'text-slate-900'}`}>
+                                    {bill.shopName}
+                                </p>
+                                <span className={`px-2 sm:px-2.5 py-0.5 sm:py-1 rounded-lg text-[9px] sm:text-[10px] font-black uppercase tracking-widest border ${isDark ? 'bg-slate-800 border-white/10 text-slate-300' : 'bg-white border-slate-200 text-slate-600'}`}>
+                                    INV-{bill.invoiceNo}
+                                </span>
+                            </div>
+                            <p className="text-[10px] sm:text-xs font-bold text-slate-500 uppercase tracking-widest">{bill.villageName}</p>
 
-                                {/* Meta Info */}
-                                <div className="col-span-12 md:col-span-3">
-                                    <p className={`text-[10px] font-black uppercase tracking-[0.2em] mb-1 ${isAdmin ? 'text-slate-400' : 'text-amber-500'}`}>
-                                        {isAdmin ? 'Generated By' : 'Status'}
-                                    </p>
-                                    <p className={`text-sm font-black italic tracking-tighter ${isAdmin ? (isDark ? 'text-blue-400' : 'text-blue-600') : (isDark ? 'text-amber-400' : 'text-amber-600')}`}>
-                                        {isAdmin ? (bill.createdBy || 'Unknown') : 'AWAITING VERIFICATION'}
-                                    </p>
-                                    <p className="text-xs font-semibold text-slate-500 mt-0.5">
-                                        {new Date(bill.date).toLocaleString('en-IN', {
-                                            day: '2-digit', month: 'short', year: 'numeric',
-                                            hour: '2-digit', minute: '2-digit'
-                                        })}
-                                    </p>
-                                </div>
+                            {/* Status / Created By */}
+                            <div className="mt-3">
+                                <p className={`text-[9px] sm:text-[10px] font-black uppercase tracking-[0.2em] mb-0.5 ${isAdmin ? 'text-slate-400' : 'text-amber-500'}`}>
+                                    {isAdmin ? 'Generated By' : 'Status'}
+                                </p>
+                                <p className={`text-sm font-black italic tracking-tighter ${isAdmin ? (isDark ? 'text-blue-400' : 'text-blue-600') : (isDark ? 'text-amber-400' : 'text-amber-600')}`}>
+                                    {isAdmin ? (bill.createdBy || 'Unknown') : 'AWAITING VERIFICATION'}
+                                </p>
+                                <p className="text-[10px] sm:text-xs font-semibold text-slate-500 mt-0.5">
+                                    {new Date(bill.date).toLocaleString('en-IN', {
+                                        day: '2-digit', month: 'short', year: 'numeric',
+                                        hour: '2-digit', minute: '2-digit'
+                                    })}
+                                </p>
+                            </div>
 
-                                {/* Financials */}
-                                <div className="col-span-6 md:col-span-2 text-right">
-                                    <p className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 mb-1">Total Items</p>
+                            {/* Financials Row */}
+                            <div className="flex items-center justify-between mt-4 gap-4">
+                                <div>
+                                    <p className="text-[9px] sm:text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 mb-0.5">Total Items</p>
                                     <p className={`text-lg font-black ${isDark ? 'text-white' : 'text-slate-900'}`}>
                                         {getItemCount(bill.cart)}
                                     </p>
                                 </div>
-
-                                <div className="col-span-6 md:col-span-3 text-right">
-                                    <p className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 mb-1">Total Value</p>
+                                <div className="text-right">
+                                    <p className="text-[9px] sm:text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 mb-0.5">Total Value</p>
                                     <p className={`text-xl font-black italic tracking-tighter ${isDark ? 'text-white' : 'text-slate-900'}`}>
                                         ₹{getTotal(bill.cart, bill.customRates).toLocaleString('en-IN', { minimumFractionDigits: 2 })}
                                     </p>
                                 </div>
                             </div>
 
-                            <div className={`mt-6 pt-6 border-t border-dashed flex items-center justify-end gap-3 
-                                ${isAdmin ? 'border-slate-200 dark:border-white/10' : 'border-amber-200 dark:border-white/10'}`}>
+                            {/* Action Buttons */}
+                            <div className={`mt-4 sm:mt-6 pt-4 sm:pt-6 border-t border-dashed flex flex-wrap items-center justify-end gap-2 sm:gap-3
+                                ${isAdmin ? (isDark ? 'border-white/10' : 'border-slate-200') : (isDark ? 'border-white/10' : 'border-amber-200')}`}>
                                 <button
                                     onClick={() => previewBill(bill)}
-                                    className={`p-2.5 rounded-xl transition-all border shrink-0
+                                    className={`p-2 sm:p-2.5 rounded-xl transition-all border shrink-0
                                         ${isDark ? 'bg-slate-800 border-white/10 text-slate-300 hover:text-white hover:border-slate-500' : 'bg-white border-slate-200 text-slate-600 hover:text-slate-900 shadow-sm hover:border-slate-400'}`}
                                     title="Preview PDF"
                                 >
-                                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <svg className="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
                                     </svg>
                                 </button>
                                 <button
                                     onClick={() => openEditModal(bill)}
-                                    className={`p-2.5 rounded-xl transition-all border shrink-0
+                                    className={`p-2 sm:p-2.5 rounded-xl transition-all border shrink-0
                                         ${isDark ? 'bg-slate-800 border-white/10 text-slate-300 hover:text-blue-400 hover:border-blue-500/50 hover:bg-blue-500/10' : 'bg-white border-slate-200 text-slate-600 hover:text-blue-600 shadow-sm hover:border-blue-400 hover:bg-blue-50'}`}
                                     title="Edit Bill"
                                 >
-                                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <svg className="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
                                     </svg>
                                 </button>
                                 <button
                                     onClick={() => handleReject(bill.id)}
-                                    className={`px-6 py-3 rounded-2xl font-black text-xs uppercase tracking-widest transition-all ${isDark ? 'text-red-400 hover:bg-red-500/10' : 'text-red-500 hover:bg-red-50'}`}
+                                    className={`px-3 sm:px-6 py-2 sm:py-3 rounded-xl sm:rounded-2xl font-black text-[10px] sm:text-xs uppercase tracking-widest transition-all ${isDark ? 'text-red-400 hover:bg-red-500/10' : 'text-red-500 hover:bg-red-50'}`}
                                 >
                                     Reject / Discard
                                 </button>
                                 <button
                                     onClick={() => handleVerify(bill)}
-                                    className="px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-black rounded-2xl text-xs uppercase tracking-widest shadow-lg shadow-blue-600/30 transition-all hover:-translate-y-0.5"
+                                    className="px-3 sm:px-6 py-2 sm:py-3 bg-blue-600 hover:bg-blue-700 text-white font-black rounded-xl sm:rounded-2xl text-[10px] sm:text-xs uppercase tracking-widest shadow-lg shadow-blue-600/30 transition-all hover:-translate-y-0.5"
                                 >
                                     Verify Bill ✓
                                 </button>
