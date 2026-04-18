@@ -350,7 +350,7 @@ const UnifiedOrderingView: React.FC<Props> = ({ shopName, theme, cart, updateQua
         </aside>
 
         {/* ── Product List ── */}
-        <main className={`flex-1 overflow-y-auto custom-scrollbar p-3 sm:p-6 pb-32 ${isDark ? 'bg-slate-900' : 'bg-gray-50'}`}>
+        <main className={`flex-1 overflow-y-auto custom-scrollbar p-3 sm:p-6 pb-36 ${isDark ? 'bg-slate-900' : 'bg-gray-50'}`}>
           <div className="flex flex-col gap-3 sm:gap-4 max-w-3xl mx-auto">
             {filtered.length > 0 ? (
               <>
@@ -369,6 +369,27 @@ const UnifiedOrderingView: React.FC<Props> = ({ shopName, theme, cart, updateQua
                     {filtered.length} items · End of List
                   </span>
                 </div>
+
+                {/* Sticky Cart Footer inside Product Area */}
+                {totalItems > 0 && (
+                  <div className="sticky bottom-6 z-50 pointer-events-none mt-10 pb-6">
+                    <div className="max-w-2xl mx-auto pointer-events-auto px-4">
+                      <button
+                        onClick={onReviewOrder}
+                        className="w-full flex items-center justify-center gap-4 p-4 rounded-3xl bg-blue-600 text-white shadow-[0_20px_50px_rgba(37,99,235,0.4)] hover:bg-blue-700 active:scale-95 transition-all text-center border border-white/20"
+                      >
+                        <div className="flex flex-col items-center">
+                          <span className="font-black text-base sm:text-lg uppercase tracking-widest">Place Order Now</span>
+                        </div>
+                        <div className="w-10 h-10 rounded-2xl bg-white/20 flex items-center justify-center">
+                          <svg className="w-6 h-6 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M14 5l7 7m0 0l-7 7m7-7H3" />
+                          </svg>
+                        </div>
+                      </button>
+                    </div>
+                  </div>
+                )}
               </>
             ) : (
               <div className="flex flex-col items-center justify-center py-20 text-center">
@@ -380,18 +401,7 @@ const UnifiedOrderingView: React.FC<Props> = ({ shopName, theme, cart, updateQua
           </div>
         </main>
 
-        {/* Floating Cart Footer */}
-        {totalItems > 0 && (
-          <div className="absolute bottom-6 left-1/2 -translate-x-1/2 w-[90%] max-w-md z-50">
-            <button
-              onClick={onReviewOrder}
-              className="w-full flex items-center justify-center gap-3 p-4 rounded-3xl bg-blue-600 text-white shadow-xl shadow-blue-600/30 hover:bg-blue-700 active:scale-95 transition-all text-center"
-            >
-              <span className="font-black text-xl uppercase tracking-widest">Place Order</span>
-              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M14 5l7 7m0 0l-7 7m7-7H3" /></svg>
-            </button>
-          </div>
-        )}
+
 
       </div>
     </div>
