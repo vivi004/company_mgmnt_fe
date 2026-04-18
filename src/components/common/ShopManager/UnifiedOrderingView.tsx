@@ -106,15 +106,15 @@ const UnifiedProductCard: React.FC<CardProps> = ({ product, cart, isDark, update
   const BoxLitreControls = ({ boxId, litreId, boxMultiplier, litreStep, litreMultiplier, litreLabel }: {
     boxId: string; litreId: string; boxMultiplier: number; litreStep: number; litreMultiplier: number; litreLabel: string;
   }) => (
-    <div className={`flex flex-col sm:flex-row items-stretch sm:items-center gap-2 sm:gap-4 p-2 sm:p-3 rounded-2xl border w-full ${isDark ? 'bg-slate-900/50 border-white/5' : 'bg-slate-50 border-slate-200 shadow-inner'}`}>
+    <div className={`flex flex-col sm:flex-row items-stretch sm:items-center gap-2 sm:gap-4 p-2 sm:p-3 rounded-2xl border w-full ${isDark ? 'bg-slate-800/80 border-slate-600/40' : 'bg-slate-50 border-slate-200 shadow-inner'}`}>
       
       {/* Box Row */}
       <div className="flex flex-row sm:flex-col items-center justify-between sm:justify-center w-full sm:w-auto flex-1 gap-2 sm:gap-0">
         <div className="flex flex-col items-start sm:items-center w-16 sm:w-auto shrink-0">
-          <span className="text-[10px] font-black uppercase tracking-widest text-slate-500">Box</span>
-          <span className="text-[9px] sm:text-[10px] font-bold text-slate-400 mt-0.5">{(product.price * boxMultiplier).toFixed(2)}</span>
+          <span className={`text-[10px] font-black uppercase tracking-widest ${isDark ? 'text-blue-400' : 'text-slate-500'}`}>Box</span>
+          <span className={`text-[9px] sm:text-[10px] font-bold mt-0.5 ${isDark ? 'text-slate-300' : 'text-slate-400'}`}>{(product.price * boxMultiplier).toFixed(2)}</span>
         </div>
-        <div className={`flex items-center gap-1 sm:mt-1 p-1 rounded-xl border ${isDark ? 'bg-slate-950 border-white/10' : 'bg-white border-slate-200 shadow-sm'}`}>
+        <div className={`flex items-center gap-1 sm:mt-1 p-1 rounded-xl border ${isDark ? 'bg-slate-900 border-slate-600/50' : 'bg-white border-slate-200 shadow-sm'}`}>
           <button onClick={() => updateQuantity(boxId, -1)} className="w-8 h-8 rounded-lg flex items-center justify-center transition-all hover:bg-red-100 hover:text-red-500 text-slate-400">
             <RemoveIcon style={{ fontSize: 16 }} />
           </button>
@@ -131,15 +131,15 @@ const UnifiedProductCard: React.FC<CardProps> = ({ product, cart, isDark, update
       </div>
 
       {/* Divider */}
-      <div className="w-full h-px sm:w-px sm:h-12 bg-slate-200 dark:bg-slate-700"></div>
+      <div className={`w-full h-px sm:w-px sm:h-12 ${isDark ? 'bg-slate-600/50' : 'bg-slate-200'}`}></div>
 
       {/* Litre Row */}
       <div className="flex flex-row sm:flex-col items-center justify-between sm:justify-center w-full sm:w-auto flex-1 gap-2 sm:gap-0">
         <div className="flex flex-col items-start sm:items-center w-16 sm:w-auto shrink-0">
-          <span className="text-[10px] font-black uppercase tracking-widest text-slate-500">{litreLabel}</span>
-          <span className="text-[9px] sm:text-[10px] font-bold text-slate-400 mt-0.5">{(product.price * litreMultiplier).toFixed(2)}</span>
+          <span className={`text-[10px] font-black uppercase tracking-widest ${isDark ? 'text-blue-400' : 'text-slate-500'}`}>{litreLabel}</span>
+          <span className={`text-[9px] sm:text-[10px] font-bold mt-0.5 ${isDark ? 'text-slate-300' : 'text-slate-400'}`}>{(product.price * litreMultiplier).toFixed(2)}</span>
         </div>
-        <div className={`flex items-center gap-1 sm:mt-1 p-1 rounded-xl border ${isDark ? 'bg-slate-950 border-white/10' : 'bg-white border-slate-200 shadow-sm'}`}>
+        <div className={`flex items-center gap-1 sm:mt-1 p-1 rounded-xl border ${isDark ? 'bg-slate-900 border-slate-600/50' : 'bg-white border-slate-200 shadow-sm'}`}>
           <button onClick={() => updateQuantity(litreId, -litreStep)} className={`w-8 h-8 rounded-lg flex items-center justify-center transition-all ${(cart[litreId] || 0) > 0 ? 'hover:bg-red-100 hover:text-red-500' : ''} text-slate-400`} disabled={!(cart[litreId] || 0)}>
             <RemoveIcon style={{ fontSize: 16 }} />
           </button>
@@ -188,26 +188,29 @@ const UnifiedProductCard: React.FC<CardProps> = ({ product, cart, isDark, update
   };
 
   return (
-    <div className={`relative flex flex-col sm:flex-row items-start sm:items-center gap-4 bg-white border ${isInCart ? 'border-blue-400 shadow-md ring-1 ring-blue-400' : 'border-gray-100 shadow-sm hover:shadow-md'} rounded-2xl p-4 transition-all duration-200 group`}>
+    <div className={`relative flex flex-col sm:flex-row items-start sm:items-center gap-3 sm:gap-4 rounded-2xl p-3 sm:p-4 transition-all duration-200 group border ${isDark
+      ? isInCart ? 'bg-slate-800 border-blue-500/50 shadow-lg shadow-blue-500/10 ring-1 ring-blue-500/40' : 'bg-slate-800 border-slate-700/60 hover:border-slate-600'
+      : isInCart ? 'bg-white border-blue-400 shadow-md ring-1 ring-blue-400' : 'bg-white border-gray-100 shadow-sm hover:shadow-md'
+    }`}>
       {/* Icon */}
-      <div className="w-16 h-16 sm:w-20 sm:h-20 shrink-0 rounded-2xl bg-gradient-to-br from-blue-50 to-indigo-50 flex items-center justify-center text-4xl sm:text-5xl">
+      <div className={`w-14 h-14 sm:w-20 sm:h-20 shrink-0 rounded-2xl flex items-center justify-center text-3xl sm:text-5xl ${isDark ? 'bg-slate-700/60' : 'bg-gradient-to-br from-blue-50 to-indigo-50'}`}>
         {product.icon ?? '🛢️'}
       </div>
 
       {/* Details */}
       <div className="flex-1 min-w-0 w-full shrink-0">
-        <p className="text-[10px] sm:text-xs font-bold uppercase tracking-widest text-blue-500">
+        <p className={`text-[10px] sm:text-xs font-bold uppercase tracking-widest ${isDark ? 'text-blue-400' : 'text-blue-500'}`}>
           {product.brand} &middot; {product.size}
         </p>
-        <h3 className="text-sm sm:text-base font-bold text-gray-800 leading-snug mt-0.5">{product.name}</h3>
+        <h3 className={`text-sm sm:text-base font-bold leading-snug mt-0.5 ${isDark ? 'text-white' : 'text-gray-800'}`}>{product.name}</h3>
         <div className="flex items-baseline gap-2 mt-1">
-          <span className="text-base sm:text-lg font-black text-gray-900">₹{product.price.toFixed(2)}</span>
-          <span className="text-[10px] text-gray-400 font-medium uppercase">Unit price</span>
+          <span className={`text-base sm:text-lg font-black ${isDark ? 'text-white' : 'text-gray-900'}`}>₹{product.price.toFixed(2)}</span>
+          <span className={`text-[10px] font-medium uppercase ${isDark ? 'text-slate-400' : 'text-gray-400'}`}>Unit price</span>
         </div>
       </div>
 
       {/* Box/Litre Controls */}
-      <div className="w-full sm:w-auto shrink-0 mt-2 sm:mt-0">
+      <div className="w-full sm:w-auto shrink-0 mt-1 sm:mt-0">
         {renderSizeControls()}
       </div>
     </div>
