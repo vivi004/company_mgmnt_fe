@@ -261,25 +261,26 @@ const AdminSales = ({ theme }: Props) => {
                         </select>
                     </div>
                     {data.comparisonData ? (
-                        <div className="grid grid-cols-3 gap-3">
-                            <div className={`text-center p-4 rounded-2xl ${isDark ? 'bg-blue-500/10' : 'bg-blue-50'}`}>
+                        <div className="flex flex-col sm:flex-row gap-3 sm:gap-2 items-stretch">
+                            {/* Staff A */}
+                            <div className={`flex-1 text-center p-4 rounded-2xl ${isDark ? 'bg-blue-500/10' : 'bg-blue-50'}`}>
                                 <p className="text-xs font-black text-slate-500 uppercase tracking-widest mb-1">Staff A</p>
-                                <p className={`font-black text-lg ${isDark ? 'text-white' : 'text-slate-900'}`}>{data.comparisonData[0].name}</p>
-                                <p className={`font-black mt-2 ${isDark ? 'text-blue-400' : 'text-blue-600'}`}>{fmt(data.comparisonData[0].totalAmount)}</p>
+                                <p className={`font-black text-base sm:text-lg break-words ${isDark ? 'text-white' : 'text-slate-900'}`}>{data.comparisonData[0].name}</p>
+                                <p className={`font-black mt-2 text-sm sm:text-base ${isDark ? 'text-blue-400' : 'text-blue-600'}`}>{fmt(data.comparisonData[0].totalAmount)}</p>
                                 <p className="text-xs text-slate-500 font-bold">{data.comparisonData[0].totalOrders} orders</p>
                             </div>
-                            <div className="flex items-center justify-center">
-                                <div className={`text-center ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
-                                    <p className="text-xs font-black uppercase tracking-widest mb-1">Diff</p>
-                                    <p className={`font-black text-lg ${data.comparisonData[0].totalAmount >= data.comparisonData[1].totalAmount ? 'text-emerald-500' : 'text-red-500'}`}>
-                                        {data.comparisonData[0].totalAmount >= data.comparisonData[1].totalAmount ? '+' : ''}{fmt(data.comparisonData[0].totalAmount - data.comparisonData[1].totalAmount)}
-                                    </p>
-                                </div>
+                            {/* DIFF */}
+                            <div className="flex sm:flex-col items-center justify-center gap-2 py-2 sm:py-4 px-2">
+                                <p className="text-[10px] font-black uppercase tracking-widest text-slate-500">Diff</p>
+                                <p className={`font-black text-base sm:text-lg text-center ${data.comparisonData[0].totalAmount >= data.comparisonData[1].totalAmount ? 'text-emerald-500' : 'text-red-500'}`}>
+                                    {data.comparisonData[0].totalAmount >= data.comparisonData[1].totalAmount ? '+' : ''}{fmt(data.comparisonData[0].totalAmount - data.comparisonData[1].totalAmount)}
+                                </p>
                             </div>
-                            <div className={`text-center p-4 rounded-2xl ${isDark ? 'bg-emerald-500/10' : 'bg-emerald-50'}`}>
+                            {/* Staff B */}
+                            <div className={`flex-1 text-center p-4 rounded-2xl ${isDark ? 'bg-emerald-500/10' : 'bg-emerald-50'}`}>
                                 <p className="text-xs font-black text-slate-500 uppercase tracking-widest mb-1">Staff B</p>
-                                <p className={`font-black text-lg ${isDark ? 'text-white' : 'text-slate-900'}`}>{data.comparisonData[1].name}</p>
-                                <p className={`font-black mt-2 ${isDark ? 'text-emerald-400' : 'text-emerald-600'}`}>{fmt(data.comparisonData[1].totalAmount)}</p>
+                                <p className={`font-black text-base sm:text-lg break-words ${isDark ? 'text-white' : 'text-slate-900'}`}>{data.comparisonData[1].name}</p>
+                                <p className={`font-black mt-2 text-sm sm:text-base ${isDark ? 'text-emerald-400' : 'text-emerald-600'}`}>{fmt(data.comparisonData[1].totalAmount)}</p>
                                 <p className="text-xs text-slate-500 font-bold">{data.comparisonData[1].totalOrders} orders</p>
                             </div>
                         </div>
