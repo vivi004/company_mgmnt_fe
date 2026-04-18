@@ -36,6 +36,7 @@ const ShopManager = ({ orderLineId, villageName, theme, onBack, type }: Props) =
     const [formData, setFormData] = useState({ shop_name: '', owner_name: '', phone: '', balance: '' });
     const { toasts, showToast, removeToast } = useToast();
     const [selectedShop, setSelectedShop] = useState<Shop | null>(null);
+    const [shopSearch, setShopSearch] = useState('');
     const [cart, setCart] = useState<Record<string, number>>({});
     const [showReview, setShowReview] = useState(false);
     const [showBill, setShowBill] = useState(false);
@@ -282,20 +283,51 @@ const ShopManager = ({ orderLineId, villageName, theme, onBack, type }: Props) =
                 </div>
             </div>
 
+            {/* Search Bar */}
+            {!loading && shops.length > 0 && (
+                <div className="relative">
+                    <div className="absolute left-5 top-1/2 -translate-y-1/2 text-slate-400">
+                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
+                    </div>
+                    <input
+                        type="text"
+                        placeholder="Search shops by name, owner, or phone..."
+                        value={shopSearch}
+                        onChange={e => setShopSearch(e.target.value)}
+                        className={`w-full pl-14 pr-12 py-4 rounded-[20px] font-bold text-sm border transition-all focus:outline-none focus:ring-4
+                            ${isDark ? 'bg-slate-900 border-white/10 text-white placeholder-slate-500 focus:ring-blue-500/20 focus:border-blue-500' : 'bg-white border-slate-200 text-slate-900 placeholder-slate-400 focus:ring-blue-600/10 focus:border-blue-600 shadow-lg shadow-slate-200/30'}`}
+                    />
+                    {shopSearch && (
+                        <button onClick={() => setShopSearch('')} className="absolute right-5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-red-400 transition-colors">
+                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M6 18L18 6M6 6l12 12" /></svg>
+                        </button>
+                    )}
+                </div>
+            )}
+
             {/* Shop Cards Grid */}
-            {loading ? (
+            {(() => {
+                const filteredShops = shopSearch.trim()
+                    ? shops.filter(s =>
+                        s.shop_name.toLowerCase().includes(shopSearch.toLowerCase()) ||
+                        (s.owner_name && s.owner_name.toLowerCase().includes(shopSearch.toLowerCase())) ||
+                        (s.phone && s.phone.includes(shopSearch))
+                    )
+                    : shops;
+
+                return loading ? (
                 <div className={`py-20 text-center text-${primaryColor}-500 font-black italic uppercase tracking-widest animate-pulse`}>
                     {isAdmin ? 'Loading shops...' : 'Syncing Shop Data...'}
                 </div>
-            ) : shops.length === 0 ? (
+            ) : filteredShops.length === 0 ? (
                 <div className={`py-20 text-center rounded-[40px] border ${isDark ? 'bg-slate-900 border-white/5' : 'bg-white border-slate-100 shadow-xl'}`}>
-                    <div className="text-5xl mb-4">🏪</div>
-                    <p className={`font-black text-xl italic ${isDark ? 'text-white' : 'text-slate-900'}`}>No shops in {villageName}</p>
-                    <p className="text-slate-500 mt-2 font-medium">Click "+ Add Shop" to get started</p>
+                    <div className="text-5xl mb-4">{shopSearch ? '🔍' : '🏪'}</div>
+                    <p className={`font-black text-xl italic ${isDark ? 'text-white' : 'text-slate-900'}`}>{shopSearch ? `No shops matching "${shopSearch}"` : `No shops in ${villageName}`}</p>
+                    <p className="text-slate-500 mt-2 font-medium">{shopSearch ? 'Try a different search term' : 'Click "+ Add Shop" to get started'}</p>
                 </div>
             ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-                    {shops.map((shop) => (
+                    {filteredShops.map((shop) => (
                         <div
                             key={shop.id}
                             onClick={() => setSelectedShop(shop)}
@@ -353,7 +385,8 @@ const ShopManager = ({ orderLineId, villageName, theme, onBack, type }: Props) =
                         </div>
                     ))}
                 </div>
-            )}
+            );
+            })()}
 
             {/* Modal */}
             {showModal && (
