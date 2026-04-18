@@ -13,6 +13,7 @@ interface Shop {
     village_name: string;
     owner_name: string;
     phone: string;
+    phone2: string;
     balance: number;
 }
 
@@ -33,7 +34,7 @@ const ShopManager = ({ orderLineId, villageName, theme, onBack, type }: Props) =
     const [loading, setLoading] = useState(true);
     const [showModal, setShowModal] = useState(false);
     const [editingShop, setEditingShop] = useState<Shop | null>(null);
-    const [formData, setFormData] = useState({ shop_name: '', owner_name: '', phone: '', balance: '' });
+    const [formData, setFormData] = useState({ shop_name: '', owner_name: '', phone: '', phone2: '', balance: '' });
     const { toasts, showToast, removeToast } = useToast();
     const [selectedShop, setSelectedShop] = useState<Shop | null>(null);
     const [shopSearch, setShopSearch] = useState('');
@@ -76,7 +77,7 @@ const ShopManager = ({ orderLineId, villageName, theme, onBack, type }: Props) =
 
     const openAdd = () => {
         setEditingShop(null);
-        setFormData({ shop_name: '', owner_name: '', phone: '', balance: '' });
+        setFormData({ shop_name: '', owner_name: '', phone: '', phone2: '', balance: '' });
         setShowModal(true);
     };
 
@@ -86,6 +87,7 @@ const ShopManager = ({ orderLineId, villageName, theme, onBack, type }: Props) =
             shop_name: shop.shop_name,
             owner_name: shop.owner_name,
             phone: shop.phone,
+            phone2: shop.phone2 || '',
             balance: shop.balance.toString()
         });
         setShowModal(true);
@@ -99,6 +101,7 @@ const ShopManager = ({ orderLineId, villageName, theme, onBack, type }: Props) =
             village_name: villageName,
             owner_name: formData.owner_name,
             phone: formData.phone,
+            phone2: formData.phone2,
             balance: parseFloat(formData.balance) || 0
         };
         try {
@@ -311,7 +314,8 @@ const ShopManager = ({ orderLineId, villageName, theme, onBack, type }: Props) =
                     ? shops.filter(s =>
                         s.shop_name.toLowerCase().includes(shopSearch.toLowerCase()) ||
                         (s.owner_name && s.owner_name.toLowerCase().includes(shopSearch.toLowerCase())) ||
-                        (s.phone && s.phone.includes(shopSearch))
+                        (s.phone && s.phone.includes(shopSearch)) ||
+                        (s.phone2 && s.phone2.includes(shopSearch))
                     )
                     : shops;
 
@@ -345,6 +349,7 @@ const ShopManager = ({ orderLineId, villageName, theme, onBack, type }: Props) =
                                     {(isAdmin ? shop.owner_name : shop.owner_name) || '—'}
                                 </p>
                                 <p className="text-sm text-slate-500 font-medium mt-0.5">{shop.phone || '—'}</p>
+                                {shop.phone2 && <p className="text-sm text-slate-500 font-medium">{shop.phone2}</p>}
                                 <p className={`text-sm font-black mt-2 ${shop.balance > 0 ? 'text-emerald-400' : 'text-slate-400'}`}>
                                     BALANCE₹{Number(shop.balance).toFixed(2)}
                                 </p>
@@ -409,7 +414,8 @@ const ShopManager = ({ orderLineId, villageName, theme, onBack, type }: Props) =
                             {[
                                 { label: 'Shop Name', key: 'shop_name', type: 'text', required: true, placeholder: 'e.g. Annai Store' },
                                 { label: isAdmin ? 'Area Name' : 'Owner Name', key: 'owner_name', type: 'text', required: false, placeholder: 'e.g. Ravi' },
-                                { label: 'Phone', key: 'phone', type: 'text', required: false, placeholder: 'e.g. 9876543210' },
+                                { label: 'Phone 1', key: 'phone', type: 'text', required: false, placeholder: 'e.g. 9876543210' },
+                                { label: 'Phone 2', key: 'phone2', type: 'text', required: false, placeholder: 'e.g. 9876543211' },
                                 { label: 'Balance (₹)', key: 'balance', type: 'number', required: false, placeholder: '0.00' },
                             ].map(({ label, key, type, required, placeholder }) => (
                                 <div key={key} className="space-y-2">

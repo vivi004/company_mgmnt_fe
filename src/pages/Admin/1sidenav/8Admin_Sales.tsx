@@ -246,15 +246,17 @@ const AdminSales = ({ theme }: Props) => {
                     <h3 className={`text-xl font-black italic tracking-tight mb-6 ${isDark ? 'text-white' : 'text-slate-900'}`}>⚡ Staff Comparison</h3>
                     <div className="flex gap-4 mb-6">
                         <select value={state.compareStaff[0]} onChange={e => actions.setCompareStaff([e.target.value, state.compareStaff[1]])}
-                            className={`flex-1 px-4 py-3 rounded-2xl border font-bold text-sm ${isDark ? 'bg-white/5 border-white/10 text-white' : 'bg-slate-50 border-slate-200 text-slate-900'}`}>
-                            <option value="">Select Staff A</option>
-                            {data.staffNames.map(n => <option key={n} value={n}>{n}</option>)}
+                            style={isDark ? { colorScheme: 'dark' } : {}}
+                            className={`flex-1 px-4 py-3 rounded-2xl border font-bold text-sm cursor-pointer focus:outline-none focus:ring-2 ${isDark ? 'bg-slate-800 border-slate-600 text-white focus:ring-blue-500/30' : 'bg-slate-50 border-slate-200 text-slate-900 focus:ring-blue-500/20'}`}>
+                            <option value="" style={isDark ? { background: '#1e293b', color: '#94a3b8' } : {}}>Select Staff A</option>
+                            {data.staffNames.map(n => <option key={n} value={n} style={isDark ? { background: '#1e293b', color: '#fff' } : {}}>{n}</option>)}
                         </select>
                         <span className={`self-center font-black text-xl ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>VS</span>
                         <select value={state.compareStaff[1]} onChange={e => actions.setCompareStaff([state.compareStaff[0], e.target.value])}
-                            className={`flex-1 px-4 py-3 rounded-2xl border font-bold text-sm ${isDark ? 'bg-white/5 border-white/10 text-white' : 'bg-slate-50 border-slate-200 text-slate-900'}`}>
-                            <option value="">Select Staff B</option>
-                            {data.staffNames.map(n => <option key={n} value={n}>{n}</option>)}
+                            style={isDark ? { colorScheme: 'dark' } : {}}
+                            className={`flex-1 px-4 py-3 rounded-2xl border font-bold text-sm cursor-pointer focus:outline-none focus:ring-2 ${isDark ? 'bg-slate-800 border-slate-600 text-white focus:ring-blue-500/30' : 'bg-slate-50 border-slate-200 text-slate-900 focus:ring-blue-500/20'}`}>
+                            <option value="" style={isDark ? { background: '#1e293b', color: '#94a3b8' } : {}}>Select Staff B</option>
+                            {data.staffNames.map(n => <option key={n} value={n} style={isDark ? { background: '#1e293b', color: '#fff' } : {}}>{n}</option>)}
                         </select>
                     </div>
                     {data.comparisonData ? (

@@ -113,7 +113,7 @@ const ReviewOrder = ({ shopName, villageName, theme, cart, updateQuantity, onBac
                                                     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 12H4" /></svg>
                                                 </button>
                                                 <div className="text-center min-w-[3rem]">
-                                                    <span className="block font-black text-slate-900">{item.quantity}</span>
+                                                    <span className={`block font-black ${isDark ? 'text-white' : 'text-slate-900'}`}>{item.quantity}</span>
                                                     <span className="block text-[10px] font-black uppercase tracking-widest text-slate-500">
                                                         {displayUnit === 'CAN' ? 'CANS' : displayUnit}
                                                     </span>
