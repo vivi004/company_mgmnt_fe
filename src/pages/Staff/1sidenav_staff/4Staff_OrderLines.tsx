@@ -12,11 +12,9 @@ interface StaffOrderLinesProps {
     orderLines: OrderLine[];
     olLoading: boolean;
     theme: string;
-    setShowOlModal: (show: boolean) => void;
-    handleDeleteRequest: (olId: number) => void;
 }
 
-const StaffOrderLines = ({ orderLines, olLoading, theme, setShowOlModal, handleDeleteRequest }: StaffOrderLinesProps) => {
+const StaffOrderLines = ({ orderLines, olLoading, theme }: StaffOrderLinesProps) => {
     const [selectedVillage, setSelectedVillage] = useState<OrderLine | null>(null);
 
     // If a village is selected, show its shop list
@@ -34,23 +32,6 @@ const StaffOrderLines = ({ orderLines, olLoading, theme, setShowOlModal, handleD
 
     return (
         <div className="space-y-10 animate-in fade-in slide-in-from-bottom-5 duration-700">
-            {/* orderLines Banner */}
-            <div className="bg-gradient-to-r from-emerald-500 to-teal-600 rounded-[48px] p-10 text-white shadow-2xl shadow-emerald-600/30 relative overflow-hidden group">
-                <div className="relative z-10 flex justify-between items-center">
-                    <div>
-                        <h2 className="text-4xl font-black italic tracking-tighter mb-4">Territorial Operations</h2>
-                        <p className="text-emerald-100 text-xl font-bold opacity-90 italic">Click a village to view its shops and outlets.</p>
-                    </div>
-                    <button
-                        onClick={() => setShowOlModal(true)}
-                        className="bg-white/20 hover:bg-white/30 text-white px-8 py-4 rounded-3xl font-black text-sm uppercase tracking-widest transition-all backdrop-blur-md border border-white/30"
-                    >
-                        + Add New Sector
-                    </button>
-                </div>
-                <div className="absolute top-0 right-0 w-80 h-80 bg-white/10 rounded-full -mr-20 -mt-20 blur-3xl group-hover:scale-110 transition-transform duration-700" />
-            </div>
-
             {/* Sector List */}
             <div className="space-y-6">
                 <div className="flex justify-between items-end">
@@ -90,24 +71,6 @@ const StaffOrderLines = ({ orderLines, olLoading, theme, setShowOlModal, handleD
                                     </div>
                                 </div>
                                 <div className="flex items-center gap-2 sm:gap-3 shrink-0">
-                                    {/* Delete request button */}
-                                    <button
-                                        onClick={(e) => { e.stopPropagation(); handleDeleteRequest(ol.id); }}
-                                        className="hidden sm:block opacity-0 group-hover:opacity-100 p-2 sm:p-3 rounded-xl bg-red-500/10 text-red-500 hover:bg-red-500 hover:text-white transition-all"
-                                        title="Request Deletion"
-                                    >
-                                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                                        </svg>
-                                    </button>
-                                    <button
-                                        onClick={(e) => { e.stopPropagation(); handleDeleteRequest(ol.id); }}
-                                        className="sm:hidden p-2 rounded-xl bg-red-500/10 text-red-500 border border-transparent active:bg-red-500 active:text-white"
-                                    >
-                                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                                        </svg>
-                                    </button>
                                     
                                     {/* Chevron */}
                                     <svg className="w-5 h-5 text-slate-400 group-hover:text-emerald-500 group-hover:translate-x-1 transition-all"

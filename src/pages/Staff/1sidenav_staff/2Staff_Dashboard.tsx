@@ -75,8 +75,6 @@ const StaffDashboard = () => {
                                 orderLines={state.orderLines}
                                 olLoading={state.olLoading}
                                 theme={state.theme}
-                                setShowOlModal={actions.setShowOlModal}
-                                handleDeleteRequest={actions.handleDeleteRequest}
                             />
                         )}
                         {state.activeTab === 'bill-check' && (
