@@ -67,13 +67,13 @@ const AdminBills: React.FC<Props> = ({ bills, theme, onDeleteBill, onClearAll, o
                     </div>
                 </div>
 
-                <div className="flex gap-4">
+                <div className="flex flex-col sm:flex-row flex-wrap sm:flex-nowrap gap-3 sm:gap-4 w-full sm:w-auto">
                     <button
                         onClick={() => downloadAllFiltered(state.filteredBills)}
                         disabled={state.filteredBills.length === 0}
-                        className="px-6 py-3 bg-blue-600 hover:bg-blue-700 disabled:opacity-40 disabled:cursor-not-allowed text-white font-black rounded-2xl text-xs uppercase tracking-widest transition-all shadow-lg shadow-blue-600/20 hover:-translate-y-0.5 active:scale-95 flex items-center gap-2"
+                        className="flex-1 sm:flex-none px-4 sm:px-6 py-3 bg-blue-600 hover:bg-blue-700 disabled:opacity-40 disabled:cursor-not-allowed text-white font-black rounded-2xl text-[10px] sm:text-xs uppercase tracking-widest transition-all shadow-lg shadow-blue-600/20 hover:-translate-y-0.5 active:scale-95 flex items-center justify-center gap-2"
                     >
-                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <svg className="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                         </svg>
                         Download All PDF
@@ -81,9 +81,9 @@ const AdminBills: React.FC<Props> = ({ bills, theme, onDeleteBill, onClearAll, o
                     <button
                         onClick={() => printLoadingSheet(state.filteredBills, state.selectedDate || state.todayStr)}
                         disabled={state.filteredBills.length === 0}
-                        className="px-6 py-3 bg-emerald-600 hover:bg-emerald-700 disabled:opacity-40 disabled:cursor-not-allowed text-white font-black rounded-2xl text-xs uppercase tracking-widest transition-all shadow-lg shadow-emerald-600/20 hover:-translate-y-0.5 active:scale-95 flex items-center gap-2"
+                        className="flex-1 sm:flex-none px-4 sm:px-6 py-3 bg-emerald-600 hover:bg-emerald-700 disabled:opacity-40 disabled:cursor-not-allowed text-white font-black rounded-2xl text-[10px] sm:text-xs uppercase tracking-widest transition-all shadow-lg shadow-emerald-600/20 hover:-translate-y-0.5 active:scale-95 flex items-center justify-center gap-2"
                     >
-                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <svg className="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                         </svg>
                         Loading Sheet
@@ -91,9 +91,9 @@ const AdminBills: React.FC<Props> = ({ bills, theme, onDeleteBill, onClearAll, o
                     <button
                         onClick={onClearAll}
                         disabled={bills.length === 0}
-                        className="px-6 py-3 bg-red-500/10 hover:bg-red-500 disabled:opacity-40 disabled:cursor-not-allowed text-red-500 hover:text-white font-black rounded-2xl text-xs uppercase tracking-widest transition-all border border-red-500/20 hover:border-red-500 hover:-translate-y-0.5 active:scale-95 flex items-center gap-2"
+                        className="flex-1 sm:flex-none px-4 sm:px-6 py-3 bg-red-500/10 hover:bg-red-500 disabled:opacity-40 disabled:cursor-not-allowed text-red-500 hover:text-white font-black rounded-2xl text-[10px] sm:text-xs uppercase tracking-widest transition-all border border-red-500/20 hover:border-red-500 hover:-translate-y-0.5 active:scale-95 flex items-center justify-center gap-2 w-full sm:w-auto"
                     >
-                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <svg className="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                         </svg>
                         Clear All
@@ -130,11 +130,12 @@ const AdminBills: React.FC<Props> = ({ bills, theme, onDeleteBill, onClearAll, o
                                 </button>
                             </div>
 
-                            <div className={`rounded-[40px] border overflow-hidden ${isDark ? 'bg-slate-900/50 border-white/5' : 'bg-white border-slate-100 shadow-xl'}`}>
-                                {/* Header */}
-                                <div className={`grid grid-cols-12 gap-4 px-8 py-5 text-[10px] font-black uppercase tracking-widest border-b
-                                    ${isDark ? 'bg-slate-800/50 border-white/5 text-slate-400' : 'bg-slate-50 border-slate-100 text-slate-500'}`}>
-                                    <div className="col-span-1">S.No</div>
+                            <div className={`rounded-[40px] border overflow-x-auto hide-scrollbar ${isDark ? 'bg-slate-900/50 border-white/5' : 'bg-white border-slate-100 shadow-xl'}`}>
+                                <div className="min-w-[800px]">
+                                    {/* Header */}
+                                    <div className={`grid grid-cols-12 gap-4 px-8 py-5 text-[10px] font-black uppercase tracking-widest border-b
+                                        ${isDark ? 'bg-slate-800/50 border-white/5 text-slate-400' : 'bg-slate-50 border-slate-100 text-slate-500'}`}>
+                                        <div className="col-span-1">S.No</div>
                                     <div className="col-span-3">Shop Name</div>
                                     <div className="col-span-2">Date</div>
                                     <div className="col-span-1">Items</div>
@@ -209,6 +210,7 @@ const AdminBills: React.FC<Props> = ({ bills, theme, onDeleteBill, onClearAll, o
                                         </div>
                                     </div>
                                 ))}
+                                </div>
                             </div>
                         </div>
                     ))}
