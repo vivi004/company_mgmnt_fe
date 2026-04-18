@@ -199,7 +199,7 @@ export const useStaffDashboardData = () => {
         actions: {
             setActiveTab, setShowModal, setTheme, setIsMobileMenuOpen,
             setFormData, setShowOlModal, setNewSector, removeToast,
-            handleRequestSubmit, handleAddSector, handleDeleteRequest,
+            handleRequestSubmit, handleAddSector, handleDeleteRequest, setUnverifiedCount,
             setProfilePic: async (pic: string) => {
                 setProfilePic(pic);
                 localStorage.setItem('staffProfilePic', pic);

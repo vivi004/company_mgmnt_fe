@@ -401,7 +401,7 @@ export const useAdminDashboardData = () => {
                 }
             },
             removeToast, handleDeleteBill, handleClearAllBills, handleEditBill,
-            handleApproveRequest, handleRejectRequest, handleApproveOl, handleRejectOl,
+            handleApproveRequest, handleRejectRequest, handleApproveOl, handleRejectOl, setUnverifiedCount,
             handleDeleteOl, handleOpenOlModal, handleOlSubmit, handleSubmit,
             handleEdit, handleAddNew, handleDelete,
             handleManualSync, handleArchiveOldBills, handleResetAnalytics

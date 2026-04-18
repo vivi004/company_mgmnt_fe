@@ -82,6 +82,7 @@ const StaffDashboard = () => {
                                 theme={state.theme}
                                 type="staff"
                                 userProfileName={state.userProfile.first_name ? `${state.userProfile.first_name} ${state.userProfile.last_name || ''}`.trim() : 'Staff'}
+                                onUnverifiedCountChange={actions.setUnverifiedCount}
                             />
                         )}
                         {state.activeTab === 'settings' && (

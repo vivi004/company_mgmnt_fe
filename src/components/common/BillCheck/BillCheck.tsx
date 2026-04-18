@@ -19,9 +19,10 @@ interface Props {
     theme: string;
     type: 'admin' | 'staff';
     userProfileName?: string; // Required for staff type
+    onUnverifiedCountChange?: (count: number) => void;
 }
 
-const BillCheck = ({ theme, type, userProfileName }: Props) => {
+const BillCheck = ({ theme, type, userProfileName, onUnverifiedCountChange }: Props) => {
     const isDark = theme === 'dark';
     const isAdmin = type === 'admin';
     const [unverifiedBills, setUnverifiedBills] = useState<Bill[]>([]);
@@ -59,6 +60,9 @@ const BillCheck = ({ theme, type, userProfileName }: Props) => {
                 createdBy: b.created_by || b.createdBy
             }));
             setUnverifiedBills(mapped);
+            if (onUnverifiedCountChange) {
+                onUnverifiedCountChange(mapped.length);
+            }
 
             const legacyBills = mapped.filter((b: any) => Object.keys(b.customRates).length === 0 && Object.keys(b.cart).length > 0);
             if (legacyBills.length > 0) {
@@ -442,27 +446,27 @@ const BillCheck = ({ theme, type, userProfileName }: Props) => {
                         </div>
 
                         {/* Footer Totals */}
-                        <div className={`p-8 border-t shrink-0 flex items-center justify-between rounded-b-[40px] 
+                        <div className={`p-5 sm:p-8 border-t shrink-0 flex flex-col sm:flex-row sm:items-center justify-between gap-5 sm:gap-0 rounded-b-[40px] 
                             ${isAdmin ? (isDark ? 'bg-slate-900/90 border-white/10 backdrop-blur-md' : 'bg-slate-50/90 border-slate-200 backdrop-blur-md')
                                 : (isDark ? 'bg-slate-900/90 border-amber-500/20 backdrop-blur-md' : 'bg-slate-50/90 border-slate-200 backdrop-blur-md')}`}>
                             <div>
                                 <p className="text-slate-500 text-[10px] font-black uppercase tracking-[0.2em] mb-1">Revised Total</p>
-                                <p className={`text-4xl font-black italic tracking-tighter ${isDark ? 'text-white' : 'text-slate-900'}`}>
+                                <p className={`text-3xl sm:text-4xl font-black italic tracking-tighter ${isDark ? 'text-white' : 'text-slate-900'}`}>
                                     ₹{getTotal(editCart, editRates).toLocaleString('en-IN', { minimumFractionDigits: 2 })}
-                                    <span className="text-sm font-bold text-slate-500 ml-3 tracking-widest normal-case">({getItemCount(editCart)} items)</span>
+                                    <span className="text-sm font-bold text-slate-500 ml-2 sm:ml-3 tracking-widest normal-case break-keep whitespace-nowrap">({getItemCount(editCart)} items)</span>
                                 </p>
                             </div>
-                            <div className="flex gap-4">
+                            <div className="flex gap-3 sm:gap-4 w-full sm:w-auto">
                                 <button
                                     onClick={() => setEditingBill(null)}
-                                    className={`px-6 py-4 rounded-2xl font-black text-xs uppercase tracking-widest transition-all border
+                                    className={`flex-1 sm:flex-none px-4 sm:px-6 py-4 rounded-2xl font-black text-xs uppercase tracking-widest transition-all border
                                         ${isDark ? 'bg-slate-800 border-white/10 text-white hover:bg-slate-700' : 'bg-white border-slate-200 text-slate-700 hover:bg-slate-50 shadow-sm'}`}
                                 >
                                     Cancel
                                 </button>
                                 <button
                                     onClick={handleSaveEdit}
-                                    className="px-8 py-4 bg-blue-600 hover:bg-blue-700 text-white font-black rounded-2xl text-xs uppercase tracking-widest transition-all shadow-xl shadow-blue-600/30 active:scale-95"
+                                    className="flex-1 sm:flex-none px-4 sm:px-8 py-4 bg-blue-600 hover:bg-blue-700 text-white font-black rounded-2xl text-xs uppercase tracking-widest transition-all shadow-xl shadow-blue-600/30 active:scale-95"
                                 >
                                     Save Changes
                                 </button>

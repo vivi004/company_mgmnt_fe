@@ -125,7 +125,7 @@ const AdminDashboard = () => {
                             />
                         )}
                         {state.activeTab === 'bill-check' && (
-                            <BillCheck theme={state.theme} type="admin" />
+                            <BillCheck theme={state.theme} type="admin" onUnverifiedCountChange={actions.setUnverifiedCount} />
                         )}
                         {state.activeTab === 'sales' && (
                             <AdminSales theme={state.theme} />
