@@ -17,10 +17,10 @@ export const DEFAULT_NISHA_PRODUCTS: Product[] = [
     // Groundnut Oil (Nisha)
     // Groundnut Oil (க.எ)
     { id: 'gn-500ml', name: 'Groundnut Oil', brand: 'Nisha', size: '500 ml', price: 110, unit: 'Litre', icon: '🥜' },
-    { id: 'gn-1l-pet', name: 'Groundnut Oil', brand: 'Nisha', size: '1 ltr-pet', price: 220, unit: 'Litre', icon: '🥜' },
+    { id: 'gn-1l-pet', name: 'Groundnut Oil', brand: 'Nisha', size: '1 ltr', price: 220, unit: 'Litre', icon: '🥜' },
     { id: 'gn-2l', name: 'Groundnut Oil', brand: 'Nisha', size: '2 ltr', price: 440, unit: 'Litre', icon: '🥜' },
-    { id: 'gn-5l-can', name: 'Groundnut Oil', brand: 'Nisha', size: '5 Ltr Can', price: 1100, unit: 'Litre', icon: '🥜' },
-    { id: 'gn-5kg-can', name: 'Groundnut Oil', brand: 'Nisha', size: '5 Kg Can', price: 1245, unit: 'KG', icon: '🥜' },
+    { id: 'gn-5l-can', name: 'Groundnut Oil', brand: 'Nisha', size: '5 Ltr Can', price: 1100, unit: 'CAN', icon: '🥜' },
+    { id: 'gn-5kg-can', name: 'Groundnut Oil', brand: 'Nisha', size: '5 Kg Can', price: 1245, unit: 'CAN', icon: '🥜' },
     { id: 'gn-15l', name: 'Groundnut Oil', brand: 'Nisha', size: '15 LTR', price: 3260, unit: 'Litre', icon: '🥜' },
     { id: 'gn-15kg', name: 'Groundnut Oil', brand: 'Nisha', size: '15 KG', price: 3530, unit: 'KG', icon: '🥜' },
 
@@ -28,8 +28,8 @@ export const DEFAULT_NISHA_PRODUCTS: Product[] = [
     { id: 'cn-100ml', name: 'Coconut Oil', brand: 'Nisha', size: '100 ml', price: 38, unit: 'Litre', icon: '🥥' },
     { id: 'cn-200ml', name: 'Coconut Oil', brand: 'Nisha', size: '200 ml', price: 74, unit: 'Litre', icon: '🥥' },
     { id: 'cn-500ml', name: 'Coconut Oil', brand: 'Nisha', size: '500 ml', price: 175, unit: 'Litre', icon: '🥥' },
-    { id: 'cn-1l-pet', name: 'Coconut Oil', brand: 'Nisha', size: '1 ltr-pet', price: 350, unit: 'Litre', icon: '🥥' },
-    { id: 'cn-5l-can', name: 'Coconut Oil', brand: 'Nisha', size: '5 Ltr Can', price: 1750, unit: 'Litre', icon: '🥥' },
+    { id: 'cn-1l-pet', name: 'Coconut Oil', brand: 'Nisha', size: '1 ltr', price: 350, unit: 'Litre', icon: '🥥' },
+    { id: 'cn-5l-can', name: 'Coconut Oil', brand: 'Nisha', size: '5 Ltr Can', price: 1750, unit: 'CAN', icon: '🥥' },
     { id: 'cn-15l', name: 'Coconut Oil', brand: 'Nisha', size: '15 LTR', price: 5175, unit: 'Litre', icon: '🥥' },
     { id: 'cn-15kg', name: 'Coconut Oil', brand: 'Nisha', size: '15 KG', price: 5642.5, unit: 'KG', icon: '🥥' },
 
@@ -37,8 +37,8 @@ export const DEFAULT_NISHA_PRODUCTS: Product[] = [
     { id: 'cs-100ml', name: 'Castor Oil', brand: 'Nisha', size: '100 ml', price: 29, unit: 'Litre', icon: '🌿' },
     { id: 'cs-200ml', name: 'Castor Oil', brand: 'Nisha', size: '200 ml', price: 56, unit: 'Litre', icon: '🌿' },
     { id: 'cs-500ml', name: 'Castor Oil', brand: 'Nisha', size: '500 ml', price: 130, unit: 'Litre', icon: '🌿' },
-    { id: 'cs-1l-pet', name: 'Castor Oil', brand: 'Nisha', size: '1 ltr-pet', price: 260, unit: 'Litre', icon: '🌿' },
-    { id: 'cs-5l-can', name: 'Castor Oil', brand: 'Nisha', size: '5 Ltr Can', price: 1300, unit: 'Litre', icon: '🌿' },
+    { id: 'cs-1l-pet', name: 'Castor Oil', brand: 'Nisha', size: '1 ltr', price: 260, unit: 'Litre', icon: '🌿' },
+    { id: 'cs-5l-can', name: 'Castor Oil', brand: 'Nisha', size: '5 Ltr Can', price: 1300, unit: 'CAN', icon: '🌿' },
     { id: 'cs-15l', name: 'Castor Oil', brand: 'Nisha', size: '15 LTR', price: 3825, unit: 'Litre', icon: '🌿' },
     { id: 'cs-15kg', name: 'Castor Oil', brand: 'Nisha', size: '15 KG', price: 4157.5, unit: 'KG', icon: '🌿' },
 
@@ -46,8 +46,8 @@ export const DEFAULT_NISHA_PRODUCTS: Product[] = [
     { id: 'lo-100ml', name: 'Lamp oil', brand: 'Nisha', size: '100 ml', price: 18, unit: 'Litre', icon: '🪔' },
     { id: 'lo-200ml', name: 'Lamp oil', brand: 'Nisha', size: '200 ml', price: 34, unit: 'Litre', icon: '🪔' },
     { id: 'lo-500ml', name: 'Lamp oil', brand: 'Nisha', size: '500 ml', price: 75, unit: 'Litre', icon: '🪔' },
-    { id: 'lo-1l-pet', name: 'Lamp oil', brand: 'Nisha', size: '1 ltr-pet', price: 150, unit: 'Litre', icon: '🪔' },
-    { id: 'lo-5l-can', name: 'Lamp oil', brand: 'Nisha', size: '5 Ltr Can', price: 750, unit: 'Litre', icon: '🪔' },
+    { id: 'lo-1l-pet', name: 'Lamp oil', brand: 'Nisha', size: '1 ltr', price: 150, unit: 'Litre', icon: '🪔' },
+    { id: 'lo-5l-can', name: 'Lamp oil', brand: 'Nisha', size: '5 Ltr Can', price: 750, unit: 'CAN', icon: '🪔' },
     { id: 'lo-15l', name: 'Lamp oil', brand: 'Nisha', size: '15 LTR', price: 2100, unit: 'Litre', icon: '🪔' },
     { id: 'lo-15kg', name: 'Lamp oil', brand: 'Nisha', size: '15 KG', price: 2250, unit: 'KG', icon: '🪔' },
 
@@ -55,8 +55,8 @@ export const DEFAULT_NISHA_PRODUCTS: Product[] = [
     { id: 'gg-100ml', name: 'Gingelly Oil', brand: 'Nisha', size: '100 ml', price: 38, unit: 'Litre', icon: '🏺' },
     { id: 'gg-200ml', name: 'Gingelly Oil', brand: 'Nisha', size: '200 ml', price: 74, unit: 'Litre', icon: '🏺' },
     { id: 'gg-500ml', name: 'Gingelly Oil', brand: 'Nisha', size: '500 ml', price: 175, unit: 'Litre', icon: '🏺' },
-    { id: 'gg-1l-pet', name: 'Gingelly Oil', brand: 'Nisha', size: '1 ltr-pet', price: 350, unit: 'Litre', icon: '🏺' },
-    { id: 'gg-5l-can', name: 'Gingelly Oil', brand: 'Nisha', size: '5 Ltr Can', price: 1750, unit: 'Litre', icon: '🏺' },
+    { id: 'gg-1l-pet', name: 'Gingelly Oil', brand: 'Nisha', size: '1 ltr', price: 350, unit: 'Litre', icon: '🏺' },
+    { id: 'gg-5l-can', name: 'Gingelly Oil', brand: 'Nisha', size: '5 Ltr Can', price: 1750, unit: 'CAN', icon: '🏺' },
     { id: 'gg-15l', name: 'Gingelly Oil', brand: 'Nisha', size: '15 LTR', price: 5175, unit: 'Litre', icon: '🏺' },
     { id: 'gg-15kg', name: 'Gingelly Oil', brand: 'Nisha', size: '15 KG', price: 5642.5, unit: 'KG', icon: '🏺' },
 
@@ -64,8 +64,8 @@ export const DEFAULT_NISHA_PRODUCTS: Product[] = [
     { id: 'mo-100ml', name: 'Mahua Oil(iluppa ennai)', brand: 'Nisha', size: '100 ml', price: 29, unit: 'Litre', icon: '🌼' },
     { id: 'mo-200ml', name: 'Mahua Oil(iluppa ennai)', brand: 'Nisha', size: '200 ml', price: 56, unit: 'Litre', icon: '🌼' },
     { id: 'mo-500ml', name: 'Mahua Oil(iluppa ennai)', brand: 'Nisha', size: '500 ml', price: 130, unit: 'Litre', icon: '🌼' },
-    { id: 'mo-1l-pet', name: 'Mahua Oil(iluppa ennai)', brand: 'Nisha', size: '1 ltr-pet', price: 260, unit: 'Litre', icon: '🌼' },
-    { id: 'mo-5l-can', name: 'Mahua Oil(iluppa ennai)', brand: 'Nisha', size: '5 Ltr Can', price: 1300, unit: 'Litre', icon: '🌼' },
+    { id: 'mo-1l-pet', name: 'Mahua Oil(iluppa ennai)', brand: 'Nisha', size: '1 ltr', price: 260, unit: 'Litre', icon: '🌼' },
+    { id: 'mo-5l-can', name: 'Mahua Oil(iluppa ennai)', brand: 'Nisha', size: '5 Ltr Can', price: 1300, unit: 'CAN', icon: '🌼' },
     { id: 'mo-15l', name: 'Mahua Oil(iluppa ennai)', brand: 'Nisha', size: '15 LTR', price: 3825, unit: 'Litre', icon: '🌼' },
     { id: 'mo-15kg', name: 'Mahua Oil(iluppa ennai)', brand: 'Nisha', size: '15 KG', price: 4157.5, unit: 'KG', icon: '🌼' },
 
@@ -73,8 +73,8 @@ export const DEFAULT_NISHA_PRODUCTS: Product[] = [
     { id: 'nm-100ml', name: 'Neem Oil', brand: 'Nisha', size: '100 ml', price: 39, unit: 'Litre', icon: '🍃' },
     { id: 'nm-200ml', name: 'Neem Oil', brand: 'Nisha', size: '200 ml', price: 76, unit: 'Litre', icon: '🍃' },
     { id: 'nm-500ml', name: 'Neem Oil', brand: 'Nisha', size: '500 ml', price: 180, unit: 'Litre', icon: '🍃' },
-    { id: 'nm-1l-pet', name: 'Neem Oil', brand: 'Nisha', size: '1 ltr-pet', price: 360, unit: 'Litre', icon: '🍃' },
-    { id: 'nm-5l-can', name: 'Neem Oil', brand: 'Nisha', size: '5 Ltr Can', price: 1800, unit: 'Litre', icon: '🍃' },
+    { id: 'nm-1l-pet', name: 'Neem Oil', brand: 'Nisha', size: '1 ltr', price: 360, unit: 'Litre', icon: '🍃' },
+    { id: 'nm-5l-can', name: 'Neem Oil', brand: 'Nisha', size: '5 Ltr Can', price: 1800, unit: 'CAN', icon: '🍃' },
     { id: 'nm-15l', name: 'Neem Oil', brand: 'Nisha', size: '15 LTR', price: 5325, unit: 'Litre', icon: '🍃' },
     { id: 'nm-15kg', name: 'Neem Oil', brand: 'Nisha', size: '15 KG', price: 5807.5, unit: 'KG', icon: '🍃' },
 ];
@@ -82,7 +82,7 @@ export const DEFAULT_NISHA_PRODUCTS: Product[] = [
 export const DEFAULT_MIXED_OIL_PRODUCTS: Product[] = [
     { id: 'mo-v-0.5po', name: 'Mixed Oil', brand: 'VARSHINI', size: '1/2 Pkt', price: 1500, unit: 'BOX', icon: '🛢️' },
     { id: 'mo-v-1lpo', name: 'Mixed Oil', brand: 'VARSHINI', size: '1 Ltr Pkt', price: 1500, unit: 'BOX', icon: '🛢️' },
-    { id: 'mo-v-5lcan', name: 'Mixed Oil', brand: 'VARSHINI', size: '5 Ltr Can', price: 775, unit: 'Litre', icon: '🛢️' },
+    { id: 'mo-v-5lcan', name: 'Mixed Oil', brand: 'VARSHINI', size: '5 Ltr Can', price: 775, unit: 'CAN', icon: '🛢️' },
     { id: 'mo-v-15l', name: 'Mixed Oil', brand: 'VARSHINI', size: '15 LTR', price: 2230, unit: 'Litre', icon: '🛢️' },
     { id: 'mo-v-15kg', name: 'Mixed Oil', brand: 'VARSHINI', size: '15 KG', price: 2440, unit: 'KG', icon: '🛢️' },
     { id: 'mo-r-820g', name: 'Mixed Oil', brand: 'ROSHINI', size: '820 GM', price: 1380, unit: 'BOX', icon: '🛢️' },
@@ -112,11 +112,11 @@ export const DEFAULT_OIL_CAKE_PRODUCTS: Product[] = [
 
 /* ── localStorage-backed dynamic product management ── */
 
-const NISHA_KEY = 'nishaProducts_v4';
-const MIXED_KEY = 'mixedOilProducts_v4';
-const PALM_KEY = 'palmOilProducts_v4';
-const BURFI_KEY = 'burfiProducts_v4';
-const OIL_CAKE_KEY = 'oilCakeProducts_v4';
+const NISHA_KEY = 'nishaProducts_v5';
+const MIXED_KEY = 'mixedOilProducts_v5';
+const PALM_KEY = 'palmOilProducts_v5';
+const BURFI_KEY = 'burfiProducts_v5';
+const OIL_CAKE_KEY = 'oilCakeProducts_v5';
 
 /**
  * Helper to apply synced sheet rates to a list of products

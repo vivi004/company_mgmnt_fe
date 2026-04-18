@@ -113,19 +113,35 @@ td,th{border:1px solid #000;padding:3px 5px;vertical-align:top}
                     </tr>
 
                     {/* ITEMS */}
-                    {cartItems.map((item, i) => (
+                    {cartItems.map((item, i) => {
+                        const description = item.brand !== 'Nisha' ? `${item.brand.toUpperCase()} ${item.size.toUpperCase()}` : `${item.name.toUpperCase()} ${item.size.toUpperCase()}`;
+                        let displayUnit = (item.unit || 'NOS').toUpperCase();
+
+                        if (/\b15\s*(LTR|KG|L|T|TIN)\b/i.test(description)) {
+                            displayUnit = 'TIN';
+                        } else if (/\b5\s*(LTR|KG|L|CAN)\b/i.test(description)) {
+                            displayUnit = 'CAN';
+                        } else if (/\bBOX\b/i.test(description) || item.id.includes('_box')) {
+                            displayUnit = 'BOX';
+                        } else if (/\b(100|200|500)\s*ML\b/i.test(description)) {
+                            displayUnit = 'PCS';
+                        } else if (displayUnit === 'LITRE') {
+                            displayUnit = 'PCS';
+                        }
+
+                        return (
                         <tr key={item.id}>
                             <td style={{ ...B, textAlign: 'center' }}>{i + 1}</td>
-                            <td style={{ ...B, fontWeight: 'bold' }}>{item.brand !== 'Nisha' ? `${item.brand.toUpperCase()} ${item.size.toUpperCase()}` : `${item.name.toUpperCase()} ${item.size.toUpperCase()}`}</td>
+                            <td style={{ ...B, fontWeight: 'bold' }}>{description}</td>
                             <td style={{ ...B, textAlign: 'center', fontWeight: 'bold' }}>
-                                {item.quantity} {item.id.includes('_box') ? 'BOX' : (item.unit === 'CAN' ? 'CANS' : (item.unit || 'UNIT').toUpperCase())}
+                                {item.quantity} {displayUnit === 'CAN' ? 'CANS' : displayUnit}
                                 {item.weight && <><br /><span style={{ fontSize: '9px', fontStyle: 'italic', fontWeight: 'normal' }}>({item.weight})</span></>}
                             </td>
                             <td style={{ ...B, textAlign: 'right' }}>{item.price.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</td>
-                            <td style={{ ...B, textAlign: 'center' }}>{item.id.includes('_box') ? 'BOX' : 'PCS'}</td>
+                            <td style={{ ...B, textAlign: 'center' }}>{displayUnit}</td>
                             <td style={{ ...B, textAlign: 'right', fontWeight: 'bold' }}>{(item.price * item.quantity).toLocaleString('en-IN', { minimumFractionDigits: 2 })}</td>
                         </tr>
-                    ))}
+                    )})}
 
                     {/* EMPTY SPACE */}
                     <tr><td style={{ ...B, height: '60px' }}></td><td style={B}></td><td style={B}></td><td style={B}></td><td style={B}></td><td style={B}></td></tr>

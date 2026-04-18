@@ -85,9 +85,17 @@ export function generateLoadingSheet(bills: Bill[], dateStr: string) {
         } else if (/\bBOX\b/i.test(description) || description.includes('500ML') || description.includes('500 ML') || description.includes('1LTR') || description.includes('1 LTR')) {
             // Boxes and individual bottles are often sold in box units or litre units.
             // But per user request: OIL (BOX) 500 ML -> BOX
-            if (/\bBOX\b/i.test(description)) {
+            if (/\bBOX\b/i.test(description) || pid.includes('_box')) {
                 displayUnit = 'BOX';
+            } else if (/\b(100|200|500)\s*ML\b/i.test(description)) {
+                displayUnit = 'PCS';
+            } else if (displayUnit === 'LITRE') {
+                displayUnit = 'PCS';
             }
+        } else if (/\b(100|200|500)\s*ML\b/i.test(description)) {
+            displayUnit = 'PCS';
+        } else if (displayUnit === 'LITRE') {
+            displayUnit = 'PCS';
         }
 
         categoryMap[category].push({

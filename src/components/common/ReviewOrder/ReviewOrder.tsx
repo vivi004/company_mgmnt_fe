@@ -70,12 +70,26 @@ const ReviewOrder = ({ shopName, villageName, theme, cart, updateQuantity, onBac
                                 <div className="col-span-2 text-right">Amount (₹)</div>
                             </div>
 
-                            {/* Table Body */}
                             {cartItems.map((item, index) => {
                                 const isBox = item.id.includes('_box');
                                 const is2L_Base = !isBox && item.size.toLowerCase() === '2 ltr' && !item.id.includes('_ltr');
                                 const is500_Ltr = !isBox && item.id.includes('_ltr');
                                 const cartDelta = is2L_Base ? 2 : is500_Ltr ? 0.5 : 1;
+
+                                const description = item.brand !== 'Nisha' ? `${item.brand.toUpperCase()} ${item.size.toUpperCase()}` : `${item.name.toUpperCase()} ${item.size.toUpperCase()}`;
+                                let displayUnit = (item.unit || 'NOS').toUpperCase();
+
+                                if (/\b15\s*(LTR|KG|L|T|TIN)\b/i.test(description)) {
+                                    displayUnit = 'TIN';
+                                } else if (/\b5\s*(LTR|KG|L|CAN)\b/i.test(description)) {
+                                    displayUnit = 'CAN';
+                                } else if (/\bBOX\b/i.test(description) || item.id.includes('_box')) {
+                                    displayUnit = 'BOX';
+                                } else if (/\b(100|200|500)\s*ML\b/i.test(description)) {
+                                    displayUnit = 'PCS';
+                                } else if (displayUnit === 'LITRE') {
+                                    displayUnit = 'PCS';
+                                }
 
                                 return (
                                     <div
@@ -101,7 +115,7 @@ const ReviewOrder = ({ shopName, villageName, theme, cart, updateQuantity, onBac
                                                 <div className="text-center min-w-[3rem]">
                                                     <span className="block font-black text-slate-900">{item.quantity}</span>
                                                     <span className="block text-[10px] font-black uppercase tracking-widest text-slate-500">
-                                                        {item.id.includes('_box') ? 'BOX' : (item.unit === 'CAN' ? 'CANS' : (item.unit === 'Litre' ? 'PCS' : (item.unit || 'UNIT').toUpperCase()))}
+                                                        {displayUnit === 'CAN' ? 'CANS' : displayUnit}
                                                     </span>
                                                 </div>
                                                 <button onClick={() => updateQuantity(item.id, cartDelta)} className={`w-8 h-8 rounded-full flex items-center justify-center bg-${primaryColor}-500 text-white hover:bg-${primaryColor}-600 shadow-md shadow-${primaryColor}-500/20 transition-all`}>

@@ -45,8 +45,12 @@ export const invoiceHTML = (bill: Bill) => {
             displayUnit = 'TIN';
         } else if (/\b5\s*(LTR|KG|L|CAN)\b/i.test(description)) {
             displayUnit = 'CAN';
-        } else if (/\bBOX\b/i.test(description)) {
+        } else if (/\bBOX\b/i.test(description) || it.id.includes('_box')) {
             displayUnit = 'BOX';
+        } else if (/\b(100|200|500)\s*ML\b/i.test(description)) {
+            displayUnit = 'PCS';
+        } else if (displayUnit === 'LITRE') {
+            displayUnit = 'PCS';
         }
 
         return `<tr>

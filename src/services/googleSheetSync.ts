@@ -97,8 +97,8 @@ function mapSheetToProducts(rows: string[][]): Record<string, number> {
     // ── Block 1: Oil Cake (cols K=10, L=11) ──
     set('oc-thool-25kg', 2, 11);
     set('oc-thool-50kg', 3, 11);
-    set('oc-katti-25kg', 4, 11);
-    set('oc-katti-50kg', 5, 11);
+    set('oc-katti-25kg', 5, 11);
+    set('oc-katti-50kg', 6, 11);
 
     // ── Block 2 (rows 10–16): Castor Oil (cols A=0, B=1) ──
     set('cs-100ml', 10, 1, 0.1);

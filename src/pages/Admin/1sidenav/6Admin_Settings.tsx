@@ -1,4 +1,5 @@
-import React from 'react';
+import React, { useState } from 'react';
+import Admin_ManualBill from './Admin_ManualBill';
 
 interface SettingsProps {
     theme: string;
@@ -31,6 +32,33 @@ const AdminSettings = ({
 }: SettingsProps) => {
 
     const fileInputRef = React.useRef<HTMLInputElement>(null);
+    const [manualVillage, setManualVillage] = useState('');
+    const [manualShop, setManualShop] = useState('');
+    const [manualBillActive, setManualBillActive] = useState(false);
+
+    const handleStartManualBill = () => {
+        if (!manualVillage.trim() || !manualShop.trim()) {
+            alert('Please enter both Area/Village Name and Shop Name.');
+            return;
+        }
+        setManualBillActive(true);
+    };
+
+    if (manualBillActive) {
+        return (
+            <Admin_ManualBill
+                shopName={manualShop.trim()}
+                villageName={manualVillage.trim()}
+                theme={theme}
+                onBack={() => {
+                    setManualBillActive(false);
+                    setManualVillage('');
+                    setManualShop('');
+                }}
+                type="admin"
+            />
+        );
+    }
 
     const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
@@ -175,6 +203,27 @@ const AdminSettings = ({
                             className={`block text-center px-6 py-4 rounded-[20px] text-xs font-black uppercase tracking-widest transition-all border ${theme === 'dark' ? 'bg-slate-800 border-white/10 text-slate-300 hover:text-emerald-400' : 'bg-white border-slate-200 text-slate-600 hover:text-emerald-600 shadow-sm'}`}>
                             ↗ Open Master Price Sheet
                         </a>
+                    </div>
+                </Card>
+
+                {/* Manual Bill Generation */}
+                <Card>
+                    <SectionHeader icon="🧾" title="Manual Bill Generation" subtitle="Create Ad-Hoc Bills" colorClass="bg-pink-600 text-pink-500 shadow-pink-500/40" />
+                    <div className="space-y-4">
+                        <div className="space-y-1">
+                            <label className={`text-[10px] font-black italic px-2 uppercase tracking-widest ${theme === 'dark' ? 'text-slate-400' : 'text-slate-500'}`}>Area / Village Name</label>
+                            <input type="text" placeholder="e.g. Salem City" value={manualVillage} onChange={e => setManualVillage(e.target.value)}
+                                className={`w-full px-5 py-3 rounded-2xl font-bold text-sm border focus:outline-none focus:ring-2 transition-all ${theme === 'dark' ? 'bg-slate-800 border-white/10 text-white focus:border-pink-500' : 'bg-slate-50 border-slate-200 text-slate-900 focus:border-pink-500'}`} />
+                        </div>
+                        <div className="space-y-1">
+                            <label className={`text-[10px] font-black italic px-2 uppercase tracking-widest ${theme === 'dark' ? 'text-slate-400' : 'text-slate-500'}`}>Shop Name</label>
+                            <input type="text" placeholder="e.g. General Traders" value={manualShop} onChange={e => setManualShop(e.target.value)}
+                                className={`w-full px-5 py-3 rounded-2xl font-bold text-sm border focus:outline-none focus:ring-2 transition-all ${theme === 'dark' ? 'bg-slate-800 border-white/10 text-white focus:border-pink-500' : 'bg-slate-50 border-slate-200 text-slate-900 focus:border-pink-500'}`} />
+                        </div>
+                        <button onClick={handleStartManualBill}
+                            className="w-full mt-2 px-6 py-4 bg-pink-600 hover:bg-pink-700 text-white font-black rounded-2xl text-xs uppercase tracking-widest transition-all shadow-lg shadow-pink-500/30 hover:-translate-y-0.5 active:scale-95">
+                            Start Manual Billing
+                        </button>
                     </div>
                 </Card>
 

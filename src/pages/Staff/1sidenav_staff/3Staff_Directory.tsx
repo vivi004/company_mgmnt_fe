@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import type { Product } from '../../../constants/productData';
 
