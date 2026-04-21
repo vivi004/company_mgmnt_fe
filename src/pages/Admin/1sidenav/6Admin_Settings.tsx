@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Admin_ManualBill from './Admin_ManualBill';
 
 interface SettingsProps {
@@ -15,7 +15,7 @@ interface SettingsProps {
     setEmailForwarding: (val: boolean) => void;
     setPushNotifications: (val: boolean) => void;
     nextInvoiceNo: number;
-    setNextInvoiceNo: (val: number) => void;
+    setNextInvoiceNo: (val: number) => void | Promise<void>;
     lastInvoiceNo: number;
     profilePic: string;
     setProfilePic: (val: string) => void;
@@ -34,6 +34,26 @@ const AdminSettings = ({
     const [manualVillage, setManualVillage] = useState('');
     const [manualShop, setManualShop] = useState('');
     const [manualBillActive, setManualBillActive] = useState(false);
+    // Local draft for invoice number — only synced to DB on explicit save
+    const [draftInvoiceNo, setDraftInvoiceNo] = useState<string>(String(nextInvoiceNo));
+    const [invoiceSaving, setInvoiceSaving] = useState(false);
+    const [invoiceSaved, setInvoiceSaved] = useState(false);
+
+    // Keep draft in sync if parent updates from DB
+    useEffect(() => {
+        setDraftInvoiceNo(String(nextInvoiceNo));
+    }, [nextInvoiceNo]);
+
+    const handleSaveInvoiceNo = async () => {
+        const parsed = Math.max(1, parseInt(draftInvoiceNo, 10) || 1);
+        setDraftInvoiceNo(String(parsed));
+        setInvoiceSaving(true);
+        setInvoiceSaved(false);
+        await setNextInvoiceNo(parsed);
+        setInvoiceSaving(false);
+        setInvoiceSaved(true);
+        setTimeout(() => setInvoiceSaved(false), 2500);
+    };
 
     const handleStartManualBill = () => {
         if (!manualVillage.trim() || !manualShop.trim()) {
@@ -226,31 +246,44 @@ const AdminSettings = ({
                     </div>
                 </Card>
 
-                {/* Invoice Starting Number */}
                 <Card>
                     <SectionHeader icon="📋" title="Invoice Format" subtitle="Set Starting Bill Number" colorClass="bg-violet-600 text-violet-500 shadow-violet-500/40" />
                     <div className="space-y-6">
                         <div className="space-y-2">
                             <label className={`text-[10px] font-black italic px-2 uppercase tracking-widest ${theme === 'dark' ? 'text-slate-400' : 'text-slate-500'}`}>Next Invoice Number</label>
-                            <div className="relative group">
+                            <div className="flex gap-3">
                                 <input
                                     type="number"
                                     min={1}
-                                    value={nextInvoiceNo}
-                                    onChange={e => setNextInvoiceNo(Math.max(1, parseInt(e.target.value) || 1))}
-                                    className={`w-full px-6 py-4 rounded-[20px] font-black text-2xl tracking-widest border transition-all focus:outline-none focus:ring-4 ${theme === 'dark' ? 'bg-slate-800 border-white/10 text-violet-300 focus:ring-violet-500/20 focus:border-violet-500' : 'bg-slate-50 border-slate-200 text-violet-700 focus:ring-violet-600/10 focus:border-violet-600'}`}
+                                    value={draftInvoiceNo}
+                                    onChange={e => setDraftInvoiceNo(e.target.value)}
+                                    onKeyDown={e => { if (e.key === 'Enter') handleSaveInvoiceNo(); }}
+                                    className={`flex-1 px-6 py-4 rounded-[20px] font-black text-2xl tracking-widest border transition-all focus:outline-none focus:ring-4 ${theme === 'dark' ? 'bg-slate-800 border-white/10 text-violet-300 focus:ring-violet-500/20 focus:border-violet-500' : 'bg-slate-50 border-slate-200 text-violet-700 focus:ring-violet-600/10 focus:border-violet-600'}`}
                                 />
+                                <button
+                                    onClick={handleSaveInvoiceNo}
+                                    disabled={invoiceSaving}
+                                    className={`px-6 py-4 rounded-[20px] font-black text-xs uppercase tracking-widest transition-all shadow-lg 
+                                        ${ invoiceSaved
+                                            ? 'bg-emerald-500 text-white shadow-emerald-500/20'
+                                            : invoiceSaving
+                                            ? 'opacity-50 cursor-not-allowed bg-violet-400 text-white'
+                                            : 'bg-violet-600 hover:bg-violet-700 text-white shadow-violet-500/20 hover:-translate-y-0.5'
+                                        }`}
+                                >
+                                    {invoiceSaved ? '✓ Saved' : invoiceSaving ? 'Saving…' : 'Set Number'}
+                                </button>
                             </div>
                         </div>
                         <div className={`p-4 rounded-2xl border flex items-center gap-4 ${theme === 'dark' ? 'bg-slate-800/50 border-white/5' : 'bg-violet-50 border-violet-100'}`}>
                             <span className="text-2xl">🔖</span>
                             <div>
-                                <p className={`text-xs font-black uppercase tracking-widest ${theme === 'dark' ? 'text-slate-400' : 'text-slate-500'}`}>Next bill will be</p>
+                                <p className={`text-xs font-black uppercase tracking-widest ${theme === 'dark' ? 'text-slate-400' : 'text-slate-500'}`}>Next bill will be assigned</p>
                                 <p className={`font-black text-2xl ${theme === 'dark' ? 'text-violet-300' : 'text-violet-700'}`}>#{nextInvoiceNo}</p>
                             </div>
                         </div>
                         <p className="text-xs font-medium text-slate-500 italic px-1">
-                            New bills generated will start from this number and auto-increment. Current bills in the ledger are not affected.
+                            Bills will auto-increment from this number (4000 → 4001 → 4002…). Click <strong>Set Number</strong> to save. This value persists across logins.
                         </p>
                         <div className={`p-4 rounded-2xl border flex items-center gap-4 ${theme === 'dark' ? 'bg-slate-800/50 border-white/5' : 'bg-slate-50 border-slate-200'}`}>
                             <span className="text-xl">🧾</span>

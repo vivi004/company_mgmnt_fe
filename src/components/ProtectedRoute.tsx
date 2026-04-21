@@ -8,6 +8,18 @@ interface ProtectedRouteProps {
     requiredRole?: 'admin' | 'staff';
 }
 
+// Keys to preserve across logout/session expiry (non-sensitive app settings)
+const PERSISTENT_KEYS = ['nextInvoiceNo', 'lastInvoiceNo', 'adminTheme', 'companyName'];
+
+const clearAuthStorage = () => {
+    // Save persistent values before clearing
+    const preserved: Record<string, string | null> = {};
+    PERSISTENT_KEYS.forEach(k => { preserved[k] = localStorage.getItem(k); });
+    localStorage.clear();
+    // Restore them
+    PERSISTENT_KEYS.forEach(k => { if (preserved[k] !== null) localStorage.setItem(k, preserved[k]!); });
+};
+
 const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children, requiredRole }) => {
     const userRaw = localStorage.getItem('user');
     const loginTime = localStorage.getItem('loginTime');
@@ -15,14 +27,14 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children, requiredRole 
 
     // Check all auth artifacts exist
     if (!userRaw || !loginTime || !token) {
-        localStorage.clear();
+        clearAuthStorage();
         return <Navigate to="/login" replace />;
     }
 
     // Check if session has expired
     const elapsed = Date.now() - parseInt(loginTime, 10);
     if (elapsed > SESSION_DURATION_MS) {
-        localStorage.clear();
+        clearAuthStorage();
         return <Navigate to="/login" replace />;
     }
 
@@ -34,7 +46,7 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children, requiredRole 
             return <Navigate to={user.role === 'admin' ? '/admin/dashboard' : '/staff/dashboard'} replace />;
         }
     } catch {
-        localStorage.clear();
+        clearAuthStorage();
         return <Navigate to="/login" replace />;
     }
 
