@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import Admin_ManualBill from './Admin_ManualBill';
+import { getAuthAxios } from '../../../utils/apiClient';
 
 interface SettingsProps {
     theme: string;
@@ -38,6 +39,44 @@ const AdminSettings = ({
     const [draftInvoiceNo, setDraftInvoiceNo] = useState<string>(String(nextInvoiceNo));
     const [invoiceSaving, setInvoiceSaving] = useState(false);
     const [invoiceSaved, setInvoiceSaved] = useState(false);
+
+    // Motor Vehicles state
+    const [motorVehicles, setMotorVehicles] = useState<any[]>([]);
+    const [newVehicle, setNewVehicle] = useState('');
+
+    const fetchVehicles = async () => {
+        try {
+            const res = await getAuthAxios().get('/api/settings/vehicles');
+            setMotorVehicles(res.data);
+        } catch (err) {
+            console.error('Failed to fetch vehicles', err);
+        }
+    };
+
+    const handleAddVehicle = async () => {
+        if (!newVehicle.trim()) return;
+        try {
+            await getAuthAxios().post('/api/settings/vehicles', { vehicle_no: newVehicle.trim() });
+            setNewVehicle('');
+            fetchVehicles();
+        } catch (err) {
+            alert('Failed to add vehicle. It might already exist.');
+        }
+    };
+
+    const handleDeleteVehicle = async (id: number) => {
+        if (!window.confirm('Delete this vehicle?')) return;
+        try {
+            await getAuthAxios().delete(`/api/settings/vehicles/${id}`);
+            fetchVehicles();
+        } catch (err) {
+            alert('Failed to delete vehicle');
+        }
+    };
+
+    useEffect(() => {
+        fetchVehicles();
+    }, []);
 
     // Keep draft in sync if parent updates from DB
     useEffect(() => {
@@ -289,6 +328,51 @@ const AdminSettings = ({
                                 <p className={`text-[10px] font-black uppercase tracking-widest ${theme === 'dark' ? 'text-slate-500' : 'text-slate-400'}`}>Last Generated Invoice</p>
                                 <p className={`font-black text-xl ${theme === 'dark' ? 'text-slate-300' : 'text-slate-700'}`}>#{lastInvoiceNo}</p>
                             </div>
+                        </div>
+                    </div>
+                </Card>
+
+                {/* Motor Vehicle Management */}
+                <Card>
+                    <SectionHeader icon="🚚" title="Motor Vehicles" subtitle="Manage Transport Fleet" colorClass="bg-amber-600 text-amber-500 shadow-amber-500/40" />
+                    <div className="space-y-6">
+                        <div className="flex gap-3">
+                            <input
+                                type="text"
+                                placeholder="Enter Vehicle No (e.g. TN 30 AA 1234)"
+                                value={newVehicle}
+                                onChange={e => setNewVehicle(e.target.value)}
+                                className={`flex-1 px-5 py-3 rounded-2xl font-bold text-sm border focus:outline-none focus:ring-2 transition-all uppercase ${theme === 'dark' ? 'bg-slate-800 border-white/10 text-white focus:border-amber-500' : 'bg-slate-50 border-slate-200 text-slate-900 focus:border-amber-500'}`}
+                            />
+                            <button
+                                onClick={handleAddVehicle}
+                                disabled={!newVehicle.trim()}
+                                className="px-6 py-3 bg-amber-600 hover:bg-amber-700 disabled:opacity-50 text-white font-black rounded-2xl text-xs uppercase tracking-widest transition-all shadow-lg active:scale-95"
+                            >
+                                Add
+                            </button>
+                        </div>
+                        <div className={`rounded-2xl border overflow-hidden ${theme === 'dark' ? 'border-white/10' : 'border-slate-200'}`}>
+                            {motorVehicles.length === 0 ? (
+                                <div className={`p-6 text-center text-sm font-bold ${theme === 'dark' ? 'text-slate-500' : 'text-slate-400'}`}>
+                                    No motor vehicles added yet.
+                                </div>
+                            ) : (
+                                <ul className="divide-y divide-slate-200 dark:divide-white/10">
+                                    {motorVehicles.map(v => (
+                                        <li key={v.id} className={`flex items-center justify-between p-4 ${theme === 'dark' ? 'hover:bg-white/5' : 'hover:bg-slate-50'}`}>
+                                            <span className={`font-black uppercase ${theme === 'dark' ? 'text-white' : 'text-slate-900'}`}>{v.vehicle_no}</span>
+                                            <button
+                                                onClick={() => handleDeleteVehicle(v.id)}
+                                                className="p-2 text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10 rounded-xl transition-all"
+                                                title="Delete"
+                                            >
+                                                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
+                                            </button>
+                                        </li>
+                                    ))}
+                                </ul>
+                            )}
                         </div>
                     </div>
                 </Card>

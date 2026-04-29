@@ -66,7 +66,9 @@ export const useAdminDashboardData = () => {
                 customRates: b.custom_rates || b.customRates || {},
                 date: b.bill_date || b.date,
                 invoiceNo: b.invoice_no || b.invoiceNo,
-                createdBy: b.created_by || b.createdBy
+                createdBy: b.created_by || b.createdBy,
+                phone: b.phone || '',
+                phone2: b.phone2 || ''
             }));
             
             setBills(mappedBills);

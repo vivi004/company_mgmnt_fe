@@ -4,6 +4,8 @@ import AdminBillsCalendar from './Admin_BillsCalendar';
 import AdminBillsEditModal from './Admin_BillsEditModal';
 import { previewBill, downloadBill, downloadAllFiltered, downloadStaffBillsPdf, type Bill } from '../../../utils/invoiceGenerator';
 import { printLoadingSheet } from '../../../utils/loadingSheetGenerator';
+import { getAuthAxios } from '../../../utils/apiClient';
+import { useState, useEffect } from 'react';
 
 interface Props {
     bills: Bill[];
@@ -16,6 +18,19 @@ interface Props {
 const AdminBills: React.FC<Props> = ({ bills, theme, onDeleteBill, onClearAll, onEditBill }) => {
     const isDark = theme === 'dark';
     const { state, actions, computed, refs } = useAdminBills(bills, onEditBill);
+
+    const [motorVehicles, setMotorVehicles] = useState<any[]>([]);
+    const [selectedVehicles, setSelectedVehicles] = useState<Record<string, string>>({});
+
+    useEffect(() => {
+        getAuthAxios().get('/api/settings/vehicles')
+            .then(res => setMotorVehicles(res.data))
+            .catch(err => console.error('Failed to load vehicles', err));
+    }, []);
+
+    const handleVehicleChange = (staffName: string, vehicleNo: string) => {
+        setSelectedVehicles(prev => ({ ...prev, [staffName]: vehicleNo }));
+    };
 
     return (
         <div className="animate-in fade-in slide-in-from-bottom-5 duration-500">
@@ -115,19 +130,40 @@ const AdminBills: React.FC<Props> = ({ bills, theme, onDeleteBill, onClearAll, o
                     {Object.entries(state.groupedBills).map(([staffName, staffBills]) => (
                         <div key={staffName} className="space-y-4">
                             {/* Staff Header */}
-                            <div className="flex items-center justify-between px-2">
+                            <div className="flex flex-wrap items-center justify-between px-2 gap-4">
                                 <h3 className={`text-2xl font-black italic tracking-tighter ${isDark ? 'text-white' : 'text-slate-900'}`}>
                                     {staffName}'s Bills
                                 </h3>
-                                <button
-                                    onClick={() => downloadStaffBillsPdf(staffBills, staffName)}
-                                    className="px-4 py-2 bg-blue-500/10 hover:bg-blue-500 text-blue-600 dark:text-blue-400 hover:text-white font-black rounded-xl text-xs uppercase tracking-widest transition-all shadow-sm flex items-center gap-2"
-                                >
-                                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                                    </svg>
-                                    Download PDF
-                                </button>
+                                <div className="flex flex-wrap items-center gap-3">
+                                    <select
+                                        value={selectedVehicles[staffName] || ''}
+                                        onChange={(e) => handleVehicleChange(staffName, e.target.value)}
+                                        className={`px-3 py-2 rounded-xl text-xs font-bold uppercase tracking-widest border transition-all focus:outline-none ${isDark ? 'bg-slate-800 border-white/10 text-white' : 'bg-white border-slate-200 text-slate-700'}`}
+                                    >
+                                        <option value="">Select Vehicle</option>
+                                        {motorVehicles.map(v => (
+                                            <option key={v.id} value={v.vehicle_no}>{v.vehicle_no}</option>
+                                        ))}
+                                    </select>
+                                    <button
+                                        onClick={() => downloadStaffBillsPdf(staffBills, staffName, selectedVehicles[staffName] || '')}
+                                        className="px-4 py-2 bg-blue-500/10 hover:bg-blue-500 text-blue-600 dark:text-blue-400 hover:text-white font-black rounded-xl text-xs uppercase tracking-widest transition-all shadow-sm flex items-center gap-2"
+                                    >
+                                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                                        </svg>
+                                        Download PDF
+                                    </button>
+                                    <button
+                                        onClick={() => printLoadingSheet(staffBills, state.selectedDate || state.todayStr, selectedVehicles[staffName] || '')}
+                                        className="px-4 py-2 bg-emerald-500/10 hover:bg-emerald-500 text-emerald-600 dark:text-emerald-400 hover:text-white font-black rounded-xl text-xs uppercase tracking-widest transition-all shadow-sm flex items-center gap-2"
+                                    >
+                                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                                        </svg>
+                                        Loading Sheet
+                                    </button>
+                                </div>
                             </div>
 
                             <div className={`rounded-[40px] border overflow-x-auto hide-scrollbar ${isDark ? 'bg-slate-900/50 border-white/5' : 'bg-white border-slate-100 shadow-xl'}`}>
@@ -168,7 +204,7 @@ const AdminBills: React.FC<Props> = ({ bills, theme, onDeleteBill, onClearAll, o
                                         </div>
                                         <div className="col-span-3 flex justify-end gap-2">
                                             <button
-                                                onClick={() => previewBill(bill)}
+                                                onClick={() => previewBill(bill, selectedVehicles[staffName] || '')}
                                                 className={`p-2.5 rounded-xl transition-all border shrink-0
                                                     ${isDark ? 'bg-slate-800 border-white/10 text-slate-300 hover:text-white hover:border-slate-500' : 'bg-white border-slate-200 text-slate-600 hover:text-slate-900 shadow-sm hover:border-slate-400'}`}
                                                 title="Preview PDF"
@@ -189,7 +225,7 @@ const AdminBills: React.FC<Props> = ({ bills, theme, onDeleteBill, onClearAll, o
                                                 </svg>
                                             </button>
                                             <button
-                                                onClick={() => downloadBill(bill)}
+                                                onClick={() => downloadBill(bill, selectedVehicles[staffName] || '')}
                                                 className="px-3 py-2.5 bg-blue-500 hover:bg-blue-600 text-white font-black rounded-xl text-[10px] uppercase tracking-widest transition-all active:scale-90 flex items-center shrink-0"
                                                 title="Download PDF"
                                             >

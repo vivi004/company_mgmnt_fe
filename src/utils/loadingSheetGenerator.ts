@@ -46,7 +46,7 @@ function getCategoryForProductId(pid: string, products: any[]): string {
     return 'OTHER';
 }
 
-export function generateLoadingSheet(bills: Bill[], dateStr: string) {
+export function generateLoadingSheet(bills: Bill[], dateStr: string, vehicleNo: string = '') {
     const allProducts = getAllProducts();
     const productMap = new Map(allProducts.map(p => [p.id, p]));
 
@@ -201,7 +201,7 @@ export function generateLoadingSheet(bills: Bill[], dateStr: string) {
     <h2 style="text-align:center;font-size:16px;margin-bottom:2px">New Loading Sheet</h2>
     <table style="margin-bottom:4px">
         <tr>
-            <td style="font-size:12px;font-weight:bold">Stock Group : Primary</td>
+            <td style="font-size:12px;font-weight:bold">Stock Group : Primary<br>Vehicle No: ${vehicleNo || '-'}</td>
             <td style="font-size:12px;text-align:center">Period :</td>
             <td style="font-size:12px;text-align:right;font-weight:bold">For ${displayDate}</td>
         </tr>
@@ -257,16 +257,16 @@ export function generateLoadingSheet(bills: Bill[], dateStr: string) {
     </body></html>`;
 }
 
-export function previewLoadingSheet(bills: Bill[], dateStr: string) {
-    const html = generateLoadingSheet(bills, dateStr);
+export function previewLoadingSheet(bills: Bill[], dateStr: string, vehicleNo: string = '') {
+    const html = generateLoadingSheet(bills, dateStr, vehicleNo);
     const w = window.open('', '_blank');
     if (!w) return;
     w.document.write(html);
     w.document.close();
 }
 
-export function printLoadingSheet(bills: Bill[], dateStr: string) {
-    const html = generateLoadingSheet(bills, dateStr);
+export function printLoadingSheet(bills: Bill[], dateStr: string, vehicleNo: string = '') {
+    const html = generateLoadingSheet(bills, dateStr, vehicleNo);
     const w = window.open('', '_blank');
     if (!w) return;
     w.document.write(html);
