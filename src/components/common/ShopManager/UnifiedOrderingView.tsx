@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import SearchIcon from '@mui/icons-material/Search';
 import AddIcon from '@mui/icons-material/Add';
 import RemoveIcon from '@mui/icons-material/Remove';
@@ -166,7 +166,7 @@ const UnifiedProductCard: React.FC<CardProps> = ({ product, cart, isDark, update
     if (sizeLower === '200 ml') return <BoxLitreControls boxId={product.id + '_box'} litreId={product.id + '_ltr'} boxMultiplier={25} litreStep={1} litreMultiplier={5} litreLabel="LTR" />;
     if (sizeLower === '500 ml') return <BoxLitreControls boxId={product.id + '_box'} litreId={product.id + '_ltr'} boxMultiplier={20} litreStep={1} litreMultiplier={2} litreLabel="LTR" />;
     if (sizeLower === '1 litre' || sizeLower === '1 ltr-pet' || sizeLower === '1 ltr') return <BoxLitreControls boxId={product.id + '_box'} litreId={product.id} boxMultiplier={10} litreStep={1} litreMultiplier={1} litreLabel="PCS" />;
-    if (sizeLower === '2 ltr') return <BoxLitreControls boxId={product.id + '_box'} litreId={product.id} boxMultiplier={5} litreStep={2} litreMultiplier={1} litreLabel="2L-PCS" />;
+    if (sizeLower === '2 ltr') return <BoxLitreControls boxId={product.id + '_box'} litreId={product.id} boxMultiplier={5} litreStep={1} litreMultiplier={1} litreLabel="2L-PCS" />;
 
     // Default simple quantity control
     return (
@@ -229,6 +229,15 @@ const UnifiedOrderingView: React.FC<Props> = ({ shopName, theme, cart, updateQua
   const [activeSubcatId, setActiveSubcatId] = useState(SHOP_CATEGORIES[0].subcategories[0].id);
   const [search, setSearch] = useState('');
   const [showSearch, setShowSearch] = useState(false);
+  const scrollRef = useRef<HTMLElement>(null);
+
+  // Scroll to top when category or subcategory changes
+  useEffect(() => {
+    if (scrollRef.current) {
+      scrollRef.current.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  }, [activeCatId, activeSubcatId]);
+
 
   const activeCat = SHOP_CATEGORIES.find(c => c.id === activeCatId)!;
   const allInSubcat = filterProducts(activeCat.getProducts(), activeSubcatId);
@@ -257,7 +266,7 @@ const UnifiedOrderingView: React.FC<Props> = ({ shopName, theme, cart, updateQua
       } else if (size === '1 litre' || size === '1 ltr-pet') {
         safeVal = Math.round(safeVal);
       } else if (size === '2 ltr') {
-        safeVal = Math.round(safeVal / 2) * 2;
+        safeVal = Math.round(safeVal);
       }
     }
     const current = cart[id] || 0;
@@ -350,7 +359,10 @@ const UnifiedOrderingView: React.FC<Props> = ({ shopName, theme, cart, updateQua
         </aside>
 
         {/* ── Product List ── */}
-        <main className={`flex-1 overflow-y-auto custom-scrollbar p-3 sm:p-6 pb-36 ${isDark ? 'bg-slate-900' : 'bg-gray-50'}`}>
+        <main 
+          ref={scrollRef}
+          className={`flex-1 overflow-y-auto custom-scrollbar p-3 sm:p-6 pb-36 ${isDark ? 'bg-slate-900' : 'bg-gray-50'}`}
+        >
           <div className="flex flex-col gap-3 sm:gap-4 max-w-3xl mx-auto">
             {filtered.length > 0 ? (
               <>

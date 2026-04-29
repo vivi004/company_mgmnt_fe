@@ -74,7 +74,7 @@ const ReviewOrder = ({ shopName, villageName, theme, cart, updateQuantity, onBac
                                 const isBox = item.id.includes('_box');
                                 const is2L_Base = !isBox && item.size.toLowerCase() === '2 ltr' && !item.id.includes('_ltr');
                                 const is500_Ltr = !isBox && item.id.includes('_ltr');
-                                const cartDelta = is2L_Base ? 2 : is500_Ltr ? 0.5 : 1;
+                                const cartDelta = is500_Ltr ? 0.5 : 1;
 
                                 const description = item.brand !== 'Nisha' ? `${item.brand.toUpperCase()} ${item.size.toUpperCase()}` : `${item.name.toUpperCase()} ${item.size.toUpperCase()}`;
                                 let displayUnit = (item.unit || 'NOS').toUpperCase();

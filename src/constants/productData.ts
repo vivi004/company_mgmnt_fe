@@ -262,7 +262,7 @@ export function getCartItems(cart: Record<string, number>, customRates?: Record<
 
         // 1. Base Product / Litre selection (for 2L)
         if (cart[p.id]) {
-            const quantity = is2L ? (cart[p.id] || 0) / 2 : (cart[p.id] || 0);
+            const quantity = cart[p.id] || 0;
             items.push({ ...p, price: effectivePrice, quantity });
         }
 
@@ -287,6 +287,7 @@ export function getCartItems(cart: Record<string, number>, customRates?: Record<
                 ...p,
                 id: p.id + '_ltr',
                 name: (is100ml || is200ml || is500ml) ? p.name : `${p.name} (Litre)`,
+                size: is100ml ? '100 ml' : is200ml ? '200 ml' : is500ml ? '500 ml' : p.size,
                 price: effectivePrice,
                 quantity
             });

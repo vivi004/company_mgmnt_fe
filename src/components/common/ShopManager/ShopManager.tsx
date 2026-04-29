@@ -16,6 +16,8 @@ interface Shop {
     phone: string;
     phone2: string;
     balance: number;
+    has_order_today?: boolean;
+    last_order_time?: string;
 }
 
 interface Props {
@@ -44,6 +46,10 @@ const ShopManager = ({ orderLineId, villageName, theme, onBack, type }: Props) =
     const [showBill, setShowBill] = useState(false);
     const [currentBillId, setCurrentBillId] = useState<number | null>(null);
     const [invoiceNo, setInvoiceNo] = useState<number>(0);
+
+    // Filtering & Sorting
+    const [filterStatus, setFilterStatus] = useState<'all' | 'pending' | 'completed'>('all');
+    const [sortBy, setSortBy] = useState<'name' | 'balance' | 'status'>('name');
 
     const api = () => getAuthAxios();
 
@@ -235,6 +241,7 @@ const ShopManager = ({ orderLineId, villageName, theme, onBack, type }: Props) =
                             }
                             setShowReview(false);
                             setShowBill(true);
+                            fetchShops(); // Refresh the list so the progress bar updates immediately
                         } catch (err: any) {
                             showToast(err.response?.data?.error || 'Failed to place order', 'error');
                         }
@@ -296,9 +303,33 @@ const ShopManager = ({ orderLineId, villageName, theme, onBack, type }: Props) =
                 </div>
             </div>
 
-            {/* Search Bar */}
+            {/* Daily Progress Dashboard */}
             {!loading && shops.length > 0 && (
-                <div className="relative">
+                <div className={`p-6 rounded-[32px] border ${isDark ? 'bg-slate-900 border-white/5' : 'bg-white border-slate-100 shadow-xl shadow-slate-200/40'}`}>
+                    <div className="flex items-center justify-between mb-4">
+                        <div>
+                            <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">Daily Route Progress</p>
+                            <h3 className="text-2xl font-black italic tracking-tighter mt-1">
+                                {shops.filter(s => s.has_order_today).length} / {shops.length} Shops Completed
+                            </h3>
+                        </div>
+                        <div className={`px-4 py-2 rounded-2xl text-xs font-black border
+                            ${isDark ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' : 'bg-emerald-50 text-emerald-600 border-emerald-100'}`}>
+                            {Math.round((shops.filter(s => s.has_order_today).length / shops.length) * 100)}% Done
+                        </div>
+                    </div>
+                    <div className="h-3 bg-slate-100 rounded-full overflow-hidden">
+                        <div 
+                            className="h-full bg-emerald-500 transition-all duration-1000 ease-out"
+                            style={{ width: `${(shops.filter(s => s.has_order_today).length / shops.length) * 100}%` }}
+                        />
+                    </div>
+                </div>
+            )}
+
+            {/* Filters and Search Bar Row */}
+            <div className="flex flex-col lg:flex-row gap-4 items-stretch lg:items-center">
+                <div className="relative flex-1">
                     <div className="absolute left-5 top-1/2 -translate-y-1/2 text-slate-400">
                         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
                     </div>
@@ -316,19 +347,73 @@ const ShopManager = ({ orderLineId, villageName, theme, onBack, type }: Props) =
                         </button>
                     )}
                 </div>
-            )}
+
+                <div className={`p-1.5 rounded-2xl border flex items-center gap-1
+                    ${isDark ? 'bg-slate-900 border-white/10' : 'bg-white border-slate-200 shadow-lg shadow-slate-200/30'}`}>
+                    {(['all', 'pending', 'completed'] as const).map((status) => (
+                        <button
+                            key={status}
+                            onClick={() => setFilterStatus(status)}
+                            className={`px-6 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all
+                                ${filterStatus === status 
+                                    ? (isDark ? 'bg-blue-600 text-white' : 'bg-blue-600 text-white shadow-lg shadow-blue-600/20') 
+                                    : 'text-slate-400 hover:text-slate-600'}`}
+                        >
+                            {status}
+                        </button>
+                    ))}
+                </div>
+
+                <div className={`p-1.5 rounded-2xl border flex items-center gap-1
+                    ${isDark ? 'bg-slate-900 border-white/10' : 'bg-white border-slate-200 shadow-lg shadow-slate-200/30'}`}>
+                    {(['name', 'balance', 'status'] as const).map((s) => (
+                        <button
+                            key={s}
+                            onClick={() => setSortBy(s)}
+                            className={`px-4 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all
+                                ${sortBy === s 
+                                    ? (isDark ? 'bg-indigo-600 text-white' : 'bg-indigo-600 text-white shadow-lg shadow-indigo-600/20') 
+                                    : 'text-slate-400 hover:text-slate-600'}`}
+                        >
+                            Sort by {s}
+                        </button>
+                    ))}
+                </div>
+            </div>
 
             {/* Shop Cards Grid */}
             {(() => {
-                const filteredShops = shopSearch.trim()
-                    ? shops.filter(s =>
+                let result = [...shops];
+
+                // Search Filter
+                if (shopSearch.trim()) {
+                    result = result.filter(s =>
                         s.shop_name.toLowerCase().includes(shopSearch.toLowerCase()) ||
                         (s.owner_name && s.owner_name.toLowerCase().includes(shopSearch.toLowerCase())) ||
                         (s.shop_owner && s.shop_owner.toLowerCase().includes(shopSearch.toLowerCase())) ||
                         (s.phone && s.phone.includes(shopSearch)) ||
                         (s.phone2 && s.phone2.includes(shopSearch))
-                    )
-                    : shops;
+                    );
+                }
+
+                // Status Filter
+                if (filterStatus === 'pending') {
+                    result = result.filter(s => !s.has_order_today);
+                } else if (filterStatus === 'completed') {
+                    result = result.filter(s => s.has_order_today);
+                }
+
+                // Sorting
+                result.sort((a, b) => {
+                    if (sortBy === 'balance') return b.balance - a.balance;
+                    if (sortBy === 'status') {
+                        if (a.has_order_today === b.has_order_today) return a.shop_name.localeCompare(b.shop_name);
+                        return a.has_order_today ? 1 : -1;
+                    }
+                    return a.shop_name.localeCompare(b.shop_name);
+                });
+
+                const filteredShops = result;
 
                 return loading ? (
                 <div className={`py-20 text-center text-${primaryColor}-500 font-black italic uppercase tracking-widest animate-pulse`}>
@@ -347,15 +432,30 @@ const ShopManager = ({ orderLineId, villageName, theme, onBack, type }: Props) =
                             key={shop.id}
                             onClick={() => setSelectedShop(shop)}
                             className={`flex items-center gap-5 p-6 rounded-[28px] border group transition-all hover:-translate-y-1 cursor-pointer
-                                ${isDark ? 'bg-slate-900 border-white/5 hover:bg-slate-800 hover:border-white/10' : `bg-white border-slate-100 shadow-lg shadow-slate-200/30 hover:shadow-xl hover:shadow-${primaryColor}-500/10`}`}
+                                ${isDark ? 'bg-slate-900 border-white/5 hover:bg-slate-800 hover:border-white/10' : 
+                                    shop.has_order_today 
+                                    ? 'bg-emerald-50 border-emerald-100 shadow-none' 
+                                    : 'bg-white border-slate-100 shadow-lg shadow-slate-200/30 hover:shadow-xl hover:shadow-blue-500/10'}`}
                         >
-                            <div className={`w-16 h-16 flex-shrink-0 flex items-center justify-center rounded-[20px] text-3xl
+                            <div className={`relative w-16 h-16 flex-shrink-0 flex items-center justify-center rounded-[20px] text-3xl
                                 ${isDark ? 'bg-slate-800 border border-white/10' : 'bg-white border border-slate-100 shadow-lg'}`}>
                                 🏬
+                                {shop.has_order_today && (
+                                    <div className="absolute -top-2 -right-2 w-6 h-6 bg-emerald-500 rounded-full flex items-center justify-center border-2 border-white text-[10px] text-white">
+                                        ✓
+                                    </div>
+                                )}
                             </div>
 
                             <div className="flex-grow min-w-0">
-                                <p className={`font-black text-xl leading-tight ${isDark ? 'text-white' : 'text-slate-900'}`}>{shop.shop_name}</p>
+                                <div className="flex items-center justify-between">
+                                    <p className={`font-black text-xl leading-tight ${isDark ? 'text-white' : 'text-slate-900'}`}>{shop.shop_name}</p>
+                                    {shop.has_order_today && (
+                                        <span className="px-2 py-0.5 bg-emerald-500 text-white text-[8px] font-black uppercase tracking-widest rounded-md">
+                                            Order Taken
+                                        </span>
+                                    )}
+                                </div>
                                 <p className="text-xs font-bold text-slate-500 uppercase tracking-widest mt-1">
                                     {(isAdmin ? shop.owner_name : shop.owner_name) || '—'} {shop.shop_owner && <span className="text-blue-500 ml-1">• {shop.shop_owner}</span>}
                                 </p>
