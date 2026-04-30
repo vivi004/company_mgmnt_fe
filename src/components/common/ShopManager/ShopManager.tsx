@@ -54,6 +54,9 @@ const ShopManager = ({ orderLineId, villageName, theme, onBack, type }: Props) =
     const [showAdjustModal, setShowAdjustModal] = useState(false);
     const [adjData, setAdjData] = useState({ amount: '', description: '' });
     const [submittingAdj, setSubmittingAdj] = useState(false);
+    const [showPaymentModal, setShowPaymentModal] = useState(false);
+    const [paymentData, setPaymentData] = useState({ amount: '', method: 'Cash', upiApp: 'PhonePe', description: '' });
+    const [submittingPayment, setSubmittingPayment] = useState(false);
 
     // Filtering & Sorting
     const [filterStatus, setFilterStatus] = useState<'all' | 'pending' | 'completed'>('all');
@@ -117,6 +120,32 @@ const ShopManager = ({ orderLineId, villageName, theme, onBack, type }: Props) =
             showToast(err.response?.data?.error || 'Failed to adjust balance', 'error');
         } finally {
             setSubmittingAdj(false);
+        }
+    };
+
+    const handleCollectPayment = async (e: React.FormEvent) => {
+        e.preventDefault();
+        if (!selectedShop) return;
+        setSubmittingPayment(true);
+        try {
+            const storedUser = JSON.parse(localStorage.getItem('user') || '{}');
+            const userName = storedUser.first_name ? `${storedUser.first_name} ${storedUser.last_name || ''}`.trim() : 'Admin';
+            const method = paymentData.method === 'UPI' ? paymentData.upiApp : 'Cash';
+            
+            await api().post(`/api/shops/${selectedShop.id}/collect-payment`, {
+                amount: parseFloat(paymentData.amount),
+                payment_method: method,
+                description: paymentData.description || `${method} payment collected by ${userName}`,
+                created_by: userName
+            });
+            showToast('Payment recorded!', 'success');
+            setShowPaymentModal(false);
+            setPaymentData({ amount: '', method: 'Cash', upiApp: 'PhonePe', description: '' });
+            fetchShops();
+        } catch (err: any) {
+            showToast(err.response?.data?.error || 'Failed to record payment', 'error');
+        } finally {
+            setSubmittingPayment(false);
         }
     };
 
@@ -526,11 +555,18 @@ const ShopManager = ({ orderLineId, villageName, theme, onBack, type }: Props) =
                                 {isAdmin && (
                                     <>
                                         <button
-                                            onClick={(e) => { e.stopPropagation(); fetchLedger(shop); }}
+                                            onClick={(e) => { e.stopPropagation(); setSelectedShop(shop); setPaymentData(p => ({...p, amount: '', method: 'Cash'})); setShowPaymentModal(true); }}
                                             className={`p-2 rounded-xl border transition-all ${isDark ? 'bg-white/5 border-white/10 text-emerald-400 hover:bg-emerald-500/20' : 'bg-emerald-50 border-emerald-100 text-emerald-600 hover:bg-emerald-600 hover:text-white'}`}
+                                            title="Collect Payment"
+                                        >
+                                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                                        </button>
+                                        <button
+                                            onClick={(e) => { e.stopPropagation(); fetchLedger(shop); }}
+                                            className={`p-2 rounded-xl border transition-all ${isDark ? 'bg-white/5 border-white/10 text-indigo-400 hover:bg-indigo-500/20' : 'bg-indigo-50 border-indigo-100 text-indigo-600 hover:bg-indigo-600 hover:text-white'}`}
                                             title="Ledger"
                                         >
-                                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 17v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2m3.222.882a.5.5 0 010-.764L15.39 8.388a.5.5 0 01.44-.061l1.597.532a.5.5 0 00.54-.124l1.26-1.26a.5.5 0 00-.518-.813l-1.18.393a.5.5 0 01-.44-.061l-1.597-.532a.5.5 0 00-.54.124l-1.26 1.26a.5.5 0 00.518.813l1.18-.393a.5.5 0 01.44.061l1.597.532a.5.5 0 00.54-.124l1.26-1.26a.5.5 0 00-.518-.813l-1.18.393z" /></svg>
+                                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 17v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2m3.222.882a.5.5 0 010-.764L15.39 8.388a.5.5 0 01.44-.061l1.597.532a.5.5 0 00.54-.124l1.26-1.26a.5.5 0 00-.518-.813l-1.18.393a.5.5 0 01-.44-.061l-1.597-.532a.5.5 0 00-.54.124l-1.26 1.26a.5.5 0 00.518.813l1.18-.393z" /></svg>
                                         </button>
                                         <button
                                             onClick={(e) => { e.stopPropagation(); openEdit(shop); }}
@@ -708,6 +744,100 @@ const ShopManager = ({ orderLineId, villageName, theme, onBack, type }: Props) =
                                 className="w-full py-4 bg-indigo-600 hover:bg-indigo-700 text-white font-black rounded-2xl text-xs uppercase tracking-widest transition-all shadow-lg shadow-indigo-600/20 mt-4"
                             >
                                 {submittingAdj ? 'Processing...' : 'Apply Adjustment'}
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            )}
+            {/* Collect Payment Modal */}
+            {showPaymentModal && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 overflow-y-auto no-scrollbar">
+                    <div className="fixed inset-0 bg-slate-950/80 backdrop-blur-xl" onClick={() => setShowPaymentModal(false)} />
+                    <div className={`relative my-auto rounded-[40px] w-full max-w-md border shadow-2xl p-8 animate-in zoom-in-95 duration-300
+                        ${isDark ? 'bg-slate-900 border-white/10 text-white' : 'bg-white border-slate-100 text-slate-900'}`}>
+                        <div className="flex items-center justify-between mb-8">
+                            <div>
+                                <h3 className="text-2xl font-black italic tracking-tight">Collect Payment</h3>
+                                <p className="text-xs font-black text-emerald-500 uppercase tracking-widest mt-1">{selectedShop?.shop_name}</p>
+                            </div>
+                            <button onClick={() => setShowPaymentModal(false)} className="text-slate-400 hover:text-red-400 transition-colors">
+                                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M6 18L18 6M6 6l12 12" /></svg>
+                            </button>
+                        </div>
+                        <form onSubmit={handleCollectPayment} className="space-y-6">
+                            <div>
+                                <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-2 mb-2 block">Amount to Collect (₹)</label>
+                                <input
+                                    required
+                                    type="number"
+                                    step="0.01"
+                                    autoFocus
+                                    value={paymentData.amount}
+                                    onChange={e => setPaymentData({ ...paymentData, amount: e.target.value })}
+                                    className={`w-full rounded-2xl px-6 py-5 text-2xl font-black border focus:outline-none focus:ring-4
+                                        ${isDark ? 'bg-slate-800 border-white/10 text-emerald-400 focus:ring-emerald-500/20' : 'bg-slate-50 border-emerald-100 text-emerald-600 focus:ring-emerald-600/10'}`}
+                                    placeholder="0.00"
+                                />
+                            </div>
+
+                            <div>
+                                <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-2 mb-3 block">Payment Method</label>
+                                <div className="grid grid-cols-2 gap-3">
+                                    {(['Cash', 'UPI'] as const).map((m) => (
+                                        <button
+                                            key={m}
+                                            type="button"
+                                            onClick={() => setPaymentData({ ...paymentData, method: m })}
+                                            className={`py-4 rounded-2xl border font-black uppercase tracking-widest text-xs transition-all
+                                                ${paymentData.method === m 
+                                                    ? 'bg-emerald-600 border-emerald-600 text-white shadow-lg shadow-emerald-600/20' 
+                                                    : 'bg-slate-50 border-slate-100 text-slate-400 hover:bg-slate-100'}`}
+                                        >
+                                            {m}
+                                        </button>
+                                    ))}
+                                </div>
+                            </div>
+
+                            {paymentData.method === 'UPI' && (
+                                <div className="animate-in slide-in-from-top-2 duration-300">
+                                    <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-2 mb-3 block">Select UPI App</label>
+                                    <div className="grid grid-cols-2 gap-2">
+                                        {(['PhonePe', 'GPay', 'Paytm', 'Other'] as const).map((app) => (
+                                            <button
+                                                key={app}
+                                                type="button"
+                                                onClick={() => setPaymentData({ ...paymentData, upiApp: app })}
+                                                className={`py-3 rounded-xl border font-black uppercase tracking-widest text-[9px] transition-all
+                                                    ${paymentData.upiApp === app 
+                                                        ? 'bg-blue-600 border-blue-600 text-white shadow-md shadow-blue-600/20' 
+                                                        : 'bg-slate-50 border-slate-100 text-slate-400 hover:bg-slate-100'}`}
+                                            >
+                                                {app}
+                                            </button>
+                                        ))}
+                                    </div>
+                                </div>
+                            )}
+
+                            <div>
+                                <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-2 mb-2 block">Notes (Optional)</label>
+                                <textarea
+                                    value={paymentData.description}
+                                    onChange={e => setPaymentData({ ...paymentData, description: e.target.value })}
+                                    className={`w-full rounded-2xl px-5 py-4 border text-sm font-semibold focus:outline-none focus:ring-4 min-h-[80px]
+                                        ${isDark ? 'bg-slate-800 border-white/10 focus:ring-blue-500/20' : 'bg-slate-50 border-slate-200 focus:ring-blue-600/10'}`}
+                                    placeholder="e.g. Paid via PhonePe"
+                                />
+                            </div>
+
+                            <button
+                                type="submit"
+                                disabled={submittingPayment}
+                                className={`w-full py-5 bg-emerald-600 hover:bg-emerald-700 text-white font-black rounded-[24px] text-sm uppercase tracking-widest shadow-xl shadow-emerald-600/40 transition-all hover:-translate-y-0.5 active:scale-95
+                                    ${submittingPayment ? 'opacity-50 cursor-not-allowed' : ''}`}
+                            >
+                                {submittingPayment ? 'Recording...' : 'Confirm Collection'}
                             </button>
                         </form>
                     </div>
