@@ -334,53 +334,58 @@ const ShopManager = ({ orderLineId, villageName, theme, onBack, type }: Props) =
 
             {/* Filters and Search Bar Row */}
             <div className="flex flex-col lg:flex-row gap-4 items-stretch lg:items-center">
-                <div className="relative flex-1">
-                    <div className="absolute left-5 top-1/2 -translate-y-1/2 text-slate-400">
-                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
+                <div className="relative flex-1 min-w-0">
+                    <div className="absolute left-4 sm:left-5 top-1/2 -translate-y-1/2 text-slate-400">
+                        <svg className="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
                     </div>
                     <input
                         type="text"
-                        placeholder="Search shops by name, owner, or phone..."
+                        placeholder="Search shops..."
                         value={shopSearch}
                         onChange={e => setShopSearch(e.target.value)}
-                        className={`w-full pl-14 pr-12 py-4 rounded-[20px] font-bold text-sm border transition-all focus:outline-none focus:ring-4
+                        className={`w-full pl-11 sm:pl-14 pr-10 py-3.5 sm:py-4 rounded-[20px] font-bold text-xs sm:text-sm border transition-all focus:outline-none focus:ring-4
                             ${isDark ? 'bg-slate-900 border-white/10 text-white placeholder-slate-500 focus:ring-blue-500/20 focus:border-blue-500' : 'bg-white border-slate-200 text-slate-900 placeholder-slate-400 focus:ring-blue-600/10 focus:border-blue-600 shadow-lg shadow-slate-200/30'}`}
                     />
                     {shopSearch && (
-                        <button onClick={() => setShopSearch('')} className="absolute right-5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-red-400 transition-colors">
-                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M6 18L18 6M6 6l12 12" /></svg>
+                        <button onClick={() => setShopSearch('')} className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-red-400 transition-colors">
+                            <svg className="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M6 18L18 6M6 6l12 12" /></svg>
                         </button>
                     )}
                 </div>
 
-                <div className={`p-1.5 rounded-2xl border flex items-center gap-1
+                <div className={`p-1 rounded-2xl border flex flex-wrap items-center gap-1 flex-1 sm:flex-initial
                     ${isDark ? 'bg-slate-900 border-white/10' : 'bg-white border-slate-200 shadow-lg shadow-slate-200/30'}`}>
                     {(['all', 'pending', 'completed'] as const).map((status) => (
                         <button
                             key={status}
                             onClick={() => setFilterStatus(status)}
-                            className={`px-6 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all
+                            className={`flex-1 sm:flex-initial px-3 sm:px-6 py-2 rounded-xl text-[9px] sm:text-[10px] font-black uppercase tracking-widest transition-all flex items-center justify-center gap-2
                                 ${filterStatus === status 
                                     ? (isDark ? 'bg-blue-600 text-white' : 'bg-blue-600 text-white shadow-lg shadow-blue-600/20') 
                                     : 'text-slate-400 hover:text-slate-600'}`}
                         >
-                            {status}
+                            <span className="truncate">{status}</span>
+                            <span className={`px-1.5 py-0.5 rounded-md text-[8px] sm:text-[9px] ${filterStatus === status ? 'bg-white/20 text-white' : 'bg-slate-100 text-slate-400'}`}>
+                                {status === 'all' ? shops.length : 
+                                 status === 'pending' ? shops.filter(s => !s.has_order_today).length : 
+                                 shops.filter(s => s.has_order_today).length}
+                            </span>
                         </button>
                     ))}
                 </div>
 
-                <div className={`p-1.5 rounded-2xl border flex items-center gap-1
+                <div className={`p-1 rounded-2xl border flex flex-wrap items-center gap-1 flex-1 sm:flex-initial
                     ${isDark ? 'bg-slate-900 border-white/10' : 'bg-white border-slate-200 shadow-lg shadow-slate-200/30'}`}>
                     {(['name', 'balance', 'status'] as const).map((s) => (
                         <button
                             key={s}
                             onClick={() => setSortBy(s)}
-                            className={`px-4 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all
+                            className={`flex-1 sm:flex-initial px-3 sm:px-4 py-2 rounded-xl text-[9px] sm:text-[10px] font-black uppercase tracking-widest transition-all
                                 ${sortBy === s 
                                     ? (isDark ? 'bg-indigo-600 text-white' : 'bg-indigo-600 text-white shadow-lg shadow-indigo-600/20') 
                                     : 'text-slate-400 hover:text-slate-600'}`}
                         >
-                            Sort by {s}
+                            {s}
                         </button>
                     ))}
                 </div>
