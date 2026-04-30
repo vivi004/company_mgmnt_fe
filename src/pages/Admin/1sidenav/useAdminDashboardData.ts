@@ -27,6 +27,7 @@ export const useAdminDashboardData = () => {
     const [nextInvoiceNo, setNextInvoiceNo] = useState(() => parseInt(localStorage.getItem('nextInvoiceNo') || '1001', 10));
     const [lastInvoiceNo, setLastInvoiceNo] = useState(() => parseInt(localStorage.getItem('lastInvoiceNo') || '1000', 10));
     const [profilePic, setProfilePic] = useState(() => localStorage.getItem('adminProfilePic') || "");
+    const [ledgerSheetUrl, setLedgerSheetUrl] = useState(() => localStorage.getItem('ledgerSheetUrl') || "");
 
 
     const [formData, setFormData] = useState<EmployeeFormData>({
@@ -191,11 +192,13 @@ export const useAdminDashboardData = () => {
     const fetchInvoiceSettings = async () => {
         try {
             const res = await api().get('/api/settings/invoice');
-            const { next_invoice_no, last_invoice_no } = res.data;
+            const { next_invoice_no, last_invoice_no, ledger_sheet_url } = res.data;
             setNextInvoiceNo(next_invoice_no);
             setLastInvoiceNo(last_invoice_no);
+            setLedgerSheetUrl(ledger_sheet_url || "");
             localStorage.setItem('nextInvoiceNo', String(next_invoice_no));
             localStorage.setItem('lastInvoiceNo', String(last_invoice_no));
+            localStorage.setItem('ledgerSheetUrl', ledger_sheet_url || "");
         } catch (err) {
             console.error('Could not load invoice settings from backend, using localStorage fallback.');
         }
@@ -217,7 +220,8 @@ export const useAdminDashboardData = () => {
         localStorage.setItem('emailForwarding', String(emailForwarding));
         localStorage.setItem('pushNotifications', String(pushNotifications));
         localStorage.setItem('nextInvoiceNo', String(nextInvoiceNo));
-    }, [companyName, theme, emailForwarding, pushNotifications, nextInvoiceNo]);
+        localStorage.setItem('ledgerSheetUrl', ledgerSheetUrl);
+    }, [companyName, theme, emailForwarding, pushNotifications, nextInvoiceNo, ledgerSheetUrl]);
 
     useEffect(() => {
         if (activeTab === 'bills' || activeTab === 'bill-check') loadBills();
@@ -389,7 +393,8 @@ export const useAdminDashboardData = () => {
             toasts, bills, unverifiedCount,
             lastSynced, isSyncing, emailForwarding, pushNotifications, nextInvoiceNo,
             lastInvoiceNo,
-            userProfile, profilePic
+            userProfile, profilePic,
+            ledgerSheetUrl
         },
         actions: {
             setActiveTab, setConfirmModal, setIsMobileMenuOpen, setCompanyName,
@@ -415,11 +420,32 @@ export const useAdminDashboardData = () => {
                     console.error("Error syncing admin profile pic:", err);
                 }
             },
+            setLedgerSheetUrl: async (url: string) => {
+                setLedgerSheetUrl(url);
+                localStorage.setItem('ledgerSheetUrl', url);
+                try {
+                    await api().put('/api/settings/invoice', { ledger_sheet_url: url });
+                } catch (err) {
+                    console.error('Failed to save ledger sheet URL to backend:', err);
+                }
+            },
             removeToast, handleDeleteBill, handleClearAllBills, handleEditBill,
             handleApproveRequest, handleRejectRequest, handleApproveOl, handleRejectOl, setUnverifiedCount,
             handleDeleteOl, handleOpenOlModal, handleOlSubmit, handleSubmit,
             handleEdit, handleAddNew, handleDelete,
-            handleManualSync
+            handleManualSync,
+            handleSyncAllToLedger: async () => {
+                setIsSyncing(true);
+                try {
+                    await api().post('/api/shops/sync-all-to-ledger');
+                    showToast("All existing shops synced to ledger!", "success");
+                } catch (err) {
+                    console.error(err);
+                    showToast("Failed to sync all shops", "error");
+                } finally {
+                    setIsSyncing(false);
+                }
+            }
         }
     };
 };

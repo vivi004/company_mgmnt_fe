@@ -20,6 +20,9 @@ interface SettingsProps {
     lastInvoiceNo: number;
     profilePic: string;
     setProfilePic: (val: string) => void;
+    ledgerSheetUrl?: string;
+    setLedgerSheetUrl?: (val: string) => void | Promise<void>;
+    handleSyncAllToLedger?: () => void;
 }
 
 const AdminSettings = ({
@@ -28,7 +31,9 @@ const AdminSettings = ({
     handleManualSync, 
     setEmailForwarding, setPushNotifications,
     nextInvoiceNo, setNextInvoiceNo, lastInvoiceNo,
-    profilePic, setProfilePic
+    profilePic, setProfilePic,
+    ledgerSheetUrl = "", setLedgerSheetUrl,
+    handleSyncAllToLedger
 }: SettingsProps) => {
 
     const fileInputRef = React.useRef<HTMLInputElement>(null);
@@ -261,6 +266,35 @@ const AdminSettings = ({
                             className={`block text-center px-6 py-4 rounded-[20px] text-xs font-black uppercase tracking-widest transition-all border ${theme === 'dark' ? 'bg-slate-800 border-white/10 text-slate-300 hover:text-emerald-400' : 'bg-white border-slate-200 text-slate-600 hover:text-emerald-600 shadow-sm'}`}>
                             ↗ Open Master Price Sheet
                         </a>
+                    </div>
+                </Card>
+                
+                {/* Ledger & Bookkeeping */}
+                <Card>
+                    <SectionHeader icon="📊" title="Ledger & Bookkeeping" subtitle="Track Every Rupee" colorClass="bg-blue-600 text-blue-500 shadow-blue-500/40" />
+                    <div className="space-y-6">
+                        <div className="flex flex-col gap-4">
+                            <a 
+                                href={ledgerSheetUrl || 'https://docs.google.com/spreadsheets/d/1slf-BRcvxU6OzKYxnzGOFeJz38IGN--nnAw0gpXWLiI/edit?gid=0#gid=0'} 
+                                target="_blank" 
+                                rel="noreferrer"
+                                className="w-full py-4 bg-emerald-600 hover:bg-emerald-700 text-white text-center font-black rounded-2xl text-[10px] uppercase tracking-widest shadow-lg shadow-emerald-600/20 transition-all hover:-translate-y-0.5 active:scale-95"
+                            >
+                                ↗ Open Sheet
+                            </a>
+                            
+                            <button 
+                                onClick={handleSyncAllToLedger} 
+                                disabled={isSyncing}
+                                className={`w-full py-4 border-2 border-dashed rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all
+                                    ${theme === 'dark' ? 'border-white/10 text-slate-500 hover:border-blue-500/50 hover:text-blue-400' : 'border-slate-200 text-slate-400 hover:border-blue-300 hover:text-blue-600'}`}
+                            >
+                                {isSyncing ? 'Processing Sync...' : '🔄 Sync All Existing Shops to Ledger'}
+                            </button>
+                        </div>
+                        <p className="text-[10px] font-medium text-slate-500 italic text-center px-4">
+                            Historical transactions are automatically synced to your Google Sheet.
+                        </p>
                     </div>
                 </Card>
 
