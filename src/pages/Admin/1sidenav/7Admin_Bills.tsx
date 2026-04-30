@@ -53,7 +53,7 @@ const AdminBills: React.FC<Props> = ({ bills, theme, onDeleteBill, onClearAll, o
                             <svg className={`w-4 h-4 ${isDark ? 'text-slate-400' : 'text-slate-500'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2 2v12a2 2 0 002 2z" />
                             </svg>
-                            {state.selectedDate ? new Date(state.selectedDate).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) : 'Select Date Filter'}
+                            {state.selectedDate ? new Date(state.selectedDate).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric', timeZone: 'Asia/Kolkata' }) : 'Select Date Filter'}
                         </button>
 
                         <AdminBillsCalendar
@@ -194,7 +194,7 @@ const AdminBills: React.FC<Props> = ({ bills, theme, onDeleteBill, onClearAll, o
                                             <p className="text-xs text-slate-500 font-medium">{bill.villageName}</p>
                                         </div>
                                         <div className={`col-span-2 text-sm font-medium ${isDark ? 'text-slate-300' : 'text-slate-600'}`}>
-                                            {new Date(bill.date).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: '2-digit' })}
+                                            {new Date(bill.date).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: '2-digit', timeZone: 'Asia/Kolkata' })}
                                         </div>
                                         <div className={`col-span-1 font-black ${isDark ? 'text-blue-400' : 'text-blue-600'}`}>
                                             {computed.getItemCount(bill.cart)}

@@ -247,7 +247,8 @@ const BillCheck = ({ theme, type, userProfileName, onUnverifiedCountChange }: Pr
                                 <p className="text-[10px] sm:text-xs font-semibold text-slate-500 mt-0.5">
                                     {new Date(bill.date).toLocaleString('en-IN', {
                                         day: '2-digit', month: 'short', year: 'numeric',
-                                        hour: '2-digit', minute: '2-digit'
+                                        hour: '2-digit', minute: '2-digit',
+                                        timeZone: 'Asia/Kolkata'
                                     })}
                                 </p>
                             </div>

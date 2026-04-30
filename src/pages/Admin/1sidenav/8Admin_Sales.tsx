@@ -130,7 +130,7 @@ const AdminSales = ({ theme }: Props) => {
                                     <div className={`col-span-2 text-right font-black text-lg ${isDark ? 'text-white' : 'text-slate-900'}`}>{fmt(row.totalAmount)}</div>
                                     <div className={`col-span-2 text-right font-bold text-sm ${isDark ? 'text-slate-300' : 'text-slate-600'}`}>{fmt(row.avgOrderValue)}</div>
                                     <div className={`col-span-2 text-right text-sm font-medium ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
-                                        {new Date(row.lastSaleDate + 'T00:00:00').toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: '2-digit' })}
+                                        {new Date(row.lastSaleDate + 'T00:00:00').toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: '2-digit', timeZone: 'Asia/Kolkata' })}
                                     </div>
                                 </div>
                             );
@@ -160,7 +160,7 @@ const AdminSales = ({ theme }: Props) => {
                             {data.dailyData.map(d => (
                                 <div key={d.date} className={`flex justify-between items-center py-3 border-b last:border-0 ${isDark ? 'border-white/5' : 'border-slate-100'}`}>
                                     <span className={`font-bold ${isDark ? 'text-slate-300' : 'text-slate-700'}`}>
-                                        {new Date(d.date + 'T00:00:00').toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric', weekday: 'short' })}
+                                        {new Date(d.date + 'T00:00:00').toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric', weekday: 'short', timeZone: 'Asia/Kolkata' })}
                                     </span>
                                     <div className="flex gap-6">
                                         <span className={`font-bold text-sm ${isDark ? 'text-blue-400' : 'text-blue-600'}`}>{d.orderCount} orders</span>
