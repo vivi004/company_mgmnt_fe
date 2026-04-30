@@ -114,6 +114,7 @@ const ShopManager = ({ orderLineId, villageName, theme, onBack, type }: Props) =
             });
             showToast('Balance adjusted!', 'success');
             setShowAdjustModal(false);
+            setSelectedShop(null);
             setAdjData({ amount: '', description: '' });
             fetchShops();
         } catch (err: any) {
@@ -140,6 +141,7 @@ const ShopManager = ({ orderLineId, villageName, theme, onBack, type }: Props) =
             });
             showToast('Payment recorded!', 'success');
             setShowPaymentModal(false);
+            setSelectedShop(null);
             setPaymentData({ amount: '', method: 'Cash', upiApp: 'PhonePe', description: '' });
             fetchShops();
         } catch (err: any) {
@@ -332,7 +334,7 @@ const ShopManager = ({ orderLineId, villageName, theme, onBack, type }: Props) =
         );
     }
 
-    if (selectedShop && !showLedger) {
+    if (selectedShop && !showLedger && !showPaymentModal && !showAdjustModal) {
         return (
             <>
                 <ToastContainer toasts={toasts} removeToast={removeToast} />
@@ -555,29 +557,29 @@ const ShopManager = ({ orderLineId, villageName, theme, onBack, type }: Props) =
                                 {isAdmin && (
                                     <>
                                         <button
-                                            onClick={(e) => { e.stopPropagation(); setSelectedShop(shop); setPaymentData(p => ({...p, amount: '', method: 'Cash'})); setShowPaymentModal(true); }}
+                                            onClick={(e) => { e.preventDefault(); e.stopPropagation(); setSelectedShop(shop); setPaymentData(p => ({...p, amount: '', method: 'Cash'})); setShowPaymentModal(true); }}
                                             className={`p-2 rounded-xl border transition-all ${isDark ? 'bg-white/5 border-white/10 text-emerald-400 hover:bg-emerald-500/20' : 'bg-emerald-50 border-emerald-100 text-emerald-600 hover:bg-emerald-600 hover:text-white'}`}
                                             title="Collect Payment"
                                         >
                                             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
                                         </button>
                                         <button
-                                            onClick={(e) => { e.stopPropagation(); fetchLedger(shop); }}
+                                            onClick={(e) => { e.preventDefault(); e.stopPropagation(); fetchLedger(shop); }}
                                             className={`p-2 rounded-xl border transition-all ${isDark ? 'bg-white/5 border-white/10 text-indigo-400 hover:bg-indigo-500/20' : 'bg-indigo-50 border-indigo-100 text-indigo-600 hover:bg-indigo-600 hover:text-white'}`}
                                             title="Ledger"
                                         >
                                             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 17v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2m3.222.882a.5.5 0 010-.764L15.39 8.388a.5.5 0 01.44-.061l1.597.532a.5.5 0 00.54-.124l1.26-1.26a.5.5 0 00-.518-.813l-1.18.393a.5.5 0 01-.44-.061l-1.597-.532a.5.5 0 00-.54.124l-1.26 1.26a.5.5 0 00.518.813l1.18-.393z" /></svg>
                                         </button>
                                         <button
-                                            onClick={(e) => { e.stopPropagation(); openEdit(shop); }}
+                                            onClick={(e) => { e.preventDefault(); e.stopPropagation(); openEdit(shop); }}
                                             className={`p-2 rounded-xl border transition-all ${isDark ? 'bg-white/5 border-white/10 text-blue-400 hover:bg-blue-500/20' : 'bg-blue-50 border-blue-100 text-blue-600 hover:bg-blue-600 hover:text-white'}`}
                                             title="Edit"
                                         >
                                             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" /></svg>
                                         </button>
                                         <button
-                                            onClick={(e) => { e.stopPropagation(); handleDelete(shop.id); }}
-                                            className={`p-2 rounded-xl border transition-all ${isDark ? 'bg-white/5 border-white/10 text-red-400 hover:bg-red-500/20' : 'bg-red-50 border-red-100 text-red-500 hover:bg-red-600 hover:text-white'}`}
+                                            onClick={(e) => { e.preventDefault(); e.stopPropagation(); handleDelete(shop.id); }}
+                                            className={`p-2 rounded-xl border transition-all ${isDark ? 'bg-white/5 border-white/10 text-red-400 hover:bg-red-500/20' : 'bg-red-50 border-red-100 text-red-50 hover:bg-red-600 hover:text-white'}`}
                                             title="Delete"
                                         >
                                             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
@@ -649,7 +651,7 @@ const ShopManager = ({ orderLineId, villageName, theme, onBack, type }: Props) =
             {/* Ledger Modal */}
             {showLedger && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-                    <div className="fixed inset-0 bg-slate-950/80 backdrop-blur-xl" onClick={() => setShowLedger(false)} />
+                    <div className="fixed inset-0 bg-slate-950/80 backdrop-blur-xl" onClick={() => { setShowLedger(false); setSelectedShop(null); }} />
                     <div className={`relative my-auto rounded-[40px] w-full max-w-4xl max-h-[80vh] border shadow-2xl overflow-hidden flex flex-col
                         ${isDark ? 'bg-slate-900 border-white/10 text-white' : 'bg-white border-slate-100 text-slate-900'}`}>
                         <div className="p-8 border-b border-white/5 flex items-center justify-between bg-slate-950/20">
@@ -664,7 +666,7 @@ const ShopManager = ({ orderLineId, villageName, theme, onBack, type }: Props) =
                                 >
                                     Adjust Balance
                                 </button>
-                                <button onClick={() => setShowLedger(false)} className="text-slate-400 hover:text-red-400 transition-colors">
+                                <button onClick={() => { setShowLedger(false); setSelectedShop(null); }} className="text-slate-400 hover:text-red-400 transition-colors">
                                     <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M6 18L18 6M6 6l12 12" /></svg>
                                 </button>
                             </div>
@@ -687,14 +689,47 @@ const ShopManager = ({ orderLineId, villageName, theme, onBack, type }: Props) =
                                                 <div>
                                                     <p className="font-black text-sm uppercase tracking-tight">{tx.description}</p>
                                                     <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mt-1">
-                                                        {new Date(tx.created_at).toLocaleString()} • BY {tx.created_by}
+                                                        {(() => {
+                                                            const dateStr = tx.created_at;
+                                                            if (!dateStr) return '—';
+                                                            
+                                                            let validIso = dateStr;
+                                                            if (typeof dateStr === 'string' && !dateStr.includes('Z') && !dateStr.includes('+')) {
+                                                                validIso = dateStr.includes('T') ? dateStr + 'Z' : dateStr.replace(' ', 'T') + 'Z';
+                                                            }
+                                                            
+                                                            return new Date(validIso).toLocaleString('en-IN', { 
+                                                                timeZone: 'Asia/Kolkata',
+                                                                day: '2-digit',
+                                                                month: '2-digit',
+                                                                year: 'numeric',
+                                                                hour: '2-digit',
+                                                                minute: '2-digit',
+                                                                hour12: true 
+                                                            }).toUpperCase();
+                                                        })()} • BY {tx.created_by}
                                                     </p>
                                                 </div>
                                             </div>
                                             <div className="text-right">
-                                                <p className={`text-lg font-black ${tx.type === 'Bill' ? 'text-red-500' : tx.type === 'Payment' ? 'text-emerald-500' : 'text-indigo-500'}`}>
-                                                    {tx.type === 'Bill' ? '+' : '-'}₹{Math.abs(tx.amount).toFixed(2)}
-                                                </p>
+                                                {(() => {
+                                                    const isBill = tx.type === 'Bill';
+                                                    const isPayment = tx.type === 'Payment';
+                                                    const isAdjustment = tx.type === 'Adjustment';
+                                                    
+                                                    // Determine if this transaction added to or reduced the balance
+                                                    const isAddition = isBill || (isAdjustment && tx.amount > 0);
+                                                    const isReduction = isPayment || (isAdjustment && tx.amount < 0);
+                                                    
+                                                    const sign = isAddition ? '+' : (isReduction ? '-' : '');
+                                                    const colorClass = isAddition ? 'text-red-500' : (isReduction ? 'text-emerald-500' : 'text-indigo-500');
+                                                    
+                                                    return (
+                                                        <p className={`text-lg font-black ${colorClass}`}>
+                                                            {sign}₹{Math.abs(tx.amount).toFixed(2)}
+                                                        </p>
+                                                    );
+                                                })()}
                                                 <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mt-1">Balance After: ₹{Number(tx.balance_after).toFixed(2)}</p>
                                             </div>
                                         </div>
@@ -709,7 +744,7 @@ const ShopManager = ({ orderLineId, villageName, theme, onBack, type }: Props) =
             {/* Adjust Balance Modal */}
             {showAdjustModal && (
                 <div className="fixed inset-0 z-[60] flex items-center justify-center p-4">
-                    <div className="fixed inset-0 bg-slate-950/90 backdrop-blur-md" onClick={() => setShowAdjustModal(false)} />
+                    <div className="fixed inset-0 bg-slate-950/90 backdrop-blur-md" onClick={() => { setShowAdjustModal(false); setSelectedShop(null); }} />
                     <div className={`relative my-auto rounded-[40px] w-full max-w-sm border shadow-2xl p-8
                         ${isDark ? 'bg-slate-900 border-white/10' : 'bg-white border-slate-100'}`}>
                         <h3 className="text-2xl font-black italic tracking-tight mb-6">Manual Adjustment</h3>
@@ -752,7 +787,7 @@ const ShopManager = ({ orderLineId, villageName, theme, onBack, type }: Props) =
             {/* Collect Payment Modal */}
             {showPaymentModal && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center p-4 overflow-y-auto no-scrollbar">
-                    <div className="fixed inset-0 bg-slate-950/80 backdrop-blur-xl" onClick={() => setShowPaymentModal(false)} />
+                    <div className="fixed inset-0 bg-slate-950/80 backdrop-blur-xl" onClick={() => { setShowPaymentModal(false); setSelectedShop(null); }} />
                     <div className={`relative my-auto rounded-[40px] w-full max-w-md border shadow-2xl p-8 animate-in zoom-in-95 duration-300
                         ${isDark ? 'bg-slate-900 border-white/10 text-white' : 'bg-white border-slate-100 text-slate-900'}`}>
                         <div className="flex items-center justify-between mb-8">
@@ -760,7 +795,7 @@ const ShopManager = ({ orderLineId, villageName, theme, onBack, type }: Props) =
                                 <h3 className="text-2xl font-black italic tracking-tight">Collect Payment</h3>
                                 <p className="text-xs font-black text-emerald-500 uppercase tracking-widest mt-1">{selectedShop?.shop_name}</p>
                             </div>
-                            <button onClick={() => setShowPaymentModal(false)} className="text-slate-400 hover:text-red-400 transition-colors">
+                            <button onClick={() => { setShowPaymentModal(false); setSelectedShop(null); }} className="text-slate-400 hover:text-red-400 transition-colors">
                                 <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M6 18L18 6M6 6l12 12" /></svg>
                             </button>
                         </div>
