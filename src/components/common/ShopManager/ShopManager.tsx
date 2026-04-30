@@ -49,7 +49,7 @@ const ShopManager = ({ orderLineId, villageName, theme, onBack, type }: Props) =
 
     // Filtering & Sorting
     const [filterStatus, setFilterStatus] = useState<'all' | 'pending' | 'completed'>('all');
-    const [sortBy, setSortBy] = useState<'name' | 'balance' | 'status'>('name');
+    const [sortBy, setSortBy] = useState<'name' | 'balance' | 'status'>('status');
 
     const api = () => getAuthAxios();
 
@@ -61,7 +61,12 @@ const ShopManager = ({ orderLineId, villageName, theme, onBack, type }: Props) =
         setLoading(true);
         try {
             const res = await api().get(`/api/shops/by-village/${orderLineId}`);
-            setShops(res.data);
+            // Normalize MySQL 0/1 to boolean for consistent UI behavior
+            const normalized = res.data.map((s: any) => ({
+                ...s,
+                has_order_today: !!s.has_order_today
+            }));
+            setShops(normalized);
         } catch {
             showToast('Failed to load shops', 'error');
         } finally {
