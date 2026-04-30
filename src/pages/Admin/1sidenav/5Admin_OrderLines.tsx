@@ -5,6 +5,8 @@ interface OrderLine {
     id: number;
     name: string;
     node_id: string;
+    total_balance?: number | string;
+    shop_count?: number;
 }
 
 interface OrderLineProps {
@@ -69,11 +71,23 @@ const AdminOrderLines = ({ orderLines, theme, handleOpenOlModal, handleDeleteOl 
                                     {idx + 1}
                                 </div>
                                 <div className="flex-1 min-w-0 pr-2">
-                                    <p className={`font-black text-sm sm:text-lg lg:text-[17px] leading-tight tracking-tight uppercase italic group-hover:text-blue-500 transition-colors break-words
+                                    <p className={`font-black text-sm sm:text-lg lg:text-[17px] leading-tight tracking-tight uppercase italic group-hover:text-blue-50 transition-colors break-words
                                         ${theme === 'dark' ? 'text-white' : 'text-slate-900'}`} title={ol.name}>
                                         {ol.name}
                                     </p>
-                                    <p className="text-[9px] sm:text-[10px] font-bold text-slate-400 mt-1 sm:mt-2 uppercase tracking-widest truncate">Node ID: {ol.node_id}</p>
+                                    <div className="flex flex-wrap gap-2 mt-1 sm:mt-2">
+                                        <p className="text-[9px] sm:text-[10px] font-bold text-slate-400 uppercase tracking-widest truncate">Node ID: {ol.node_id}</p>
+                                        <div className="flex items-center gap-2">
+                                            <span className="w-1 h-1 rounded-full bg-slate-300" />
+                                            <p className="text-[9px] sm:text-[10px] font-black text-blue-500 uppercase tracking-widest">{ol.shop_count || 0} Shops</p>
+                                        </div>
+                                    </div>
+                                    {ol.total_balance !== undefined && (
+                                        <div className="mt-3 bg-blue-500/5 border border-blue-500/10 rounded-xl px-3 py-1.5 inline-flex items-center gap-2">
+                                            <span className="text-[8px] font-black text-slate-400 uppercase tracking-widest">Total Pending</span>
+                                            <span className="text-xs font-black text-blue-600">₹{Number(ol.total_balance).toLocaleString('en-IN', { minimumFractionDigits: 2 })}</span>
+                                        </div>
+                                    )}
                                 </div>
                                 {/* Arrow hint */}
                                 <svg className="w-5 h-5 text-slate-400 group-hover:text-blue-500 group-hover:translate-x-1 transition-all shrink-0"

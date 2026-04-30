@@ -47,6 +47,14 @@ const ShopManager = ({ orderLineId, villageName, theme, onBack, type }: Props) =
     const [currentBillId, setCurrentBillId] = useState<number | null>(null);
     const [invoiceNo, setInvoiceNo] = useState<number>(0);
 
+    // Ledger & Adjustment States
+    const [showLedger, setShowLedger] = useState(false);
+    const [ledgerData, setLedgerData] = useState<any[]>([]);
+    const [loadingLedger, setLoadingLedger] = useState(false);
+    const [showAdjustModal, setShowAdjustModal] = useState(false);
+    const [adjData, setAdjData] = useState({ amount: '', description: '' });
+    const [submittingAdj, setSubmittingAdj] = useState(false);
+
     // Filtering & Sorting
     const [filterStatus, setFilterStatus] = useState<'all' | 'pending' | 'completed'>('all');
     const [sortBy, setSortBy] = useState<'name' | 'balance' | 'status'>('status');
@@ -71,6 +79,44 @@ const ShopManager = ({ orderLineId, villageName, theme, onBack, type }: Props) =
             showToast('Failed to load shops', 'error');
         } finally {
             setLoading(false);
+        }
+    };
+
+    const fetchLedger = async (shop: Shop) => {
+        setSelectedShop(shop);
+        setShowLedger(true);
+        setLoadingLedger(true);
+        try {
+            const res = await api().get(`/api/shops/${shop.id}/ledger`);
+            setLedgerData(res.data);
+        } catch {
+            showToast('Failed to load ledger', 'error');
+        } finally {
+            setLoadingLedger(false);
+        }
+    };
+
+    const handleAdjustment = async (e: React.FormEvent) => {
+        e.preventDefault();
+        if (!selectedShop) return;
+        setSubmittingAdj(true);
+        try {
+            const storedUser = JSON.parse(localStorage.getItem('user') || '{}');
+            const adminName = storedUser.first_name ? `${storedUser.first_name} ${storedUser.last_name || ''}`.trim() : 'Admin';
+            
+            await api().post(`/api/shops/${selectedShop.id}/adjust-balance`, {
+                amount: parseFloat(adjData.amount),
+                description: adjData.description,
+                created_by: adminName
+            });
+            showToast('Balance adjusted!', 'success');
+            setShowAdjustModal(false);
+            setAdjData({ amount: '', description: '' });
+            fetchShops();
+        } catch (err: any) {
+            showToast(err.response?.data?.error || 'Failed to adjust balance', 'error');
+        } finally {
+            setSubmittingAdj(false);
         }
     };
 
@@ -257,7 +303,7 @@ const ShopManager = ({ orderLineId, villageName, theme, onBack, type }: Props) =
         );
     }
 
-    if (selectedShop) {
+    if (selectedShop && !showLedger) {
         return (
             <>
                 <ToastContainer toasts={toasts} removeToast={removeToast} />
@@ -480,6 +526,13 @@ const ShopManager = ({ orderLineId, villageName, theme, onBack, type }: Props) =
                                 {isAdmin && (
                                     <>
                                         <button
+                                            onClick={(e) => { e.stopPropagation(); fetchLedger(shop); }}
+                                            className={`p-2 rounded-xl border transition-all ${isDark ? 'bg-white/5 border-white/10 text-emerald-400 hover:bg-emerald-500/20' : 'bg-emerald-50 border-emerald-100 text-emerald-600 hover:bg-emerald-600 hover:text-white'}`}
+                                            title="Ledger"
+                                        >
+                                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 17v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2m3.222.882a.5.5 0 010-.764L15.39 8.388a.5.5 0 01.44-.061l1.597.532a.5.5 0 00.54-.124l1.26-1.26a.5.5 0 00-.518-.813l-1.18.393a.5.5 0 01-.44-.061l-1.597-.532a.5.5 0 00-.54.124l-1.26 1.26a.5.5 0 00.518.813l1.18-.393a.5.5 0 01.44.061l1.597.532a.5.5 0 00.54-.124l1.26-1.26a.5.5 0 00-.518-.813l-1.18.393z" /></svg>
+                                        </button>
+                                        <button
                                             onClick={(e) => { e.stopPropagation(); openEdit(shop); }}
                                             className={`p-2 rounded-xl border transition-all ${isDark ? 'bg-white/5 border-white/10 text-blue-400 hover:bg-blue-500/20' : 'bg-blue-50 border-blue-100 text-blue-600 hover:bg-blue-600 hover:text-white'}`}
                                             title="Edit"
@@ -551,6 +604,110 @@ const ShopManager = ({ orderLineId, villageName, theme, onBack, type }: Props) =
                                 className={`w-full py-4 bg-${primaryColor}-600 hover:bg-${primaryColor}-700 text-white font-black rounded-2xl text-sm uppercase tracking-widest shadow-lg shadow-${primaryColor}-600/20 transition-all hover:-translate-y-0.5 active:scale-95 mt-4`}
                             >
                                 {isAdmin && editingShop ? 'Save Changes' : 'Add Shop'}
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            )}
+
+            {/* Ledger Modal */}
+            {showLedger && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+                    <div className="fixed inset-0 bg-slate-950/80 backdrop-blur-xl" onClick={() => setShowLedger(false)} />
+                    <div className={`relative my-auto rounded-[40px] w-full max-w-4xl max-h-[80vh] border shadow-2xl overflow-hidden flex flex-col
+                        ${isDark ? 'bg-slate-900 border-white/10 text-white' : 'bg-white border-slate-100 text-slate-900'}`}>
+                        <div className="p-8 border-b border-white/5 flex items-center justify-between bg-slate-950/20">
+                            <div>
+                                <h3 className="text-2xl font-black italic tracking-tight">Shop Ledger</h3>
+                                <p className="text-xs font-black text-emerald-500 uppercase tracking-widest mt-1">{selectedShop?.shop_name}</p>
+                            </div>
+                            <div className="flex items-center gap-4">
+                                <button
+                                    onClick={() => setShowAdjustModal(true)}
+                                    className="px-4 py-2 bg-indigo-600 text-white text-[10px] font-black uppercase tracking-widest rounded-xl shadow-lg shadow-indigo-600/20"
+                                >
+                                    Adjust Balance
+                                </button>
+                                <button onClick={() => setShowLedger(false)} className="text-slate-400 hover:text-red-400 transition-colors">
+                                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M6 18L18 6M6 6l12 12" /></svg>
+                                </button>
+                            </div>
+                        </div>
+                        <div className="flex-1 overflow-y-auto p-8 no-scrollbar">
+                            {loadingLedger ? (
+                                <div className="text-center py-20 font-black uppercase tracking-widest animate-pulse text-slate-500">Fetching Ledger...</div>
+                            ) : ledgerData.length === 0 ? (
+                                <div className="text-center py-20 text-slate-500 font-bold italic">No transactions recorded yet.</div>
+                            ) : (
+                                <div className="space-y-4">
+                                    {ledgerData.map((tx: any) => (
+                                        <div key={tx.id} className={`p-5 rounded-3xl border flex items-center justify-between transition-all hover:bg-slate-50/5
+                                            ${isDark ? 'bg-white/5 border-white/5' : 'bg-slate-50/50 border-slate-100'}`}>
+                                            <div className="flex items-center gap-5">
+                                                <div className={`w-12 h-12 rounded-2xl flex items-center justify-center text-lg font-black
+                                                    ${tx.type === 'Bill' ? 'bg-red-500/10 text-red-500' : tx.type === 'Payment' ? 'bg-emerald-500/10 text-emerald-500' : 'bg-indigo-500/10 text-indigo-500'}`}>
+                                                    {tx.type === 'Bill' ? 'B' : tx.type === 'Payment' ? 'P' : 'A'}
+                                                </div>
+                                                <div>
+                                                    <p className="font-black text-sm uppercase tracking-tight">{tx.description}</p>
+                                                    <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mt-1">
+                                                        {new Date(tx.created_at).toLocaleString()} • BY {tx.created_by}
+                                                    </p>
+                                                </div>
+                                            </div>
+                                            <div className="text-right">
+                                                <p className={`text-lg font-black ${tx.type === 'Bill' ? 'text-red-500' : tx.type === 'Payment' ? 'text-emerald-500' : 'text-indigo-500'}`}>
+                                                    {tx.type === 'Bill' ? '+' : '-'}₹{Math.abs(tx.amount).toFixed(2)}
+                                                </p>
+                                                <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mt-1">Balance After: ₹{Number(tx.balance_after).toFixed(2)}</p>
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            )}
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Adjust Balance Modal */}
+            {showAdjustModal && (
+                <div className="fixed inset-0 z-[60] flex items-center justify-center p-4">
+                    <div className="fixed inset-0 bg-slate-950/90 backdrop-blur-md" onClick={() => setShowAdjustModal(false)} />
+                    <div className={`relative my-auto rounded-[40px] w-full max-w-sm border shadow-2xl p-8
+                        ${isDark ? 'bg-slate-900 border-white/10' : 'bg-white border-slate-100'}`}>
+                        <h3 className="text-2xl font-black italic tracking-tight mb-6">Manual Adjustment</h3>
+                        <form onSubmit={handleAdjustment} className="space-y-4">
+                            <div>
+                                <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-2 mb-2 block">Amount (Use minus for deduction)</label>
+                                <input
+                                    required
+                                    type="number"
+                                    step="0.01"
+                                    value={adjData.amount}
+                                    onChange={e => setAdjData({ ...adjData, amount: e.target.value })}
+                                    className={`w-full rounded-2xl px-5 py-4 border text-sm font-semibold focus:outline-none focus:ring-4
+                                        ${isDark ? 'bg-slate-800 border-white/10 text-white focus:ring-indigo-500/20' : 'bg-slate-50 border-slate-200 text-slate-900 focus:ring-indigo-600/10'}`}
+                                    placeholder="0.00"
+                                />
+                            </div>
+                            <div>
+                                <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-2 mb-2 block">Reason / Description</label>
+                                <textarea
+                                    required
+                                    value={adjData.description}
+                                    onChange={e => setAdjData({ ...adjData, description: e.target.value })}
+                                    className={`w-full rounded-2xl px-5 py-4 border text-sm font-semibold focus:outline-none focus:ring-4 min-h-[100px]
+                                        ${isDark ? 'bg-slate-800 border-white/10 text-white focus:ring-indigo-500/20' : 'bg-slate-50 border-slate-200 text-slate-900 focus:ring-indigo-600/10'}`}
+                                    placeholder="Reason for adjustment..."
+                                />
+                            </div>
+                            <button
+                                type="submit"
+                                disabled={submittingAdj}
+                                className="w-full py-4 bg-indigo-600 hover:bg-indigo-700 text-white font-black rounded-2xl text-xs uppercase tracking-widest transition-all shadow-lg shadow-indigo-600/20 mt-4"
+                            >
+                                {submittingAdj ? 'Processing...' : 'Apply Adjustment'}
                             </button>
                         </form>
                     </div>
