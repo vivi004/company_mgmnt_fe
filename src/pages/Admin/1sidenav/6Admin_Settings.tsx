@@ -21,7 +21,6 @@ interface SettingsProps {
     profilePic: string;
     setProfilePic: (val: string) => void;
     ledgerSheetUrl?: string;
-    setLedgerSheetUrl?: (val: string) => void | Promise<void>;
     handleSyncAllToLedger?: () => void;
 }
 
@@ -32,7 +31,7 @@ const AdminSettings = ({
     setEmailForwarding, setPushNotifications,
     nextInvoiceNo, setNextInvoiceNo, lastInvoiceNo,
     profilePic, setProfilePic,
-    ledgerSheetUrl = "", setLedgerSheetUrl,
+    ledgerSheetUrl = "",
     handleSyncAllToLedger
 }: SettingsProps) => {
 

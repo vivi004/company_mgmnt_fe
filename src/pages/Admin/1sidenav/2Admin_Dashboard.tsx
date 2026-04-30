@@ -150,7 +150,6 @@ const AdminDashboard = () => {
                                 profilePic={state.profilePic}
                                 setProfilePic={actions.setProfilePic}
                                 ledgerSheetUrl={state.ledgerSheetUrl}
-                                setLedgerSheetUrl={actions.setLedgerSheetUrl}
                                 handleSyncAllToLedger={actions.handleSyncAllToLedger}
 
                             />
