@@ -24,6 +24,11 @@ const Admin_ManualBill: React.FC<AdminManualBillProps> = ({ shopName, villageNam
     const [showBill, setShowBill] = useState(false);
     const [currentBillId, setCurrentBillId] = useState<number | null>(null);
     const [invoiceNo, setInvoiceNo] = useState<number>(0);
+    const [deliveryDate, setDeliveryDate] = useState(() => {
+        const d = new Date();
+        d.setDate(d.getDate() + 1);
+        return d.toISOString().split('T')[0];
+    });
 
     const api = () => getAuthAxios();
 
@@ -119,12 +124,17 @@ const Admin_ManualBill: React.FC<AdminManualBillProps> = ({ shopName, villageNam
                             custom_rates: currentRates,
                             created_by: createdBy,
                             bill_date: new Date().toISOString(),
+                            delivery_date: new Date(deliveryDate + 'T00:00:00').toISOString(),
                             status: 'Unverified'
                         };
 
                         try {
                             if (currentBillId) {
-                                const res = await api().put(`/api/bills/${currentBillId}`, { cart, custom_rates: currentRates });
+                                const res = await api().put(`/api/bills/${currentBillId}`, { 
+                                    cart, 
+                                    custom_rates: currentRates,
+                                    delivery_date: new Date(deliveryDate + 'T00:00:00').toISOString()
+                                });
                                 if (res.data.invoice_no) setInvoiceNo(res.data.invoice_no);
                                 showToast('Order updated!', 'success');
                             } else {
@@ -140,6 +150,8 @@ const Admin_ManualBill: React.FC<AdminManualBillProps> = ({ shopName, villageNam
                         }
                     }}
                     type={type}
+                    deliveryDate={deliveryDate}
+                    onDeliveryDateChange={setDeliveryDate}
                 />
             </div>
         );
