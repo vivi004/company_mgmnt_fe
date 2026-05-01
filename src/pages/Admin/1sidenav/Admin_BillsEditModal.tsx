@@ -34,14 +34,14 @@ const AdminBillsEditModal: React.FC<AdminBillsEditModalProps> = ({
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
             <div className="absolute inset-0 bg-slate-950/80 backdrop-blur-xl animate-in fade-in duration-300" onClick={onClose} />
-            <div className={`relative rounded-[40px] w-full max-w-4xl max-h-[90vh] flex flex-col shadow-2xl animate-in zoom-in-95 duration-500 border ${isDark ? 'bg-slate-900 border-white/10' : 'bg-white border-slate-100'}`}>
+            <div className={`relative rounded-[32px] sm:rounded-[40px] w-full max-w-4xl max-h-[90vh] flex flex-col shadow-2xl animate-in zoom-in-95 duration-500 border ${isDark ? 'bg-slate-900 border-white/10' : 'bg-white border-slate-100'}`}>
                 {/* Header */}
-                <div className="p-8 border-b border-white/10 flex justify-between items-center shrink-0">
+                <div className="p-5 sm:p-8 border-b border-white/10 flex justify-between items-center shrink-0">
                     <div>
-                        <h2 className={`text-3xl font-black italic tracking-tighter ${isDark ? 'text-white' : 'text-slate-900'}`}>Edit Invoice No: {editingBill.invoiceNo}</h2>
-                        <p className="text-slate-500 font-bold mt-1 uppercase text-xs tracking-widest">{editingBill.shopName} - {editingBill.villageName}</p>
+                        <h2 className={`text-xl sm:text-3xl font-black italic tracking-tighter ${isDark ? 'text-white' : 'text-slate-900'}`}>Edit Invoice No: {editingBill.invoiceNo}</h2>
+                        <p className="text-slate-500 font-bold mt-1 uppercase text-[10px] sm:text-xs tracking-widest">{editingBill.shopName} - {editingBill.villageName}</p>
                     </div>
-                    <button onClick={onClose} className={`w-12 h-12 flex items-center justify-center rounded-2xl transition-all ${isDark ? 'bg-white/5 text-slate-400 hover:bg-red-500/20 hover:text-red-500' : 'bg-slate-50 text-slate-400 hover:bg-red-50 hover:text-red-500'}`}>
+                    <button onClick={onClose} className={`w-10 h-10 sm:w-12 sm:h-12 flex items-center justify-center rounded-xl sm:rounded-2xl transition-all ${isDark ? 'bg-white/5 text-slate-400 hover:bg-red-500/20 hover:text-red-500' : 'bg-slate-50 text-slate-400 hover:bg-red-50 hover:text-red-500'}`}>
                         <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M6 18L18 6M6 6l12 12" />
                         </svg>
@@ -49,7 +49,7 @@ const AdminBillsEditModal: React.FC<AdminBillsEditModalProps> = ({
                 </div>
 
                 {/* Filters */}
-                <div className={`px-8 pb-4 flex gap-4 border-b shrink-0 ${isDark ? 'border-white/10' : 'border-slate-100'}`}>
+                <div className={`px-5 sm:px-8 pb-4 flex flex-col sm:flex-row gap-3 sm:gap-4 border-b shrink-0 ${isDark ? 'border-white/10' : 'border-slate-100'}`}>
                     <div className="relative flex-1">
                         <svg className={`absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 ${isDark ? 'text-slate-500' : 'text-slate-400'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
                         <input
@@ -57,36 +57,38 @@ const AdminBillsEditModal: React.FC<AdminBillsEditModalProps> = ({
                             placeholder="Search products..."
                             value={searchQuery}
                             onChange={e => setSearchQuery(e.target.value)}
-                            className={`w-full rounded-[20px] pl-10 pr-5 py-3 text-sm font-bold border outline-none transition-all
+                            className={`w-full rounded-[20px] pl-10 pr-5 py-2.5 sm:py-3 text-sm font-bold border outline-none transition-all
                                         ${isDark ? 'bg-slate-800/50 border-white/10 text-white placeholder:text-slate-500 focus:border-blue-500' : 'bg-slate-50 border-slate-200 text-slate-900 placeholder:text-slate-400 focus:border-blue-500 hover:border-slate-300'}`}
                         />
                     </div>
-                    <select
-                        value={selectedCategory}
-                        onChange={e => setSelectedCategory(e.target.value)}
-                        className={`rounded-[20px] px-5 py-3 text-sm font-bold border outline-none cursor-pointer transition-all
-                                    ${isDark ? 'bg-slate-800/50 border-white/10 text-white focus:border-blue-500' : 'bg-slate-50 border-slate-200 text-slate-900 focus:border-blue-500 hover:border-slate-300'}`}
-                    >
-                        <option value="All">All Categories</option>
-                        {Array.from(new Set(getAllProducts().map(p => p.name))).map(cat => (
-                            <option key={cat} value={cat}>{cat}</option>
-                        ))}
-                    </select>
-                    <div className="flex items-center gap-3">
-                        <span className="text-[10px] font-black uppercase tracking-widest text-slate-500 whitespace-nowrap">Delivery Date:</span>
-                        <input
-                            type="date"
-                            value={editDeliveryDate}
-                            onChange={e => setEditDeliveryDate(e.target.value)}
-                            className={`rounded-[20px] px-4 py-3 text-sm font-bold border outline-none cursor-pointer transition-all
+                    <div className="flex gap-2 sm:gap-4">
+                        <select
+                            value={selectedCategory}
+                            onChange={e => setSelectedCategory(e.target.value)}
+                            className={`flex-1 sm:flex-none rounded-[20px] px-4 sm:px-5 py-2.5 sm:py-3 text-sm font-bold border outline-none cursor-pointer transition-all
                                         ${isDark ? 'bg-slate-800/50 border-white/10 text-white focus:border-blue-500' : 'bg-slate-50 border-slate-200 text-slate-900 focus:border-blue-500 hover:border-slate-300'}`}
-                        />
+                        >
+                            <option value="All">All Categories</option>
+                            {Array.from(new Set(getAllProducts().map(p => p.name))).map(cat => (
+                                <option key={cat} value={cat}>{cat}</option>
+                            ))}
+                        </select>
+                        <div className="flex items-center gap-3 bg-slate-50 dark:bg-slate-800/50 px-4 py-2.5 sm:py-3 rounded-[20px] border border-slate-200 dark:border-white/10 flex-1 sm:flex-none">
+                            <span className="text-[10px] font-black uppercase tracking-widest text-slate-500 whitespace-nowrap hidden sm:inline">Delivery:</span>
+                            <input
+                                type="date"
+                                value={editDeliveryDate}
+                                onChange={e => setEditDeliveryDate(e.target.value)}
+                                className={`flex-1 bg-transparent text-sm font-black outline-none cursor-pointer
+                                            ${isDark ? 'text-white' : 'text-slate-900'}`}
+                            />
+                        </div>
                     </div>
                 </div>
 
                 {/* Cart Modifier */}
-                <div className="p-8 overflow-y-auto hide-scrollbar flex-grow">
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                <div className="p-5 sm:p-8 overflow-y-auto hide-scrollbar flex-grow">
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
                         {getAllProducts()
                             .filter(p => selectedCategory === 'All' || p.name === selectedCategory)
                             .filter(p => p.name.toLowerCase().includes(searchQuery.toLowerCase()) || p.size.toLowerCase().includes(searchQuery.toLowerCase()) || p.brand.toLowerCase().includes(searchQuery.toLowerCase()))
