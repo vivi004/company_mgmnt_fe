@@ -4,14 +4,18 @@ import type { Bill } from '../../../utils/invoiceGenerator';
 
 export const useAdminBills = (
     bills: Bill[],
-    onEditBill: (id: number, newCart: Record<string, number>, newRates?: Record<string, number>, newDate?: string) => void
+    onEditBill: (id: number, newCart: Record<string, number>, newRates?: Record<string, number>, newDate?: string) => void,
+    externalSelectedDate?: string,
+    setExternalSelectedDate?: (date: string) => void
 ) => {
     const getTodayLocal = () => {
         const d = new Date();
         return new Date(d.getTime() - (d.getTimezoneOffset() * 60000)).toISOString().split('T')[0];
     };
 
-    const [selectedDate, setSelectedDate] = useState<string>(getTodayLocal());
+    const [internalSelectedDate, setInternalSelectedDate] = useState<string>(getTodayLocal());
+    const selectedDate = externalSelectedDate !== undefined ? externalSelectedDate : internalSelectedDate;
+    const setSelectedDate = setExternalSelectedDate !== undefined ? setExternalSelectedDate : setInternalSelectedDate;
     const [isCalendarOpen, setIsCalendarOpen] = useState(false);
     const [currentCalDate, setCurrentCalDate] = useState(new Date());
     const calendarRef = useRef<HTMLDivElement>(null);

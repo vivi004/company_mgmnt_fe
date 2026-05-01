@@ -30,7 +30,7 @@ const AdminDashboard = () => {
                     companyName={state.companyName}
                     requestCount={state.requests.length}
                     olRequestCount={state.olRequests.length}
-                    billCount={state.bills.length}
+                    billCount={state.filteredBillCount}
                     unverifiedCount={state.unverifiedCount}
                 />
             </div>
@@ -54,7 +54,7 @@ const AdminDashboard = () => {
                         companyName={state.companyName}
                         requestCount={state.requests.length}
                         olRequestCount={state.olRequests.length}
-                        billCount={state.bills.length}
+                        billCount={state.filteredBillCount}
                         unverifiedCount={state.unverifiedCount}
                         onClose={() => actions.setIsMobileMenuOpen(false)}
                     />
@@ -122,6 +122,8 @@ const AdminDashboard = () => {
                                 onDeleteBill={actions.handleDeleteBill}
                                 onClearAll={actions.handleClearAllBills}
                                 onEditBill={actions.handleEditBill}
+                                selectedDate={state.billSelectedDate}
+                                setSelectedDate={actions.setBillSelectedDate}
                             />
                         )}
                         {state.activeTab === 'bill-check' && (

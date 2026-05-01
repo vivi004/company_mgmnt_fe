@@ -163,24 +163,24 @@ const ReviewOrder = ({ shopName, villageName, theme, cart, updateQuantity, onBac
                         <p className={`font-black text-base ${isDark ? 'text-white' : 'text-slate-900'}`}>Delivery / Bill Date</p>
                         <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mt-0.5">Select official invoice date</p>
                     </div>
-                        <div className="flex items-center gap-3">
-                            <input
-                                type="date"
-                                value={deliveryDate}
-                                onChange={(e) => onDeliveryDateChange(e.target.value)}
-                                className={`px-5 py-3 rounded-2xl border font-black text-sm cursor-pointer transition-all
+                    <div className="flex items-center gap-3">
+                        <input
+                            type="date"
+                            value={deliveryDate}
+                            onChange={(e) => onDeliveryDateChange(e.target.value)}
+                            className={`px-5 py-3 rounded-2xl border font-black text-sm cursor-pointer transition-all
                                     ${isDark ? 'bg-slate-800 border-white/10 text-white' : 'bg-slate-50 border-slate-200 text-slate-700 hover:bg-slate-100'}`}
-                            />
-                            {(() => {
-                                const d = new Date(deliveryDate + 'T00:00:00');
-                                const tomorrow = new Date();
-                                tomorrow.setDate(tomorrow.getDate() + 1);
-                                if (d.getDate() === tomorrow.getDate() && d.getMonth() === tomorrow.getMonth() && d.getFullYear() === tomorrow.getFullYear()) {
-                                    return <span className="px-3 py-1 bg-emerald-500 text-white text-[10px] font-black rounded-lg shadow-lg shadow-emerald-500/20">TOMORROW</span>;
-                                }
-                                return null;
-                            })()}
-                        </div>
+                        />
+                        {(() => {
+                            const d = new Date(deliveryDate + 'T00:00:00');
+                            const tomorrow = new Date();
+                            tomorrow.setDate(tomorrow.getDate() + 1);
+                            if (d.getDate() === tomorrow.getDate() && d.getMonth() === tomorrow.getMonth() && d.getFullYear() === tomorrow.getFullYear()) {
+                                return <span className="px-3 py-1 bg-emerald-500 text-white text-[10px] font-black rounded-lg shadow-lg shadow-emerald-500/20">TOMORROW</span>;
+                            }
+                            return null;
+                        })()}
+                    </div>
                 </div>
             )}
 

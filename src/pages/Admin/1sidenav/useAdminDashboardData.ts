@@ -42,8 +42,9 @@ export const useAdminDashboardData = () => {
 
     const { toasts, showToast, removeToast } = useToast();
 
-    const [bills, setBills] = useState<Array<{ id: number; shopName: string; villageName: string; cart: Record<string, number>; customRates?: Record<string, number>; date: string; invoiceNo: number }>>([]);
+    const [bills, setBills] = useState<Array<{ id: number; shopName: string; villageName: string; cart: Record<string, number>; customRates?: Record<string, number>; date: string; deliveryDate?: string; invoiceNo: number }>>([]);
     const [unverifiedCount, setUnverifiedCount] = useState(0);
+    const [billSelectedDate, setBillSelectedDate] = useState('');
 
     const storedUser = JSON.parse(localStorage.getItem('user') || '{}');
     const [userProfile] = useState<Partial<Employee>>({
@@ -390,6 +391,14 @@ export const useAdminDashboardData = () => {
         });
     };
 
+    const filteredBillCount = bills.filter(b => {
+        if (!billSelectedDate) return true;
+        const targetDate = b.deliveryDate || b.date;
+        const d = new Date(targetDate);
+        const localDateStr = new Date(d.getTime() - (d.getTimezoneOffset() * 60000)).toISOString().split('T')[0];
+        return localDateStr === billSelectedDate;
+    }).length;
+
     return {
         state: {
             employees, requests, loading, showModal, editingEmployee, activeTab,
@@ -399,7 +408,9 @@ export const useAdminDashboardData = () => {
             lastSynced, isSyncing, emailForwarding, pushNotifications, nextInvoiceNo,
             lastInvoiceNo,
             userProfile, profilePic,
-            ledgerSheetUrl
+            ledgerSheetUrl,
+            billSelectedDate,
+            filteredBillCount
         },
         actions: {
             setActiveTab, setConfirmModal, setIsMobileMenuOpen, setCompanyName,
@@ -450,7 +461,8 @@ export const useAdminDashboardData = () => {
                 } finally {
                     setIsSyncing(false);
                 }
-            }
+            },
+            setBillSelectedDate
         }
     };
 };

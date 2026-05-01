@@ -137,7 +137,7 @@ const ShopManager = ({ orderLineId, villageName, theme, onBack, type }: Props) =
         try {
             const storedUser = JSON.parse(localStorage.getItem('user') || '{}');
             const adminName = storedUser.first_name ? `${storedUser.first_name} ${storedUser.last_name || ''}`.trim() : 'Admin';
-            
+
             await api().post(`/api/shops/${selectedShop.id}/adjust-balance`, {
                 amount: parseFloat(adjData.amount),
                 description: adjData.description,
@@ -163,7 +163,7 @@ const ShopManager = ({ orderLineId, villageName, theme, onBack, type }: Props) =
             const storedUser = JSON.parse(localStorage.getItem('user') || '{}');
             const userName = storedUser.first_name ? `${storedUser.first_name} ${storedUser.last_name || ''}`.trim() : 'Admin';
             const method = paymentData.method === 'UPI' ? paymentData.upiApp : 'Cash';
-            
+
             await api().post(`/api/shops/${selectedShop.id}/collect-payment`, {
                 amount: parseFloat(paymentData.amount),
                 payment_method: method,
@@ -354,8 +354,8 @@ const ShopManager = ({ orderLineId, villageName, theme, onBack, type }: Props) =
                         try {
                             const deliveryDateISO = new Date(deliveryDate + 'T00:00:00').toISOString();
                             if (currentBillId) {
-                                const res = await api().put(`/api/bills/${currentBillId}`, { 
-                                    cart, 
+                                const res = await api().put(`/api/bills/${currentBillId}`, {
+                                    cart,
                                     custom_rates: rates,
                                     delivery_date: deliveryDateISO,
                                     total_amount: totalPrice
@@ -450,7 +450,7 @@ const ShopManager = ({ orderLineId, villageName, theme, onBack, type }: Props) =
                         </div>
                     </div>
                     <div className="h-3 bg-slate-100 rounded-full overflow-hidden">
-                        <div 
+                        <div
                             className="h-full bg-emerald-500 transition-all duration-1000 ease-out"
                             style={{ width: `${(shops.filter(s => s.has_order_today).length / shops.length) * 100}%` }}
                         />
@@ -486,15 +486,15 @@ const ShopManager = ({ orderLineId, villageName, theme, onBack, type }: Props) =
                             key={status}
                             onClick={() => setFilterStatus(status)}
                             className={`flex-1 sm:flex-initial px-3 sm:px-6 py-2 rounded-xl text-[9px] sm:text-[10px] font-black uppercase tracking-widest transition-all flex items-center justify-center gap-2
-                                ${filterStatus === status 
-                                    ? (isDark ? 'bg-blue-600 text-white' : 'bg-blue-600 text-white shadow-lg shadow-blue-600/20') 
+                                ${filterStatus === status
+                                    ? (isDark ? 'bg-blue-600 text-white' : 'bg-blue-600 text-white shadow-lg shadow-blue-600/20')
                                     : 'text-slate-400 hover:text-slate-600'}`}
                         >
                             <span className="truncate">{status}</span>
                             <span className={`px-1.5 py-0.5 rounded-md text-[8px] sm:text-[9px] ${filterStatus === status ? 'bg-white/20 text-white' : 'bg-slate-100 text-slate-400'}`}>
-                                {status === 'all' ? shops.length : 
-                                 status === 'pending' ? shops.filter(s => !s.has_order_today).length : 
-                                 shops.filter(s => s.has_order_today).length}
+                                {status === 'all' ? shops.length :
+                                    status === 'pending' ? shops.filter(s => !s.has_order_today).length :
+                                        shops.filter(s => s.has_order_today).length}
                             </span>
                         </button>
                     ))}
@@ -507,8 +507,8 @@ const ShopManager = ({ orderLineId, villageName, theme, onBack, type }: Props) =
                             key={s}
                             onClick={() => setSortBy(s)}
                             className={`flex-1 sm:flex-initial px-3 sm:px-4 py-2 rounded-xl text-[9px] sm:text-[10px] font-black uppercase tracking-widest transition-all
-                                ${sortBy === s 
-                                    ? (isDark ? 'bg-indigo-600 text-white' : 'bg-indigo-600 text-white shadow-lg shadow-indigo-600/20') 
+                                ${sortBy === s
+                                    ? (isDark ? 'bg-indigo-600 text-white' : 'bg-indigo-600 text-white shadow-lg shadow-indigo-600/20')
                                     : 'text-slate-400 hover:text-slate-600'}`}
                         >
                             {s}
@@ -552,98 +552,98 @@ const ShopManager = ({ orderLineId, villageName, theme, onBack, type }: Props) =
                 const filteredShops = result;
 
                 return loading ? (
-                <div className={`py-20 text-center text-${primaryColor}-500 font-black italic uppercase tracking-widest animate-pulse`}>
-                    {isAdmin ? 'Loading shops...' : 'Syncing Shop Data...'}
-                </div>
-            ) : filteredShops.length === 0 ? (
-                <div className={`py-20 text-center rounded-[40px] border ${isDark ? 'bg-slate-900 border-white/5' : 'bg-white border-slate-100 shadow-xl'}`}>
-                    <div className="text-5xl mb-4">{shopSearch ? '🔍' : '🏪'}</div>
-                    <p className={`font-black text-xl italic ${isDark ? 'text-white' : 'text-slate-900'}`}>{shopSearch ? `No shops matching "${shopSearch}"` : `No shops in ${villageName}`}</p>
-                    <p className="text-slate-500 mt-2 font-medium">{shopSearch ? 'Try a different search term' : 'Click "+ Add Shop" to get started'}</p>
-                </div>
-            ) : (
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-                    {filteredShops.map((shop) => (
-                        <div
-                            key={shop.id}
-                            onClick={() => setSelectedShop(shop)}
-                            className={`flex items-center gap-5 p-6 rounded-[28px] border group transition-all hover:-translate-y-1 cursor-pointer
-                                ${isDark ? 'bg-slate-900 border-white/5 hover:bg-slate-800 hover:border-white/10' : 
-                                    shop.has_order_today 
-                                    ? 'bg-emerald-50 border-emerald-100 shadow-none' 
-                                    : 'bg-white border-slate-100 shadow-lg shadow-slate-200/30 hover:shadow-xl hover:shadow-blue-500/10'}`}
-                        >
-                            <div className={`relative w-16 h-16 flex-shrink-0 flex items-center justify-center rounded-[20px] text-3xl
+                    <div className={`py-20 text-center text-${primaryColor}-500 font-black italic uppercase tracking-widest animate-pulse`}>
+                        {isAdmin ? 'Loading shops...' : 'Syncing Shop Data...'}
+                    </div>
+                ) : filteredShops.length === 0 ? (
+                    <div className={`py-20 text-center rounded-[40px] border ${isDark ? 'bg-slate-900 border-white/5' : 'bg-white border-slate-100 shadow-xl'}`}>
+                        <div className="text-5xl mb-4">{shopSearch ? '🔍' : '🏪'}</div>
+                        <p className={`font-black text-xl italic ${isDark ? 'text-white' : 'text-slate-900'}`}>{shopSearch ? `No shops matching "${shopSearch}"` : `No shops in ${villageName}`}</p>
+                        <p className="text-slate-500 mt-2 font-medium">{shopSearch ? 'Try a different search term' : 'Click "+ Add Shop" to get started'}</p>
+                    </div>
+                ) : (
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                        {filteredShops.map((shop) => (
+                            <div
+                                key={shop.id}
+                                onClick={() => setSelectedShop(shop)}
+                                className={`flex items-center gap-5 p-6 rounded-[28px] border group transition-all hover:-translate-y-1 cursor-pointer
+                                ${isDark ? 'bg-slate-900 border-white/5 hover:bg-slate-800 hover:border-white/10' :
+                                        shop.has_order_today
+                                            ? 'bg-emerald-50 border-emerald-100 shadow-none'
+                                            : 'bg-white border-slate-100 shadow-lg shadow-slate-200/30 hover:shadow-xl hover:shadow-blue-500/10'}`}
+                            >
+                                <div className={`relative w-16 h-16 flex-shrink-0 flex items-center justify-center rounded-[20px] text-3xl
                                 ${isDark ? 'bg-slate-800 border border-white/10' : 'bg-white border border-slate-100 shadow-lg'}`}>
-                                🏬
-                                {shop.has_order_today && (
-                                    <div className="absolute -top-2 -right-2 w-6 h-6 bg-emerald-500 rounded-full flex items-center justify-center border-2 border-white text-[10px] text-white">
-                                        ✓
-                                    </div>
-                                )}
-                            </div>
-
-                            <div className="flex-grow min-w-0">
-                                <div className="flex items-center justify-between">
-                                    <p className={`font-black text-xl leading-tight ${isDark ? 'text-white' : 'text-slate-900'}`}>{shop.shop_name}</p>
+                                    🏬
                                     {shop.has_order_today && (
-                                        <span className="px-2 py-0.5 bg-emerald-500 text-white text-[8px] font-black uppercase tracking-widest rounded-md">
-                                            Order Taken
-                                        </span>
+                                        <div className="absolute -top-2 -right-2 w-6 h-6 bg-emerald-500 rounded-full flex items-center justify-center border-2 border-white text-[10px] text-white">
+                                            ✓
+                                        </div>
                                     )}
                                 </div>
-                                <p className="text-xs font-bold text-slate-500 uppercase tracking-widest mt-1">
-                                    {(isAdmin ? shop.owner_name : shop.owner_name) || '—'} {shop.shop_owner && <span className="text-blue-500 ml-1">• {shop.shop_owner}</span>}
-                                </p>
-                                <p className="text-sm text-slate-500 font-medium mt-0.5">{shop.phone || '—'}</p>
-                                {shop.phone2 && <p className="text-sm text-slate-500 font-medium">{shop.phone2}</p>}
-                                <p className={`text-sm font-black mt-2 ${shop.balance > 0 ? 'text-emerald-400' : 'text-slate-400'}`}>
-                                    BALANCE₹{Number(shop.balance).toFixed(2)}
-                                </p>
-                            </div>
 
-                            <div className="flex flex-col gap-2">
-                                <button
-                                    onClick={(e) => { e.preventDefault(); e.stopPropagation(); setSelectedShop(shop); setPaymentData(p => ({...p, amount: '', method: 'Cash'})); setShowPaymentModal(true); }}
-                                    className={`p-2 rounded-xl border transition-all ${isDark ? 'bg-white/5 border-white/10 text-emerald-400 hover:bg-emerald-500/20' : 'bg-emerald-50 border-emerald-100 text-emerald-600 hover:bg-emerald-600 hover:text-white'}`}
-                                    title="Collect Payment"
-                                >
-                                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-                                </button>
-                                <button
-                                    onClick={(e) => { e.preventDefault(); e.stopPropagation(); fetchLedger(shop); }}
-                                    className={`p-2 rounded-xl border transition-all ${isDark ? 'bg-white/5 border-white/10 text-indigo-400 hover:bg-indigo-500/20' : 'bg-indigo-50 border-indigo-100 text-indigo-600 hover:bg-indigo-600 hover:text-white'}`}
-                                    title="Ledger"
-                                >
-                                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 17v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2m3.222.882a.5.5 0 010-.764L15.39 8.388a.5.5 0 01.44-.061l1.597.532a.5.5 0 00.54-.124l1.26-1.26a.5.5 0 00-.518-.813l-1.18.393a.5.5 0 01-.44-.061l-1.597-.532a.5.5 0 00-.54.124l-1.26 1.26a.5.5 0 00.518.813l1.18-.393z" /></svg>
-                                </button>
-                                {isAdmin && (
-                                    <>
-                                        <button
-                                            onClick={(e) => { e.preventDefault(); e.stopPropagation(); openEdit(shop); }}
-                                            className={`p-2 rounded-xl border transition-all ${isDark ? 'bg-white/5 border-white/10 text-blue-400 hover:bg-blue-500/20' : 'bg-blue-50 border-blue-100 text-blue-600 hover:bg-blue-600 hover:text-white'}`}
-                                            title="Edit"
-                                        >
-                                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" /></svg>
-                                        </button>
-                                        <button
-                                            onClick={(e) => { e.preventDefault(); e.stopPropagation(); handleDelete(shop.id); }}
-                                            className={`p-2 rounded-xl border transition-all ${isDark ? 'bg-white/5 border-white/10 text-red-400 hover:bg-red-500/20' : 'bg-red-50 border-red-100 text-red-50 hover:bg-red-600 hover:text-white'}`}
-                                            title="Delete"
-                                        >
-                                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
-                                        </button>
-                                    </>
-                                )}
-                            </div>
+                                <div className="flex-grow min-w-0">
+                                    <div className="flex items-center justify-between">
+                                        <p className={`font-black text-xl leading-tight ${isDark ? 'text-white' : 'text-slate-900'}`}>{shop.shop_name}</p>
+                                        {shop.has_order_today && (
+                                            <span className="px-2 py-0.5 bg-emerald-500 text-white text-[8px] font-black uppercase tracking-widest rounded-md">
+                                                Order Taken
+                                            </span>
+                                        )}
+                                    </div>
+                                    <p className="text-xs font-bold text-slate-500 uppercase tracking-widest mt-1">
+                                        {(isAdmin ? shop.owner_name : shop.owner_name) || '—'} {shop.shop_owner && <span className="text-blue-500 ml-1">• {shop.shop_owner}</span>}
+                                    </p>
+                                    <p className="text-sm text-slate-500 font-medium mt-0.5">{shop.phone || '—'}</p>
+                                    {shop.phone2 && <p className="text-sm text-slate-500 font-medium">{shop.phone2}</p>}
+                                    <p className={`text-sm font-black mt-2 ${shop.balance > 0 ? 'text-emerald-400' : 'text-slate-400'}`}>
+                                        BALANCE₹{Number(shop.balance).toFixed(2)}
+                                    </p>
+                                </div>
 
-                            <div className={`text-slate-400 group-hover:text-${primaryColor}-400 transition-colors flex-shrink-0`}>
-                                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5l7 7-7 7" /></svg>
+                                <div className="flex flex-col gap-2">
+                                    <button
+                                        onClick={(e) => { e.preventDefault(); e.stopPropagation(); setSelectedShop(shop); setPaymentData(p => ({ ...p, amount: '', method: 'Cash' })); setShowPaymentModal(true); }}
+                                        className={`p-2 rounded-xl border transition-all ${isDark ? 'bg-white/5 border-white/10 text-emerald-400 hover:bg-emerald-500/20' : 'bg-emerald-50 border-emerald-100 text-emerald-600 hover:bg-emerald-600 hover:text-white'}`}
+                                        title="Collect Payment"
+                                    >
+                                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                                    </button>
+                                    <button
+                                        onClick={(e) => { e.preventDefault(); e.stopPropagation(); fetchLedger(shop); }}
+                                        className={`p-2 rounded-xl border transition-all ${isDark ? 'bg-white/5 border-white/10 text-indigo-400 hover:bg-indigo-500/20' : 'bg-indigo-50 border-indigo-100 text-indigo-600 hover:bg-indigo-600 hover:text-white'}`}
+                                        title="Ledger"
+                                    >
+                                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 17v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2m3.222.882a.5.5 0 010-.764L15.39 8.388a.5.5 0 01.44-.061l1.597.532a.5.5 0 00.54-.124l1.26-1.26a.5.5 0 00-.518-.813l-1.18.393a.5.5 0 01-.44-.061l-1.597-.532a.5.5 0 00-.54.124l-1.26 1.26a.5.5 0 00.518.813l1.18-.393z" /></svg>
+                                    </button>
+                                    {isAdmin && (
+                                        <>
+                                            <button
+                                                onClick={(e) => { e.preventDefault(); e.stopPropagation(); openEdit(shop); }}
+                                                className={`p-2 rounded-xl border transition-all ${isDark ? 'bg-white/5 border-white/10 text-blue-400 hover:bg-blue-500/20' : 'bg-blue-50 border-blue-100 text-blue-600 hover:bg-blue-600 hover:text-white'}`}
+                                                title="Edit"
+                                            >
+                                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" /></svg>
+                                            </button>
+                                            <button
+                                                onClick={(e) => { e.preventDefault(); e.stopPropagation(); handleDelete(shop.id); }}
+                                                className={`p-2 rounded-xl border transition-all ${isDark ? 'bg-white/5 border-white/10 text-red-400 hover:bg-red-500/20' : 'bg-red-50 border-red-100 text-red-50 hover:bg-red-600 hover:text-white'}`}
+                                                title="Delete"
+                                            >
+                                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
+                                            </button>
+                                        </>
+                                    )}
+                                </div>
+
+                                <div className={`text-slate-400 group-hover:text-${primaryColor}-400 transition-colors flex-shrink-0`}>
+                                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5l7 7-7 7" /></svg>
+                                </div>
                             </div>
-                        </div>
-                    ))}
-                </div>
-            );
+                        ))}
+                    </div>
+                );
             })()}
 
             {/* Modal */}
@@ -741,20 +741,20 @@ const ShopManager = ({ orderLineId, villageName, theme, onBack, type }: Props) =
                                                         {(() => {
                                                             const dateStr = tx.transaction_date || tx.created_at;
                                                             if (!dateStr) return '—';
-                                                            
+
                                                             let validIso = dateStr;
                                                             if (typeof dateStr === 'string' && !dateStr.includes('Z') && !dateStr.includes('+')) {
                                                                 validIso = dateStr.includes('T') ? dateStr + 'Z' : dateStr.replace(' ', 'T') + 'Z';
                                                             }
-                                                            
-                                                            return new Date(validIso).toLocaleString('en-IN', { 
+
+                                                            return new Date(validIso).toLocaleString('en-IN', {
                                                                 timeZone: 'Asia/Kolkata',
                                                                 day: '2-digit',
                                                                 month: '2-digit',
                                                                 year: 'numeric',
                                                                 hour: '2-digit',
                                                                 minute: '2-digit',
-                                                                hour12: true 
+                                                                hour12: true
                                                             }).toUpperCase();
                                                         })()} • BY {tx.created_by}
                                                     </p>
@@ -765,14 +765,14 @@ const ShopManager = ({ orderLineId, villageName, theme, onBack, type }: Props) =
                                                     const isBill = tx.type === 'Bill';
                                                     const isPayment = tx.type === 'Payment';
                                                     const isAdjustment = tx.type === 'Adjustment';
-                                                    
+
                                                     // Determine if this transaction added to or reduced the balance
                                                     const isAddition = isBill || (isAdjustment && tx.amount > 0);
                                                     const isReduction = isPayment || (isAdjustment && tx.amount < 0);
-                                                    
+
                                                     const sign = isAddition ? '+' : (isReduction ? '-' : '');
                                                     const colorClass = isAddition ? 'text-red-500' : (isReduction ? 'text-emerald-500' : 'text-indigo-500');
-                                                    
+
                                                     return (
                                                         <p className={`text-lg font-black ${colorClass}`}>
                                                             {sign}₹{Math.abs(tx.amount).toFixed(2)}
@@ -884,8 +884,8 @@ const ShopManager = ({ orderLineId, villageName, theme, onBack, type }: Props) =
                                             type="button"
                                             onClick={() => setPaymentData({ ...paymentData, method: m })}
                                             className={`py-4 rounded-2xl border font-black uppercase tracking-widest text-xs transition-all
-                                                ${paymentData.method === m 
-                                                    ? 'bg-emerald-600 border-emerald-600 text-white shadow-lg shadow-emerald-600/20' 
+                                                ${paymentData.method === m
+                                                    ? 'bg-emerald-600 border-emerald-600 text-white shadow-lg shadow-emerald-600/20'
                                                     : 'bg-slate-50 border-slate-100 text-slate-400 hover:bg-slate-100'}`}
                                         >
                                             {m}
@@ -904,8 +904,8 @@ const ShopManager = ({ orderLineId, villageName, theme, onBack, type }: Props) =
                                                 type="button"
                                                 onClick={() => setPaymentData({ ...paymentData, upiApp: app })}
                                                 className={`py-3 rounded-xl border font-black uppercase tracking-widest text-[9px] transition-all
-                                                    ${paymentData.upiApp === app 
-                                                        ? 'bg-blue-600 border-blue-600 text-white shadow-md shadow-blue-600/20' 
+                                                    ${paymentData.upiApp === app
+                                                        ? 'bg-blue-600 border-blue-600 text-white shadow-md shadow-blue-600/20'
                                                         : 'bg-slate-50 border-slate-100 text-slate-400 hover:bg-slate-100'}`}
                                             >
                                                 {app}

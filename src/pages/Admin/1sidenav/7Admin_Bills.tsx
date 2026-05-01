@@ -13,11 +13,13 @@ interface Props {
     onDeleteBill: (id: number) => void;
     onClearAll: () => void;
     onEditBill: (id: number, newCart: Record<string, number>, newRates?: Record<string, number>, newDate?: string) => void;
+    selectedDate: string;
+    setSelectedDate: (date: string) => void;
 }
 
-const AdminBills: React.FC<Props> = ({ bills, theme, onDeleteBill, onClearAll, onEditBill }) => {
+const AdminBills: React.FC<Props> = ({ bills, theme, onDeleteBill, onClearAll, onEditBill, selectedDate, setSelectedDate }) => {
     const isDark = theme === 'dark';
-    const { state, actions, computed, refs } = useAdminBills(bills, onEditBill);
+    const { state, actions, computed, refs } = useAdminBills(bills, onEditBill, selectedDate, setSelectedDate);
 
     const [motorVehicles, setMotorVehicles] = useState<any[]>([]);
     const [selectedVehicles, setSelectedVehicles] = useState<Record<string, string>>({});
