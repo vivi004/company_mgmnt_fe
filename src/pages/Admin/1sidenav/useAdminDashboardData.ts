@@ -66,6 +66,7 @@ export const useAdminDashboardData = () => {
                 cart: b.cart,
                 customRates: b.custom_rates || b.customRates || {},
                 date: b.bill_date || b.date,
+                deliveryDate: b.delivery_date || b.deliveryDate,
                 invoiceNo: b.invoice_no || b.invoiceNo,
                 createdBy: b.created_by || b.createdBy,
                 phone: b.phone || '',
@@ -124,9 +125,13 @@ export const useAdminDashboardData = () => {
         showToast("Clear all is disabled for primary ledger for safety. Delete individual bills if needed.", "info");
     };
 
-    const handleEditBill = async (id: number, newCart: Record<string, number>, newRates?: Record<string, number>) => {
+    const handleEditBill = async (id: number, newCart: Record<string, number>, newRates?: Record<string, number>, newDate?: string) => {
         try {
-            await api().put(`/api/bills/${id}`, { cart: newCart, custom_rates: newRates });
+            await api().put(`/api/bills/${id}`, { 
+                cart: newCart, 
+                custom_rates: newRates,
+                delivery_date: newDate
+            });
             showToast("Bill updated successfully", "success");
             loadBills();
         } catch {

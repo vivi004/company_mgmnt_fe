@@ -164,7 +164,7 @@ const UnifiedProductCard: React.FC<CardProps> = ({ product, cart, isDark, update
     // Pattern matching exactly like old layout
     if (sizeLower === '100 ml') return <BoxLitreControls boxId={product.id + '_box'} litreId={product.id + '_ltr'} boxMultiplier={50} litreStep={1} litreMultiplier={10} litreLabel="LTR" />;
     if (sizeLower === '200 ml') return <BoxLitreControls boxId={product.id + '_box'} litreId={product.id + '_ltr'} boxMultiplier={25} litreStep={1} litreMultiplier={5} litreLabel="LTR" />;
-    if (sizeLower === '500 ml') return <BoxLitreControls boxId={product.id + '_box'} litreId={product.id + '_ltr'} boxMultiplier={20} litreStep={1} litreMultiplier={2} litreLabel="LTR" />;
+    if (sizeLower === '500 ml') return <BoxLitreControls boxId={product.id + '_box'} litreId={product.id} boxMultiplier={20} litreStep={1} litreMultiplier={1} litreLabel="PCS" />;
     if (sizeLower === '1 litre' || sizeLower === '1 ltr-pet' || sizeLower === '1 ltr') return <BoxLitreControls boxId={product.id + '_box'} litreId={product.id} boxMultiplier={10} litreStep={1} litreMultiplier={1} litreLabel="PCS" />;
     if (sizeLower === '2 ltr') return <BoxLitreControls boxId={product.id + '_box'} litreId={product.id} boxMultiplier={5} litreStep={1} litreMultiplier={1} litreLabel="2L-PCS" />;
 
@@ -262,7 +262,7 @@ const UnifiedOrderingView: React.FC<Props> = ({ shopName, theme, cart, updateQua
     if (p && !id.includes('_box')) {
       const size = p.size.toLowerCase();
       if (size === '500 ml') {
-        safeVal = Math.round(safeVal * 2) / 2;
+        safeVal = Math.round(safeVal);
       } else if (size === '1 litre' || size === '1 ltr-pet') {
         safeVal = Math.round(safeVal);
       } else if (size === '2 ltr') {

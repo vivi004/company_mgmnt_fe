@@ -3,7 +3,7 @@ import { getAuthAxios } from '../../../utils/apiClient';
 import { useToast, ToastContainer } from '../../../components/Toast';
 import Bills from '../Billpage/Bills';
 import ReviewOrder from '../ReviewOrder/ReviewOrder';
-import { getAllProducts } from '../../../constants/productData';
+import { getAllProducts, getCartItems } from '../../../constants/productData';
 import UnifiedOrderingView from './UnifiedOrderingView';
 
 interface Shop {
@@ -46,17 +46,27 @@ const ShopManager = ({ orderLineId, villageName, theme, onBack, type }: Props) =
     const [showBill, setShowBill] = useState(false);
     const [currentBillId, setCurrentBillId] = useState<number | null>(null);
     const [invoiceNo, setInvoiceNo] = useState<number>(0);
+    const [currentRates, setCurrentRates] = useState<Record<string, number>>({});
 
     // Ledger & Adjustment States
     const [showLedger, setShowLedger] = useState(false);
     const [ledgerData, setLedgerData] = useState<any[]>([]);
     const [loadingLedger, setLoadingLedger] = useState(false);
+    const [ledgerSkip, setLedgerSkip] = useState(0);
+    const [ledgerHasMore, setLedgerHasMore] = useState(true);
     const [showAdjustModal, setShowAdjustModal] = useState(false);
     const [adjData, setAdjData] = useState({ amount: '', description: '' });
     const [submittingAdj, setSubmittingAdj] = useState(false);
     const [showPaymentModal, setShowPaymentModal] = useState(false);
     const [paymentData, setPaymentData] = useState({ amount: '', method: 'Cash', upiApp: 'PhonePe', description: '' });
     const [submittingPayment, setSubmittingPayment] = useState(false);
+
+    // Delivery Date (default = tomorrow)
+    const [deliveryDate, setDeliveryDate] = useState(() => {
+        const d = new Date();
+        d.setDate(d.getDate() + 1);
+        return d.toISOString().slice(0, 10); // YYYY-MM-DD for <input type="date">
+    });
 
     // Filtering & Sorting
     const [filterStatus, setFilterStatus] = useState<'all' | 'pending' | 'completed'>('all');
@@ -89,11 +99,32 @@ const ShopManager = ({ orderLineId, villageName, theme, onBack, type }: Props) =
         setSelectedShop(shop);
         setShowLedger(true);
         setLoadingLedger(true);
+        setLedgerSkip(0);
+        setLedgerHasMore(true);
         try {
-            const res = await api().get(`/api/shops/${shop.id}/ledger`);
+            const res = await api().get(`/api/shops/${shop.id}/ledger?limit=20&skip=0`);
             setLedgerData(res.data);
+            if (res.data.length < 20) setLedgerHasMore(false);
         } catch {
             showToast('Failed to load ledger', 'error');
+        } finally {
+            setLoadingLedger(false);
+        }
+    };
+
+    const loadMoreLedger = async () => {
+        if (!selectedShop || loadingLedger || !ledgerHasMore) return;
+        const newSkip = ledgerSkip + 20;
+        setLoadingLedger(true);
+        try {
+            const res = await api().get(`/api/shops/${selectedShop.id}/ledger?limit=20&skip=${newSkip}`);
+            if (res.data.length > 0) {
+                setLedgerData(prev => [...prev, ...res.data]);
+                setLedgerSkip(newSkip);
+            }
+            if (res.data.length < 20) setLedgerHasMore(false);
+        } catch {
+            showToast('Failed to load more ledger data', 'error');
         } finally {
             setLoadingLedger(false);
         }
@@ -253,12 +284,16 @@ const ShopManager = ({ orderLineId, villageName, theme, onBack, type }: Props) =
                     setSelectedShop(null);
                     setCurrentBillId(null);
                     setInvoiceNo(0);
+                    const d = new Date();
+                    d.setDate(d.getDate() + 1);
+                    setDeliveryDate(d.toISOString().split('T')[0]);
                 }}
                 onEditOrder={() => {
                     setShowBill(false);
                     setShowReview(true);
                 }}
                 type={type}
+                deliveryDate={new Date(deliveryDate + 'T00:00:00').toISOString()}
             />
         );
     }
@@ -282,12 +317,13 @@ const ShopManager = ({ orderLineId, villageName, theme, onBack, type }: Props) =
                         }
 
                         // Snapshot current rates so future Google Sheet updates don't affect this invoice
-                        const currentRates: Record<string, number> = {};
+                        const rates: Record<string, number> = {};
                         getAllProducts().forEach(p => {
                             if (cart[p.id] || cart[`${p.id}_box`] || cart[`${p.id}_ltr`]) {
-                                currentRates[p.id] = p.price;
+                                rates[p.id] = p.price;
                             }
                         });
+                        setCurrentRates(rates);
 
                         const currentInvoiceNo = parseInt(localStorage.getItem('nextInvoiceNo') || '1001', 10);
                         const nextNo = currentInvoiceNo + 1;
@@ -299,20 +335,31 @@ const ShopManager = ({ orderLineId, villageName, theme, onBack, type }: Props) =
                             last_invoice_no: currentInvoiceNo
                         }).catch(e => console.error('Invoice sync failed:', e));
 
+                        const cartItemsForTotal = getCartItems(cart, currentRates);
+                        const totalPrice = cartItemsForTotal.reduce((acc, item) => acc + (item.price * item.quantity), 0);
+
                         const billPayload = {
                             invoice_no: currentInvoiceNo,
                             shop_name: selectedShop!.shop_name,
                             village_name: villageName,
                             cart: cart,
-                            custom_rates: currentRates,
+                            custom_rates: rates,
                             created_by: createdBy,
                             bill_date: new Date().toISOString(),
-                            status: 'Unverified'
+                            delivery_date: new Date(deliveryDate + 'T00:00:00').toISOString(),
+                            status: 'Unverified',
+                            total_amount: totalPrice
                         };
 
                         try {
+                            const deliveryDateISO = new Date(deliveryDate + 'T00:00:00').toISOString();
                             if (currentBillId) {
-                                const res = await api().put(`/api/bills/${currentBillId}`, { cart, custom_rates: currentRates });
+                                const res = await api().put(`/api/bills/${currentBillId}`, { 
+                                    cart, 
+                                    custom_rates: rates,
+                                    delivery_date: deliveryDateISO,
+                                    total_amount: totalPrice
+                                });
                                 if (res.data.invoice_no) setInvoiceNo(res.data.invoice_no);
                                 showToast('Order updated!', 'success');
                             } else {
@@ -329,6 +376,8 @@ const ShopManager = ({ orderLineId, villageName, theme, onBack, type }: Props) =
                         }
                     }}
                     type={type}
+                    deliveryDate={deliveryDate}
+                    onDeliveryDateChange={setDeliveryDate}
                 />
             </>
         );
@@ -672,7 +721,7 @@ const ShopManager = ({ orderLineId, villageName, theme, onBack, type }: Props) =
                             </div>
                         </div>
                         <div className="flex-1 overflow-y-auto p-8 no-scrollbar">
-                            {loadingLedger ? (
+                            {loadingLedger && ledgerSkip === 0 ? (
                                 <div className="text-center py-20 font-black uppercase tracking-widest animate-pulse text-slate-500">Fetching Ledger...</div>
                             ) : ledgerData.length === 0 ? (
                                 <div className="text-center py-20 text-slate-500 font-bold italic">No transactions recorded yet.</div>
@@ -690,7 +739,7 @@ const ShopManager = ({ orderLineId, villageName, theme, onBack, type }: Props) =
                                                     <p className="font-black text-sm uppercase tracking-tight">{tx.description}</p>
                                                     <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mt-1">
                                                         {(() => {
-                                                            const dateStr = tx.created_at;
+                                                            const dateStr = tx.transaction_date || tx.created_at;
                                                             if (!dateStr) return '—';
                                                             
                                                             let validIso = dateStr;
@@ -734,6 +783,17 @@ const ShopManager = ({ orderLineId, villageName, theme, onBack, type }: Props) =
                                             </div>
                                         </div>
                                     ))}
+                                    {ledgerHasMore && (
+                                        <button
+                                            onClick={loadMoreLedger}
+                                            disabled={loadingLedger}
+                                            className={`w-full py-3 mt-4 rounded-2xl font-black text-sm uppercase tracking-widest transition-all
+                                                ${isDark ? 'bg-slate-800 text-slate-300 hover:bg-slate-700' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}
+                                                ${loadingLedger ? 'opacity-50 cursor-not-allowed' : ''}`}
+                                        >
+                                            {loadingLedger ? 'Loading...' : 'Load More'}
+                                        </button>
+                                    )}
                                 </div>
                             )}
                         </div>

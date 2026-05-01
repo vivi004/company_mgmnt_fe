@@ -8,6 +8,7 @@ export interface Bill {
     cart: Record<string, number>;
     customRates?: Record<string, number>;
     date: string;
+    deliveryDate?: string;
     invoiceNo: number;
     createdBy?: string;
     phone?: string;
@@ -20,6 +21,8 @@ export const invoiceHTML = (bill: Bill, vehicleNo: string = '') => {
     const totalAmt = items.reduce((a, i) => a + i.price * i.quantity, 0);
     const d = new Date(bill.date);
     const ds = `${d.getDate()}-${d.toLocaleString('en', { month: 'short' })}-${String(d.getFullYear()).slice(2)}`;
+    const dd = bill.deliveryDate ? new Date(bill.deliveryDate) : d;
+    const dds = `${dd.getDate()}-${dd.toLocaleString('en', { month: 'short' })}-${String(dd.getFullYear()).slice(2)}`;
 
     const B   = 'border:1px solid #000;padding:3px 5px;vertical-align:top;';
     const LR  = 'border-left:1px solid #000;border-right:1px solid #000;border-top:none;border-bottom:none;padding:3px 5px;vertical-align:top;';
@@ -93,7 +96,7 @@ export const invoiceHTML = (bill: Bill, vehicleNo: string = '') => {
         E-Mail : nishaoilmills.pvt.ltd@gmail.com
     </td>
     <td colspan="2" style="${B}font-size:10px;">Invoice No.<br><b style="font-size:11px;">${bill.invoiceNo}</b></td>
-    <td colspan="2" style="${B}font-size:10px;">Dated<br><b style="font-size:11px;">${ds}</b></td>
+    <td colspan="2" style="${B}font-size:10px;">Dated<br><b style="font-size:11px;">${dds}</b></td>
 </tr>
 <tr>
     <td colspan="2" style="${B}font-size:10px;">Delivery Note</td>
@@ -101,7 +104,7 @@ export const invoiceHTML = (bill: Bill, vehicleNo: string = '') => {
 </tr>
 <tr>
     <td colspan="2" style="${B}font-size:10px;">Dispatch Doc No.</td>
-    <td colspan="2" style="${B}font-size:10px;">Delivery Note Date</td>
+    <td colspan="2" style="${B}font-size:10px;">Delivery Note Date<br><b style="font-size:11px;">${dds}</b></td>
 </tr>
 <tr>
     <td colspan="2" style="${B}font-size:10px;">Dispatched through</td>

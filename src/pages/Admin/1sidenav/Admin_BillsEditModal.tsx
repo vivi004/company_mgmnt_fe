@@ -18,12 +18,15 @@ interface AdminBillsEditModalProps {
     getTotal: (cart: Record<string, number>, customRates?: Record<string, number>) => number;
     getItemCount: (cart: Record<string, number>) => number;
     theme: string;
+    editDeliveryDate: string;
+    setEditDeliveryDate: React.Dispatch<React.SetStateAction<string>>;
 }
 
 const AdminBillsEditModal: React.FC<AdminBillsEditModalProps> = ({
     open, onClose, editingBill, editCart, setEditCart, editRates, setEditRates,
     searchQuery, setSearchQuery, selectedCategory, setSelectedCategory,
-    handleSaveEdit, getTotal, getItemCount, theme
+    handleSaveEdit, getTotal, getItemCount, theme,
+    editDeliveryDate, setEditDeliveryDate
 }) => {
     if (!open || !editingBill) return null;
     const isDark = theme === 'dark';
@@ -69,6 +72,16 @@ const AdminBillsEditModal: React.FC<AdminBillsEditModalProps> = ({
                             <option key={cat} value={cat}>{cat}</option>
                         ))}
                     </select>
+                    <div className="flex items-center gap-3">
+                        <span className="text-[10px] font-black uppercase tracking-widest text-slate-500 whitespace-nowrap">Delivery Date:</span>
+                        <input
+                            type="date"
+                            value={editDeliveryDate}
+                            onChange={e => setEditDeliveryDate(e.target.value)}
+                            className={`rounded-[20px] px-4 py-3 text-sm font-bold border outline-none cursor-pointer transition-all
+                                        ${isDark ? 'bg-slate-800/50 border-white/10 text-white focus:border-blue-500' : 'bg-slate-50 border-slate-200 text-slate-900 focus:border-blue-500 hover:border-slate-300'}`}
+                        />
+                    </div>
                 </div>
 
                 {/* Cart Modifier */}

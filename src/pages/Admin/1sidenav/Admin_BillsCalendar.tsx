@@ -73,7 +73,7 @@ const AdminBillsCalendar: React.FC<AdminBillsCalendarProps> = ({
                 })}
             </div>
             <div className={`text-[9px] text-center font-bold italic pt-3 border-t mt-2 ${isDark ? 'text-slate-600 border-white/5' : 'text-slate-400 border-slate-100'}`}>
-                Data available Mar 2025 – Apr 2026
+                Data available {minDate.toLocaleString('default', { month: 'short', year: 'numeric' })} – {maxDate.toLocaleString('default', { month: 'short', year: 'numeric' })}
             </div>
         </div>
     );

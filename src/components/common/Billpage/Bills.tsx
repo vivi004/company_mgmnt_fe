@@ -13,9 +13,10 @@ interface Props {
     type?: 'admin' | 'staff';
     phone?: string;
     phone2?: string;
+    deliveryDate?: string;
 }
 
-const Bills = ({ shopName, villageName, theme, invoiceNo, cart, customRates, onNewOrder, onEditOrder, type = 'admin', phone, phone2 }: Props) => {
+const Bills = ({ shopName, villageName, theme, invoiceNo, cart, customRates, onNewOrder, onEditOrder, type = 'admin', phone, phone2, deliveryDate }: Props) => {
     const isDark = theme === 'dark';
     const printRef = useRef<HTMLDivElement>(null);
 
@@ -26,6 +27,7 @@ const Bills = ({ shopName, villageName, theme, invoiceNo, cart, customRates, onN
         cart,
         customRates,
         date: new Date().toISOString(),
+        deliveryDate: deliveryDate || new Date().toISOString(),
         invoiceNo,
         phone,
         phone2

@@ -4,7 +4,7 @@ import type { Bill } from '../../../utils/invoiceGenerator';
 
 export const useAdminBills = (
     bills: Bill[],
-    onEditBill: (id: number, newCart: Record<string, number>, newRates?: Record<string, number>) => void
+    onEditBill: (id: number, newCart: Record<string, number>, newRates?: Record<string, number>, newDate?: string) => void
 ) => {
     const getTodayLocal = () => {
         const d = new Date();
@@ -20,6 +20,7 @@ export const useAdminBills = (
     const [editingBill, setEditingBill] = useState<Bill | null>(null);
     const [editCart, setEditCart] = useState<Record<string, number>>({});
     const [editRates, setEditRates] = useState<Record<string, number>>({});
+    const [editDeliveryDate, setEditDeliveryDate] = useState<string>('');
     const [searchQuery, setSearchQuery] = useState('');
     const [selectedCategory, setSelectedCategory] = useState('All');
 
@@ -36,7 +37,9 @@ export const useAdminBills = (
 
     const filteredBills = selectedDate
         ? bills.filter(b => {
-             const d = new Date(b.date);
+             // Use deliveryDate if available, otherwise fallback to created date
+             const targetDate = b.deliveryDate || b.date;
+             const d = new Date(targetDate);
              // Get local date string YYYY-MM-DD
              const localDateStr = new Date(d.getTime() - (d.getTimezoneOffset() * 60000)).toISOString().split('T')[0];
              return localDateStr === selectedDate;
@@ -60,6 +63,7 @@ export const useAdminBills = (
         setEditingBill(bill);
         setEditCart({ ...bill.cart });
         setEditRates({ ...(bill.customRates || {}) });
+        setEditDeliveryDate(bill.deliveryDate ? bill.deliveryDate.split('T')[0] : '');
         setSearchQuery('');
         setSelectedCategory('All');
     };
@@ -82,13 +86,15 @@ export const useAdminBills = (
             }
         });
 
-        onEditBill(editingBill.id, finalCart, finalRates);
+        const deliveryDateISO = editDeliveryDate ? new Date(editDeliveryDate + 'T00:00:00').toISOString() : editingBill.deliveryDate;
+        onEditBill(editingBill.id, finalCart, finalRates, deliveryDateISO);
         setEditingBill(null);
     };
 
     // Calendar Logic
-    const minDate = new Date('2025-03-01T00:00:00');
-    const maxDate = new Date('2026-04-30T23:59:59');
+    const minDate = new Date('2025-01-01T00:00:00');
+    const maxDate = new Date();
+    maxDate.setDate(maxDate.getDate() + 30); // Allow viewing 30 days ahead for future deliveries
     const todayStr = getTodayLocal();
 
     const generateCalendarDays = () => {
@@ -106,17 +112,17 @@ export const useAdminBills = (
     };
 
     const handlePrevMonth = () => {
-        const prev = new Date(currentCalDate);
-        prev.setMonth(prev.getMonth() - 1);
-        if (prev >= new Date(minDate.getFullYear(), minDate.getMonth(), 1)) {
+        const prev = new Date(currentCalDate.getFullYear(), currentCalDate.getMonth() - 1, 1);
+        const minMonthStart = new Date(minDate.getFullYear(), minDate.getMonth(), 1);
+        if (prev >= minMonthStart) {
             setCurrentCalDate(prev);
         }
     };
 
     const handleNextMonth = () => {
-        const next = new Date(currentCalDate);
-        next.setMonth(next.getMonth() + 1);
-        if (next <= new Date(maxDate.getFullYear(), maxDate.getMonth(), 1)) {
+        const next = new Date(currentCalDate.getFullYear(), currentCalDate.getMonth() + 1, 1);
+        const maxMonthStart = new Date(maxDate.getFullYear(), maxDate.getMonth(), 1);
+        if (next <= maxMonthStart) {
             setCurrentCalDate(next);
         }
     };
@@ -132,11 +138,13 @@ export const useAdminBills = (
         state: {
             selectedDate, isCalendarOpen, currentCalDate, editingBill,
             editCart, editRates, searchQuery, selectedCategory,
-            minDate, maxDate, todayStr, filteredBills, groupedBills
+            minDate, maxDate, todayStr, filteredBills, groupedBills,
+            editDeliveryDate
         },
         actions: {
             setSelectedDate, setIsCalendarOpen, setEditingBill,
             setEditCart, setEditRates, setSearchQuery, setSelectedCategory,
+            setEditDeliveryDate,
             openEditModal, handleSaveEdit, handlePrevMonth, handleNextMonth, handleDateSelect
         },
         computed: {

@@ -12,7 +12,7 @@ interface Props {
     theme: string;
     onDeleteBill: (id: number) => void;
     onClearAll: () => void;
-    onEditBill: (id: number, newCart: Record<string, number>, newRates?: Record<string, number>) => void;
+    onEditBill: (id: number, newCart: Record<string, number>, newRates?: Record<string, number>, newDate?: string) => void;
 }
 
 const AdminBills: React.FC<Props> = ({ bills, theme, onDeleteBill, onClearAll, onEditBill }) => {
@@ -193,8 +193,13 @@ const AdminBills: React.FC<Props> = ({ bills, theme, onDeleteBill, onClearAll, o
                                             <p className={`font-black ${isDark ? 'text-white' : 'text-slate-900'}`}>{bill.shopName}</p>
                                             <p className="text-xs text-slate-500 font-medium">{bill.villageName}</p>
                                         </div>
-                                        <div className={`col-span-2 text-sm font-medium ${isDark ? 'text-slate-300' : 'text-slate-600'}`}>
-                                            {new Date(bill.date).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: '2-digit', timeZone: 'Asia/Kolkata' })}
+                                        <div className="col-span-2">
+                                            <p className={`text-sm font-black ${isDark ? 'text-slate-200' : 'text-slate-900'}`}>
+                                                {new Date(bill.deliveryDate || bill.date).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: '2-digit', timeZone: 'Asia/Kolkata' })}
+                                            </p>
+                                            <p className="text-[10px] text-slate-500 font-bold uppercase tracking-tight mt-0.5">
+                                                Order: {new Date(bill.date).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: '2-digit', timeZone: 'Asia/Kolkata' })}
+                                            </p>
                                         </div>
                                         <div className={`col-span-1 font-black ${isDark ? 'text-blue-400' : 'text-blue-600'}`}>
                                             {computed.getItemCount(bill.cart)}
@@ -261,6 +266,8 @@ const AdminBills: React.FC<Props> = ({ bills, theme, onDeleteBill, onClearAll, o
                 setEditCart={actions.setEditCart}
                 editRates={state.editRates}
                 setEditRates={actions.setEditRates}
+                editDeliveryDate={state.editDeliveryDate}
+                setEditDeliveryDate={actions.setEditDeliveryDate}
                 searchQuery={state.searchQuery}
                 setSearchQuery={actions.setSearchQuery}
                 selectedCategory={state.selectedCategory}
