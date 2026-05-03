@@ -80,12 +80,12 @@ export const DEFAULT_NISHA_PRODUCTS: Product[] = [
 ];
 
 export const DEFAULT_MIXED_OIL_PRODUCTS: Product[] = [
-    { id: 'mo-v-0.5po', name: 'Mixed Oil', brand: 'VARSHINI', size: '1/2 Pkt', price: 1500, unit: 'BOX', icon: '🛢️' },
-    { id: 'mo-v-1lpo', name: 'Mixed Oil', brand: 'VARSHINI', size: '1 Ltr Pkt', price: 1500, unit: 'BOX', icon: '🛢️' },
-    { id: 'mo-v-5lcan', name: 'Mixed Oil', brand: 'VARSHINI', size: '5 Ltr Can', price: 775, unit: 'CAN', icon: '🛢️' },
-    { id: 'mo-v-15l', name: 'Mixed Oil', brand: 'VARSHINI', size: '15 LTR', price: 2230, unit: 'Litre', icon: '🛢️' },
-    { id: 'mo-v-15kg', name: 'Mixed Oil', brand: 'VARSHINI', size: '15 KG', price: 2440, unit: 'KG', icon: '🛢️' },
-    { id: 'mo-r-820g', name: 'Mixed Oil', brand: 'ROSHINI', size: '820 GM', price: 1380, unit: 'BOX', icon: '🛢️' },
+    { id: 'mo-v-0.5po', name: 'Varshini Gold', brand: 'VARSHINI', size: '1/2 Pkt', price: 1500, unit: 'BOX', icon: '🛢️' },
+    { id: 'mo-v-1lpo', name: 'Varshini Gold', brand: 'VARSHINI', size: '1 Ltr Pkt', price: 1500, unit: 'BOX', icon: '🛢️' },
+    { id: 'mo-v-5lcan', name: 'Varshini Gold', brand: 'VARSHINI', size: '5 Ltr Can', price: 775, unit: 'CAN', icon: '🛢️' },
+    { id: 'mo-v-15l', name: 'Varshini Gold', brand: 'VARSHINI', size: '15 LTR', price: 2230, unit: 'Litre', icon: '🛢️' },
+    { id: 'mo-v-15kg', name: 'Varshini Gold', brand: 'VARSHINI', size: '15 KG', price: 2440, unit: 'KG', icon: '🛢️' },
+    { id: 'mo-r-820g', name: 'ROSHINI', brand: 'ROSHINI', size: '820 GM', price: 1380, unit: 'BOX', icon: '🛢️' },
 ];
 
 export const DEFAULT_PALM_OIL_PRODUCTS: Product[] = [

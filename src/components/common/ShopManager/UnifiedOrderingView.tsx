@@ -45,7 +45,7 @@ const SHOP_CATEGORIES: ShopCategory[] = [
   },
   {
     id: 'mixed',
-    name: 'Mixed Oil',
+    name: 'Varshini Gold',
     icon: '🛢️',
     subcategories: [{ id: 'ALL', name: 'All Products', icon: '🛢️' }],
     getProducts: getMixedOilProducts,

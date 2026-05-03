@@ -32,7 +32,7 @@ function getCategoryForProductId(pid: string, products: any[]): string {
     const name = p.name.toUpperCase();
     const brand = p.brand.toUpperCase();
 
-    if (brand === 'VARSHINI' || brand === 'ROSHINI') return 'MULTISOURCE EDIBLE OIL';
+    if (brand === 'VARSHINI' || brand === 'ROSHINI') return 'VARSHINI GOLD';
     if (name.includes('LAMP') || name.includes('DEEPAM')) return 'PANJA DEEPA OIL';
     if (name.includes('CASTOR')) return 'CASTOR OIL';
     if (name.includes('GROUNDNUT')) return 'GROUNDNUT OIL';
@@ -109,7 +109,7 @@ export function generateLoadingSheet(bills: Bill[], dateStr: string, vehicleNo: 
     });
 
     const categoryOrder = [
-        'MULTISOURCE EDIBLE OIL',
+        'VARSHINI GOLD',
         'PANJA DEEPA OIL',
         'CASTOR OIL',
         'GROUNDNUT OIL',
