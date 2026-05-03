@@ -19,14 +19,17 @@ export const invoiceHTML = (bill: Bill, vehicleNo: string = '') => {
     const items = getCartItems(bill.cart, bill.customRates);
     const totalQty = items.reduce((a, i) => a + i.quantity, 0);
     const totalAmt = items.reduce((a, i) => a + i.price * i.quantity, 0);
-    const d = new Date(bill.date);
-    const dd = bill.deliveryDate ? new Date(bill.deliveryDate) : d;
-    const dds = dd.toLocaleDateString('en-IN', { 
-        day: '2-digit', 
-        month: 'short', 
-        year: '2-digit',
-        timeZone: 'Asia/Kolkata' 
-    }).split(/[\s,]+/).join('-');
+
+    const formatStringDate = (dStr: string) => {
+        if (!dStr) return '';
+        const clean = dStr.includes('T') ? dStr.split('T')[0] : dStr.split(' ')[0];
+        const [y, m, d] = clean.split('-');
+        if (!y || !m || !d) return clean;
+        const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+        return `${d}-${months[parseInt(m) - 1]}-${y.slice(-2)}`;
+    };
+
+    const dds = formatStringDate(bill.deliveryDate || bill.date || '');
 
     const B   = 'border:1px solid #000;padding:3px 5px;vertical-align:top;';
     const LR  = 'border-left:1px solid #000;border-right:1px solid #000;border-top:none;border-bottom:none;padding:3px 5px;vertical-align:top;';

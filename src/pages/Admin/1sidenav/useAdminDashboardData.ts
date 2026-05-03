@@ -44,7 +44,12 @@ export const useAdminDashboardData = () => {
 
     const [bills, setBills] = useState<Array<{ id: number; shopName: string; villageName: string; cart: Record<string, number>; customRates?: Record<string, number>; date: string; deliveryDate?: string; invoiceNo: number }>>([]);
     const [unverifiedCount, setUnverifiedCount] = useState(0);
-    const [billSelectedDate, setBillSelectedDate] = useState('');
+    const [billSelectedDate, setBillSelectedDate] = useState(() => {
+        // Default to today's date in Indian Time
+        const now = new Date();
+        const istDate = new Date(now.getTime() + 5.5 * 60 * 60 * 1000);
+        return istDate.toISOString().split('T')[0];
+    });
 
     const storedUser = JSON.parse(localStorage.getItem('user') || '{}');
     const [userProfile] = useState<Partial<Employee>>({
@@ -128,24 +133,25 @@ export const useAdminDashboardData = () => {
 
     const handleEditBill = async (id: number, newCart: Record<string, number>, newRates?: Record<string, number>, newDate?: string) => {
         try {
-            // Recalculate total amount for the backend
-            const { getAllProducts } = await import('../../../constants/productData');
-            const totalAmount = getAllProducts().reduce((sum, p) => sum + (newCart[p.id] || 0) * (newRates?.[p.id] ?? p.price), 0);
+            // Use the centralized pricing logic to calculate the total amount
+            const { getCartItems } = await import('../../../constants/productData');
+            const items = getCartItems(newCart, newRates);
+            const totalAmount = items.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+
+            // Get current user for attribution
+            const storedUser = JSON.parse(localStorage.getItem('user') || '{}');
+            const actingName = storedUser.first_name ? `${storedUser.first_name} ${storedUser.last_name || ''}`.trim() : 'Admin';
 
             await api().put(`/api/bills/${id}`, { 
                 cart: newCart, 
                 custom_rates: newRates,
                 total_amount: totalAmount,
-                delivery_date: newDate
+                delivery_date: newDate,
+                created_by: actingName
             });
             showToast("Bill updated successfully", "success");
             
-            // If the date was changed, move the view to the new date so the user can see the bill moved
-            if (newDate) {
-                const newDateStr = newDate.split('T')[0];
-                setBillSelectedDate(newDateStr);
-            }
-            
+            // Stay on the same date filter after update
             loadBills();
         } catch {
             showToast("Failed to update bill", "error");
@@ -439,9 +445,8 @@ export const useAdminDashboardData = () => {
 
     const filteredBillCount = bills.filter(b => {
         if (!billSelectedDate) return true;
-        const targetDate = b.deliveryDate || b.date;
-        const d = new Date(targetDate);
-        const localDateStr = new Date(d.getTime() - (d.getTimezoneOffset() * 60000)).toISOString().split('T')[0];
+        const targetDate = b.deliveryDate || b.date || '';
+        const localDateStr = targetDate.includes('T') ? targetDate.split('T')[0] : targetDate.split(' ')[0];
         return localDateStr === billSelectedDate;
     }).length;
 

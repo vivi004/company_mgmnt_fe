@@ -42,10 +42,9 @@ export const useAdminBills = (
     const filteredBills = selectedDate
         ? bills.filter(b => {
              // Use deliveryDate if available, otherwise fallback to created date
-             const targetDate = b.deliveryDate || b.date;
-             const d = new Date(targetDate);
-             // Get local date string YYYY-MM-DD
-             const localDateStr = new Date(d.getTime() - (d.getTimezoneOffset() * 60000)).toISOString().split('T')[0];
+             const targetDate = b.deliveryDate || b.date || '';
+             // Robust parsing for local MySQL dates
+             const localDateStr = targetDate.includes('T') ? targetDate.split('T')[0] : targetDate.split(' ')[0];
              return localDateStr === selectedDate;
           })
         : bills;
@@ -67,7 +66,12 @@ export const useAdminBills = (
         setEditingBill(bill);
         setEditCart({ ...bill.cart });
         setEditRates({ ...(bill.customRates || {}) });
-        setEditDeliveryDate(bill.deliveryDate ? bill.deliveryDate.split('T')[0] : '');
+        
+        // Handle both ISO (T) and MySQL (space) formats
+        const d = bill.deliveryDate || bill.date || '';
+        const datePart = d.includes('T') ? d.split('T')[0] : d.split(' ')[0];
+        setEditDeliveryDate(datePart);
+        
         setSearchQuery('');
         setSelectedCategory('All');
     };

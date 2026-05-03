@@ -201,7 +201,7 @@ export function generateLoadingSheet(bills: Bill[], dateStr: string, vehicleNo: 
     <h2 style="text-align:center;font-size:16px;margin-bottom:2px">New Loading Sheet</h2>
     <table style="margin-bottom:4px">
         <tr>
-            <td style="font-size:12px;font-weight:bold">Stock Group : Primary<br>Vehicle No: ${vehicleNo || '-'}</td>
+            <td style="font-size:12px;font-weight:bold">Stock Group : Primary<br>Vehicle No: <span style="text-transform:uppercase">${vehicleNo || '-'}</span></td>
             <td style="font-size:12px;text-align:center">Period :</td>
             <td style="font-size:12px;text-align:right;font-weight:bold">For ${displayDate}</td>
         </tr>

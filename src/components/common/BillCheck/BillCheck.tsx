@@ -171,7 +171,11 @@ const BillCheck = ({ theme, type, userProfileName, onUnverifiedCountChange }: Pr
         setEditingBill(bill);
         setEditCart({ ...bill.cart });
         setEditRates({ ...(bill.customRates || {}) });
-        setEditDeliveryDate(bill.deliveryDate ? bill.deliveryDate.split('T')[0] : '');
+        
+        // Handle both ISO (T) and MySQL (space) formats
+        const d = bill.deliveryDate || bill.date || '';
+        const datePart = d.includes('T') ? d.split('T')[0] : d.split(' ')[0];
+        setEditDeliveryDate(datePart);
         setSearchQuery('');
         setSelectedCategory('All');
     };
