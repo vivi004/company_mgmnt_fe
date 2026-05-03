@@ -121,11 +121,35 @@ const OIL_CAKE_KEY = 'oilCakeProducts_v5';
 /**
  * Helper to apply synced sheet rates to a list of products
  */
+const SERVER_RATES_KEY = 'serverProductRates_v1';
+
+export async function fetchAndCacheRatesFromServer() {
+    try {
+        const { getAuthAxios } = await import('../utils/apiClient');
+        const res = await getAuthAxios().get('/api/products/rates');
+        localStorage.setItem(SERVER_RATES_KEY, JSON.stringify(res.data));
+    } catch (err) {
+        // Silently fail or log, using stale/default data is fine
+        console.warn('Could not refresh product rates from server, using cached/default values.');
+    }
+}
+
+function getServerRates(): Record<string, number> {
+    try {
+        const stored = localStorage.getItem(SERVER_RATES_KEY);
+        return stored ? JSON.parse(stored) : {};
+    } catch {
+        return {};
+    }
+}
+
 function applySheetRatesToProducts(products: Product[]): Product[] {
     const sheetRates = getSheetRates();
+    const serverRates = getServerRates();
+    
     return products.map(p => ({
         ...p,
-        price: sheetRates[p.id] ?? p.price
+        price: sheetRates[p.id] ?? serverRates[p.id] ?? p.price
     }));
 }
 

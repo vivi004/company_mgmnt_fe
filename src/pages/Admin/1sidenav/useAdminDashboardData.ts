@@ -218,6 +218,9 @@ export const useAdminDashboardData = () => {
         checkBackendHealth();
         loadBills();
         fetchInvoiceSettings();
+        
+        // Refresh product rates from server
+        import('../../../constants/productData').then(m => m.fetchAndCacheRatesFromServer());
     }, []);
 
     useEffect(() => {
@@ -241,12 +244,21 @@ export const useAdminDashboardData = () => {
     const handleManualSync = async () => {
         setIsSyncing(true);
         try {
-            const { syncRatesFromSheet } = await import('../../../services/googleSheetSync');
-            await syncRatesFromSheet();
-            const now = new Date().toLocaleString('en-IN', { hour12: true });
-            setLastSynced(now);
-            localStorage.setItem('lastSynced', now);
-            showToast("Product rates merged successfully from Google Sheets!", "success");
+            const { syncRatesFromSheet, getSheetRates } = await import('../../../services/googleSheetSync');
+            const result = await syncRatesFromSheet();
+            
+            if (result.success) {
+                const rates = getSheetRates();
+                // Send synced rates to backend to persist for all users (including mobile app)
+                await api().post('/api/products/sync', { rates });
+                
+                const now = new Date().toLocaleString('en-IN', { hour12: true });
+                setLastSynced(now);
+                localStorage.setItem('lastSynced', now);
+                showToast("Product rates merged successfully and synced to server!", "success");
+            } else {
+                showToast(result.error || "Google Sheets Sync Failed", "error");
+            }
         } catch (err) {
             console.error(err);
             showToast("Google Sheets Sync Failed", "error");
