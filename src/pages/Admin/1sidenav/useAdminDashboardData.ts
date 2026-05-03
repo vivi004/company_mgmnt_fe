@@ -249,19 +249,27 @@ export const useAdminDashboardData = () => {
             
             if (result.success) {
                 const rates = getSheetRates();
-                // Send synced rates to backend to persist for all users (including mobile app)
-                await api().post('/api/products/sync', { rates });
+                
+                // Try to send synced rates to backend, but don't fail the whole UI sync if it fails
+                try {
+                    await api().post('/api/products/sync', { rates });
+                    showToast("Product rates merged and synced to server!", "success");
+                } catch (apiErr: any) {
+                    console.warn("Backend sync failed:", apiErr);
+                    const apiMsg = apiErr.response?.data?.error || "Server unreachable";
+                    showToast(`Synced locally, but server update failed: ${apiMsg}`, "warning");
+                }
                 
                 const now = new Date().toLocaleString('en-IN', { hour12: true });
                 setLastSynced(now);
                 localStorage.setItem('lastSynced', now);
-                showToast("Product rates merged successfully and synced to server!", "success");
             } else {
                 showToast(result.error || "Google Sheets Sync Failed", "error");
             }
-        } catch (err) {
+        } catch (err: any) {
             console.error(err);
-            showToast("Google Sheets Sync Failed", "error");
+            const msg = err.response?.data?.error || err.message || "Google Sheets Sync Failed";
+            showToast(msg, "error");
         } finally {
             setIsSyncing(false);
         }
