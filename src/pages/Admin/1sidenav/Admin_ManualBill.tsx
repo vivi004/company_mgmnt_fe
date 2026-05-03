@@ -93,11 +93,8 @@ const Admin_ManualBill: React.FC<AdminManualBillProps> = ({ shopName, villageNam
                     updateQuantity={updateQuantity}
                     onBack={() => setShowReview(false)}
                     onPlaceOrder={async () => {
-                        let createdBy = 'Admin';
-                        if (!isAdmin) {
-                            const storedUser = JSON.parse(localStorage.getItem('user') || '{}');
-                            createdBy = storedUser.first_name ? `${storedUser.first_name} ${storedUser.last_name || ''}`.trim() : 'Staff';
-                        }
+                        const storedUser = JSON.parse(localStorage.getItem('user') || '{}');
+                        const createdBy = storedUser.first_name ? `${storedUser.first_name} ${storedUser.last_name || ''}`.trim() : (isAdmin ? 'Admin' : 'Staff');
 
                         const currentRates: Record<string, number> = {};
                         getAllProducts().forEach((p: Product) => {
