@@ -144,6 +144,7 @@ const AdminDashboard = () => {
                                 emailForwarding={state.emailForwarding}
                                 pushNotifications={state.pushNotifications}
                                 handleManualSync={actions.handleManualSync}
+                                handleAppSync={actions.handleAppSync}
                                 setEmailForwarding={actions.setEmailForwarding}
                                 setPushNotifications={actions.setPushNotifications}
                                 nextInvoiceNo={state.nextInvoiceNo}
@@ -153,7 +154,6 @@ const AdminDashboard = () => {
                                 setProfilePic={actions.setProfilePic}
                                 ledgerSheetUrl={state.ledgerSheetUrl}
                                 handleSyncAllToLedger={actions.handleSyncAllToLedger}
-
                             />
                         )}
                     </div>

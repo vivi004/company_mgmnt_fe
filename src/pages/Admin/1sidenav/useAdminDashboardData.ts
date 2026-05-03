@@ -241,35 +241,49 @@ export const useAdminDashboardData = () => {
     };
 
     // SETTINGS ACTIONS
+    // SETTINGS ACTIONS
     const handleManualSync = async () => {
         setIsSyncing(true);
         try {
-            const { syncRatesFromSheet, getSheetRates } = await import('../../../services/googleSheetSync');
+            const { syncRatesFromSheet } = await import('../../../services/googleSheetSync');
             const result = await syncRatesFromSheet();
             
             if (result.success) {
-                const rates = getSheetRates();
-                
-                // Try to send synced rates to backend, but don't fail the whole UI sync if it fails
-                try {
-                    await api().post('/api/products/sync', { rates });
-                    showToast("Product rates merged and synced to server!", "success");
-                } catch (apiErr: any) {
-                    console.warn("Backend sync failed:", apiErr);
-                    const apiMsg = apiErr.response?.data?.error || "Server unreachable";
-                    showToast(`Synced locally, but server update failed: ${apiMsg}`, "warning");
-                }
-                
                 const now = new Date().toLocaleString('en-IN', { hour12: true });
                 setLastSynced(now);
                 localStorage.setItem('lastSynced', now);
+                showToast("Product rates merged locally to Web dashboard!", "success");
             } else {
                 showToast(result.error || "Google Sheets Sync Failed", "error");
             }
         } catch (err: any) {
             console.error(err);
-            const msg = err.response?.data?.error || err.message || "Google Sheets Sync Failed";
-            showToast(msg, "error");
+            showToast("Google Sheets Sync Failed", "error");
+        } finally {
+            setIsSyncing(false);
+        }
+    };
+
+    const handleAppSync = async () => {
+        setIsSyncing(true);
+        try {
+            const { syncRatesFromSheet, getSheetRates } = await import('../../../services/googleSheetSync');
+            // 1. Fetch from sheet first to ensure we have latest
+            const result = await syncRatesFromSheet();
+            
+            if (result.success) {
+                const rates = getSheetRates();
+                // 2. Push to server for Mobile App
+                await api().post('/api/products/sync', { rates });
+                
+                showToast("Rates pushed to Mobile App successfully!", "success");
+            } else {
+                showToast(result.error || "App Sync Failed", "error");
+            }
+        } catch (err: any) {
+            console.error(err);
+            const msg = err.response?.data?.error || err.message || "App Sync Failed";
+            showToast(`Server update failed: ${msg}`, "error");
         } finally {
             setIsSyncing(false);
         }
@@ -470,6 +484,7 @@ export const useAdminDashboardData = () => {
             handleDeleteOl, handleOpenOlModal, handleOlSubmit, handleSubmit,
             handleEdit, handleAddNew, handleDelete,
             handleManualSync,
+            handleAppSync,
             handleSyncAllToLedger: async () => {
                 setIsSyncing(true);
                 try {
