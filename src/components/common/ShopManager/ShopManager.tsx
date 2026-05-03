@@ -224,7 +224,11 @@ const ShopManager = ({ orderLineId, villageName, theme, onBack, type }: Props) =
             shop_owner: formData.shop_owner,
             phone: formData.phone,
             phone2: formData.phone2,
-            balance: parseFloat(formData.balance) || 0
+            balance: parseFloat(formData.balance) || 0,
+            created_by: (() => {
+                const storedUser = JSON.parse(localStorage.getItem('user') || '{}');
+                return storedUser.first_name ? `${storedUser.first_name} ${storedUser.last_name || ''}`.trim() : (isAdmin ? 'Admin' : 'Staff');
+            })()
         };
         try {
             if (isAdmin && editingShop) {
@@ -310,11 +314,8 @@ const ShopManager = ({ orderLineId, villageName, theme, onBack, type }: Props) =
                     updateQuantity={updateQuantity}
                     onBack={() => setShowReview(false)}
                     onPlaceOrder={async () => {
-                        let createdBy = 'Admin';
-                        if (!isAdmin) {
-                            const storedUser = JSON.parse(localStorage.getItem('user') || '{}');
-                            createdBy = storedUser.first_name ? `${storedUser.first_name} ${storedUser.last_name || ''}`.trim() : 'Staff';
-                        }
+                        const storedUser = JSON.parse(localStorage.getItem('user') || '{}');
+                        const createdBy = storedUser.first_name ? `${storedUser.first_name} ${storedUser.last_name || ''}`.trim() : (isAdmin ? 'Admin' : 'Staff');
 
                         // Snapshot current rates so future Google Sheet updates don't affect this invoice
                         const rates: Record<string, number> = {};

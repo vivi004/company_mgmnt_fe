@@ -200,7 +200,11 @@ const BillCheck = ({ theme, type, userProfileName, onUnverifiedCountChange }: Pr
                 cart: finalCart, 
                 custom_rates: finalRates,
                 total_amount: totalAmount,
-                delivery_date: deliveryDateISO
+                delivery_date: deliveryDateISO,
+                created_by: (() => {
+                    const storedUser = JSON.parse(localStorage.getItem('user') || '{}');
+                    return storedUser.first_name ? `${storedUser.first_name} ${storedUser.last_name || ''}`.trim() : (isAdmin ? 'Admin' : 'Staff');
+                })()
             });
             showToast('Bill updated successfully', 'success');
             setEditingBill(null);
