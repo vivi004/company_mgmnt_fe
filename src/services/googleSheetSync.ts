@@ -154,7 +154,7 @@ export async function syncRatesFromSheet(): Promise<{ success: boolean; rateCoun
     }
 
     try {
-        const range = 'A1:M17';
+        const range = 'A1:Z100';
         const url = `https://sheets.googleapis.com/v4/spreadsheets/${sheetId}/values/${range}?key=${apiKey}&valueRenderOption=UNFORMATTED_VALUE`;
 
         const response = await fetch(url);

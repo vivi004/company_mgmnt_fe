@@ -126,6 +126,10 @@ const AdminSettings = ({
     const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
         if (file) {
+            if (file.size > 1024 * 1024) {
+                alert("Image size is too large (Limit 1MB). Large images cause the Mobile App to crash. Please use a smaller or compressed image.");
+                return;
+            }
             const reader = new FileReader();
             reader.onloadend = () => {
                 const base64String = reader.result as string;
