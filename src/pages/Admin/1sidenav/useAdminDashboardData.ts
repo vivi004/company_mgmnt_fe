@@ -128,12 +128,24 @@ export const useAdminDashboardData = () => {
 
     const handleEditBill = async (id: number, newCart: Record<string, number>, newRates?: Record<string, number>, newDate?: string) => {
         try {
+            // Recalculate total amount for the backend
+            const { getAllProducts } = await import('../../../constants/productData');
+            const totalAmount = getAllProducts().reduce((sum, p) => sum + (newCart[p.id] || 0) * (newRates?.[p.id] ?? p.price), 0);
+
             await api().put(`/api/bills/${id}`, { 
                 cart: newCart, 
                 custom_rates: newRates,
+                total_amount: totalAmount,
                 delivery_date: newDate
             });
             showToast("Bill updated successfully", "success");
+            
+            // If the date was changed, move the view to the new date so the user can see the bill moved
+            if (newDate) {
+                const newDateStr = newDate.split('T')[0];
+                setBillSelectedDate(newDateStr);
+            }
+            
             loadBills();
         } catch {
             showToast("Failed to update bill", "error");

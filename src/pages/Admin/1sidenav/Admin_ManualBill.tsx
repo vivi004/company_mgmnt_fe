@@ -10,12 +10,13 @@ import type { Product } from '../../../constants/productData';
 interface AdminManualBillProps {
     shopName: string;
     villageName: string;
+    phone?: string;
     theme: string;
     onBack: () => void;
     type: 'admin' | 'staff';
 }
 
-const Admin_ManualBill: React.FC<AdminManualBillProps> = ({ shopName, villageName, theme, onBack, type }) => {
+const Admin_ManualBill: React.FC<AdminManualBillProps> = ({ shopName, villageName, phone, theme, onBack, type }) => {
     const isAdmin = type === 'admin';
     const { toasts, showToast, removeToast } = useToast();
     
@@ -117,6 +118,7 @@ const Admin_ManualBill: React.FC<AdminManualBillProps> = ({ shopName, villageNam
                             invoice_no: currentInvoiceNo,
                             shop_name: shopName,
                             village_name: villageName,
+                            phone: phone,
                             cart: cart,
                             custom_rates: currentRates,
                             created_by: createdBy,

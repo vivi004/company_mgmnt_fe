@@ -39,6 +39,7 @@ const AdminSettings = ({
     const fileInputRef = React.useRef<HTMLInputElement>(null);
     const [manualVillage, setManualVillage] = useState('');
     const [manualShop, setManualShop] = useState('');
+    const [manualPhone, setManualPhone] = useState('');
     const [manualBillActive, setManualBillActive] = useState(false);
     // Local draft for invoice number — only synced to DB on explicit save
     const [draftInvoiceNo, setDraftInvoiceNo] = useState<string>(String(nextInvoiceNo));
@@ -112,11 +113,13 @@ const AdminSettings = ({
             <Admin_ManualBill
                 shopName={manualShop.trim()}
                 villageName={manualVillage.trim()}
+                phone={manualPhone.trim()}
                 theme={theme}
                 onBack={() => {
                     setManualBillActive(false);
                     setManualVillage('');
                     setManualShop('');
+                    setManualPhone('');
                 }}
                 type="admin"
             />
@@ -171,12 +174,12 @@ const AdminSettings = ({
     return (
         <div className="animate-in zoom-in-95 fade-in duration-500 pb-20">
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                
+
                 {/* Profile Image card */}
                 <Card>
                     <SectionHeader icon="📸" title="Administrator Identity" subtitle="Personalize Your Presence" colorClass="bg-emerald-600 text-emerald-500 shadow-emerald-500/40" />
                     <div className="flex flex-col md:flex-row items-center gap-8">
-                        <div 
+                        <div
                             className="relative group cursor-pointer"
                             onClick={() => fileInputRef.current?.click()}
                         >
@@ -205,7 +208,7 @@ const AdminSettings = ({
                                     Browse
                                 </button>
                                 {profilePic && (
-                                    <button 
+                                    <button
                                         onClick={() => {
                                             setProfilePic("");
                                             localStorage.removeItem('adminProfilePic');
@@ -280,23 +283,23 @@ const AdminSettings = ({
                         </a>
                     </div>
                 </Card>
-                
+
                 {/* Ledger & Bookkeeping */}
                 <Card>
                     <SectionHeader icon="📊" title="Ledger & Bookkeeping" subtitle="Track Every Rupee" colorClass="bg-blue-600 text-blue-500 shadow-blue-500/40" />
                     <div className="space-y-6">
                         <div className="flex flex-col gap-4">
-                            <a 
-                                href={ledgerSheetUrl || 'https://docs.google.com/spreadsheets/d/1slf-BRcvxU6OzKYxnzGOFeJz38IGN--nnAw0gpXWLiI/edit?gid=0#gid=0'} 
-                                target="_blank" 
+                            <a
+                                href={ledgerSheetUrl || 'https://docs.google.com/spreadsheets/d/1slf-BRcvxU6OzKYxnzGOFeJz38IGN--nnAw0gpXWLiI/edit?gid=0#gid=0'}
+                                target="_blank"
                                 rel="noreferrer"
                                 className="w-full py-4 bg-emerald-600 hover:bg-emerald-700 text-white text-center font-black rounded-2xl text-[10px] uppercase tracking-widest shadow-lg shadow-emerald-600/20 transition-all hover:-translate-y-0.5 active:scale-95"
                             >
                                 ↗ Open Sheet
                             </a>
-                            
-                            <button 
-                                onClick={handleSyncAllToLedger} 
+
+                            <button
+                                onClick={handleSyncAllToLedger}
                                 disabled={isSyncing}
                                 className={`w-full py-4 border-2 border-dashed rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all
                                     ${theme === 'dark' ? 'border-white/10 text-slate-500 hover:border-blue-500/50 hover:text-blue-400' : 'border-slate-200 text-slate-400 hover:border-blue-300 hover:text-blue-600'}`}
@@ -324,6 +327,11 @@ const AdminSettings = ({
                             <input type="text" placeholder="e.g. General Traders" value={manualShop} onChange={e => setManualShop(e.target.value)}
                                 className={`w-full px-5 py-3 rounded-2xl font-bold text-sm border focus:outline-none focus:ring-2 transition-all ${theme === 'dark' ? 'bg-slate-800 border-white/10 text-white focus:border-pink-500' : 'bg-slate-50 border-slate-200 text-slate-900 focus:border-pink-500'}`} />
                         </div>
+                        <div className="space-y-1">
+                            <label className={`text-[10px] font-black italic px-2 uppercase tracking-widest ${theme === 'dark' ? 'text-slate-400' : 'text-slate-500'}`}>Phone Number (Optional)</label>
+                            <input type="text" placeholder="e.g. 9876543210" value={manualPhone} onChange={e => setManualPhone(e.target.value)}
+                                className={`w-full px-5 py-3 rounded-2xl font-bold text-sm border focus:outline-none focus:ring-2 transition-all ${theme === 'dark' ? 'bg-slate-800 border-white/10 text-white focus:border-pink-500' : 'bg-slate-50 border-slate-200 text-slate-900 focus:border-pink-500'}`} />
+                        </div>
                         <button onClick={handleStartManualBill}
                             className="w-full mt-2 px-6 py-4 bg-pink-600 hover:bg-pink-700 text-white font-black rounded-2xl text-xs uppercase tracking-widest transition-all shadow-lg shadow-pink-500/30 hover:-translate-y-0.5 active:scale-95">
                             Start Manual Billing
@@ -348,11 +356,11 @@ const AdminSettings = ({
                                 onClick={handleSaveInvoiceNo}
                                 disabled={invoiceSaving}
                                 className={`w-full py-4 rounded-[20px] font-black text-xs uppercase tracking-widest transition-all shadow-lg active:scale-95
-                                    ${ invoiceSaved
+                                    ${invoiceSaved
                                         ? 'bg-emerald-500 text-white shadow-emerald-500/20'
                                         : invoiceSaving
-                                        ? 'opacity-50 cursor-not-allowed bg-violet-400 text-white'
-                                        : 'bg-violet-600 hover:bg-violet-700 text-white shadow-violet-500/20 hover:-translate-y-0.5'
+                                            ? 'opacity-50 cursor-not-allowed bg-violet-400 text-white'
+                                            : 'bg-violet-600 hover:bg-violet-700 text-white shadow-violet-500/20 hover:-translate-y-0.5'
                                     }`}
                             >
                                 {invoiceSaved ? '✓ Saved' : invoiceSaving ? 'Saving…' : 'Set Number →'}
