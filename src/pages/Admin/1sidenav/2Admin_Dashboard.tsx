@@ -145,6 +145,7 @@ const AdminDashboard = () => {
                                 pushNotifications={state.pushNotifications}
                                 handleManualSync={actions.handleManualSync}
                                 handleAppSync={actions.handleAppSync}
+                                handleLogoutAllStaff={actions.handleLogoutAllStaff}
                                 setEmailForwarding={actions.setEmailForwarding}
                                 setPushNotifications={actions.setPushNotifications}
                                 nextInvoiceNo={state.nextInvoiceNo}

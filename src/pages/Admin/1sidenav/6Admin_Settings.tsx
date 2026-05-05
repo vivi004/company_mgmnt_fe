@@ -23,6 +23,7 @@ interface SettingsProps {
     setProfilePic: (val: string) => void;
     ledgerSheetUrl?: string;
     handleSyncAllToLedger?: () => void;
+    handleLogoutAllStaff?: () => void;
 }
 
 const AdminSettings = ({
@@ -33,7 +34,8 @@ const AdminSettings = ({
     nextInvoiceNo, setNextInvoiceNo, lastInvoiceNo,
     profilePic, setProfilePic,
     ledgerSheetUrl = "",
-    handleSyncAllToLedger
+    handleSyncAllToLedger,
+    handleLogoutAllStaff
 }: SettingsProps) => {
 
     const fileInputRef = React.useRef<HTMLInputElement>(null);
@@ -144,17 +146,17 @@ const AdminSettings = ({
     };
 
     const SectionHeader = ({ icon, title, subtitle, colorClass }: any) => (
-        <div className="flex items-center space-x-5 mb-8">
-            <div className={`w-14 h-14 ${colorClass} rounded-[20px] flex items-center justify-center text-2xl shadow-xl bg-opacity-10`}>{icon}</div>
-            <div>
-                <h3 className={`text-xl font-black italic tracking-tighter ${theme === 'dark' ? 'text-white' : 'text-slate-900'}`}>{title}</h3>
-                <p className="text-slate-500 font-bold text-[10px] uppercase tracking-widest">{subtitle}</p>
+        <div className="flex items-center space-x-4 sm:space-x-5 mb-6 sm:mb-8">
+            <div className={`w-12 h-12 sm:w-14 sm:h-14 ${colorClass} rounded-[18px] sm:rounded-[20px] flex items-center justify-center text-xl sm:text-2xl shadow-xl bg-opacity-10 shrink-0`}>{icon}</div>
+            <div className="min-w-0">
+                <h3 className={`text-lg sm:text-xl font-black italic tracking-tighter truncate ${theme === 'dark' ? 'text-white' : 'text-slate-900'}`}>{title}</h3>
+                <p className="text-slate-500 font-bold text-[9px] sm:text-[10px] uppercase tracking-widest truncate">{subtitle}</p>
             </div>
         </div>
     );
 
     const Card = ({ children }: any) => (
-        <div className={`p-8 rounded-[40px] border transition-all ${theme === 'dark' ? 'bg-slate-900 border-white/5 shadow-2xl shadow-indigo-500/5 hover:border-white/10' : 'bg-white border-slate-100 shadow-xl shadow-slate-200/40 hover:border-slate-300'}`}>
+        <div className={`p-5 sm:p-8 rounded-[32px] sm:rounded-[40px] border transition-all ${theme === 'dark' ? 'bg-slate-900 border-white/5 shadow-2xl shadow-indigo-500/5 hover:border-white/10' : 'bg-white border-slate-100 shadow-xl shadow-slate-200/40 hover:border-slate-300'}`}>
             {children}
         </div>
     );
@@ -390,7 +392,7 @@ const AdminSettings = ({
                 <Card>
                     <SectionHeader icon="🚚" title="Motor Vehicles" subtitle="Manage Transport Fleet" colorClass="bg-amber-600 text-amber-500 shadow-amber-500/40" />
                     <div className="space-y-6">
-                        <div className="flex gap-3">
+                        <div className="flex flex-col sm:flex-row gap-3">
                             <input
                                 type="text"
                                 placeholder="Enter Vehicle No (e.g. TN 30 AA 1234)"
@@ -401,7 +403,7 @@ const AdminSettings = ({
                             <button
                                 onClick={handleAddVehicle}
                                 disabled={!newVehicle.trim()}
-                                className="px-6 py-3 bg-amber-600 hover:bg-amber-700 disabled:opacity-50 text-white font-black rounded-2xl text-xs uppercase tracking-widest transition-all shadow-lg active:scale-95"
+                                className="w-full sm:w-auto px-6 py-3 bg-amber-600 hover:bg-amber-700 disabled:opacity-50 text-white font-black rounded-2xl text-xs uppercase tracking-widest transition-all shadow-lg active:scale-95"
                             >
                                 Add
                             </button>
@@ -441,6 +443,22 @@ const AdminSettings = ({
                 </Card>
 
 
+
+                {/* Security & Access */}
+                <Card>
+                    <SectionHeader icon="🛡️" title="Security & Access" subtitle="Global Session Control" colorClass="bg-red-600 text-red-500 shadow-red-500/40" />
+                    <div className="space-y-6">
+                        <p className="text-xs font-bold text-slate-500 italic">
+                            Revoke all active staff sessions across all mobile devices. This will force every staff member to log in again immediately.
+                        </p>
+                        <button 
+                            onClick={handleLogoutAllStaff}
+                            className="w-full py-4 bg-red-600 hover:bg-red-700 text-white font-black rounded-2xl text-xs uppercase tracking-widest shadow-lg shadow-red-500/30 transition-all hover:-translate-y-0.5 active:scale-95"
+                        >
+                            Logout All Staff Devices
+                        </button>
+                    </div>
+                </Card>
 
             </div>
 

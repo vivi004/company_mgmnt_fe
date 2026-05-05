@@ -514,6 +514,17 @@ export const useAdminDashboardData = () => {
                     setIsSyncing(false);
                 }
             },
+            handleLogoutAllStaff: async () => {
+                askConfirm("SECURITY ALERT: This will instantly log out ALL staff members from the mobile app on all their devices. They will need to re-authenticate to continue. Proceed?", async () => {
+                    try {
+                        await api().post('/api/settings/logout-all');
+                        showToast("All staff sessions revoked successfully!", "success");
+                    } catch (err: any) {
+                        console.error(err);
+                        showToast("Failed to revoke sessions. Check server connection.", "error");
+                    }
+                });
+            },
             setBillSelectedDate
         }
     };

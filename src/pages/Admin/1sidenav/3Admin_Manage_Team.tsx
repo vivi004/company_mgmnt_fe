@@ -15,14 +15,14 @@ const AdminManageTeam = ({ employees, loading, theme, billCount, handleEdit, han
     return (
         <div className="space-y-10 animate-in fade-in slide-in-from-bottom-5 duration-700">
             {/* Stats grid */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-                <div className={`p-8 rounded-[40px] border transition-all hover:-translate-y-2 group ${theme === 'dark' ? 'bg-slate-900 border-white/5' : 'bg-white border-slate-100 shadow-xl shadow-slate-200/20'}`}>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 sm:gap-8">
+                <div className={`p-6 sm:p-8 rounded-[28px] sm:rounded-[40px] border transition-all hover:-translate-y-2 group ${theme === 'dark' ? 'bg-slate-900 border-white/5' : 'bg-white border-slate-100 shadow-xl shadow-slate-200/20'}`}>
                     <div className="flex justify-between items-start">
-                        <div>
-                            <p className="text-slate-500 text-xs font-black uppercase tracking-widest">Global Workforce</p>
-                            <h3 className={`text-6xl font-black mt-3 transition-colors ${theme === 'dark' ? 'text-white' : 'text-slate-900'}`}>{employees.length}</h3>
+                        <div className="min-w-0">
+                            <p className="text-slate-500 text-[10px] sm:text-xs font-black uppercase tracking-widest truncate">Global Workforce</p>
+                            <h3 className={`text-4xl sm:text-6xl font-black mt-2 sm:mt-3 transition-colors truncate ${theme === 'dark' ? 'text-white' : 'text-slate-900'}`}>{employees.length}</h3>
                         </div>
-                        <div className="w-16 h-16 bg-blue-500 rounded-3xl flex items-center justify-center text-3xl shadow-lg shadow-blue-500/40 group-hover:rotate-12 transition-transform">
+                        <div className="w-12 h-12 sm:w-16 sm:h-16 bg-blue-500 rounded-2xl sm:rounded-3xl flex items-center justify-center text-2xl sm:text-3xl shadow-lg shadow-blue-500/40 group-hover:rotate-12 transition-transform shrink-0 ml-3">
                             👥
                         </div>
                     </div>
@@ -32,30 +32,30 @@ const AdminManageTeam = ({ employees, loading, theme, billCount, handleEdit, han
                     </div>
                 </div>
 
-                <div className={`p-8 rounded-[40px] border transition-all hover:-translate-y-2 group ${theme === 'dark' ? 'bg-slate-900 border-white/5' : 'bg-white border-slate-100 shadow-xl shadow-slate-200/20'}`}>
+                <div className={`p-6 sm:p-8 rounded-[28px] sm:rounded-[40px] border transition-all hover:-translate-y-2 group ${theme === 'dark' ? 'bg-slate-900 border-white/5' : 'bg-white border-slate-100 shadow-xl shadow-slate-200/20'}`}>
                     <div className="flex justify-between items-start">
-                        <div>
-                            <p className="text-slate-500 text-xs font-black uppercase tracking-widest">Operational Nodes</p>
-                            <h3 className={`text-6xl font-black mt-3 text-indigo-500`}>
+                        <div className="min-w-0">
+                            <p className="text-slate-500 text-[10px] sm:text-xs font-black uppercase tracking-widest truncate">Operational Nodes</p>
+                            <h3 className={`text-4xl sm:text-6xl font-black mt-2 sm:mt-3 text-indigo-500 truncate`}>
                                 {employees.filter(e => e.status === 'Active').length}
                             </h3>
                         </div>
-                        <div className="w-16 h-16 bg-indigo-500 rounded-3xl flex items-center justify-center text-3xl shadow-lg shadow-indigo-500/40 group-hover:rotate-12 transition-transform">
+                        <div className="w-12 h-12 sm:w-16 sm:h-16 bg-indigo-500 rounded-2xl sm:rounded-3xl flex items-center justify-center text-2xl sm:text-3xl shadow-lg shadow-indigo-500/40 group-hover:rotate-12 transition-transform shrink-0 ml-3">
                             🏢
                         </div>
                     </div>
                     <p className="mt-8 text-slate-400 text-sm font-bold italic">Active personnel status</p>
                 </div>
 
-                <div className={`p-8 rounded-[40px] border transition-all hover:-translate-y-2 group ${theme === 'dark' ? 'bg-slate-900 border-white/5' : 'bg-white border-slate-100 shadow-xl shadow-slate-200/20'}`}>
+                <div className={`p-6 sm:p-8 rounded-[28px] sm:rounded-[40px] border transition-all hover:-translate-y-2 group ${theme === 'dark' ? 'bg-slate-900 border-white/5' : 'bg-white border-slate-100 shadow-xl shadow-slate-200/20'}`}>
                     <div className="flex justify-between items-start">
-                        <div>
-                            <p className="text-slate-500 text-xs font-black uppercase tracking-widest">Bills Processed</p>
-                            <h3 className={`text-6xl font-black mt-3 text-amber-500 uppercase tracking-tighter`}>
+                        <div className="min-w-0">
+                            <p className="text-slate-500 text-[10px] sm:text-xs font-black uppercase tracking-widest truncate">Bills Processed</p>
+                            <h3 className={`text-4xl sm:text-6xl font-black mt-2 sm:mt-3 text-amber-500 uppercase tracking-tighter truncate`}>
                                 {billCount}
                             </h3>
                         </div>
-                        <div className="w-16 h-16 bg-amber-500 rounded-3xl flex items-center justify-center text-3xl shadow-lg shadow-amber-500/40 group-hover:rotate-12 transition-transform">
+                        <div className="w-12 h-12 sm:w-16 sm:h-16 bg-amber-500 rounded-2xl sm:rounded-3xl flex items-center justify-center text-2xl sm:text-3xl shadow-lg shadow-amber-500/40 group-hover:rotate-12 transition-transform shrink-0 ml-3">
                             🧾
                         </div>
                     </div>
@@ -63,20 +63,20 @@ const AdminManageTeam = ({ employees, loading, theme, billCount, handleEdit, han
                 </div>
             </div>
 
-            <div className="flex flex-col sm:flex-row justify-between items-end gap-6">
+            <div className="flex flex-col sm:flex-row justify-between items-center sm:items-end gap-6 text-center sm:text-left">
                 <div>
-                    <h3 className={`text-3xl font-black tracking-tight ${theme === 'dark' ? 'text-white' : 'text-slate-900'}`}>Manage staff and admins</h3>
-                    <p className="text-slate-500 font-bold mt-1">Found {employees.length} active database nodes</p>
+                    <h3 className={`text-2xl sm:text-3xl font-black tracking-tight ${theme === 'dark' ? 'text-white' : 'text-slate-900'}`}>Manage staff and admins</h3>
+                    <p className="text-slate-500 font-bold mt-1 text-sm sm:text-base">Found {employees.length} active database nodes</p>
                 </div>
                 <button
                     onClick={handleAddNew}
-                    className="bg-blue-600 text-white px-10 py-5 rounded-[30px] font-black shadow-2xl shadow-blue-600/40 hover:bg-blue-700 hover:-translate-y-1 active:scale-95 transition-all text-xl uppercase tracking-widest flex items-center"
+                    className="w-full sm:w-auto bg-blue-600 text-white px-8 sm:px-10 py-4 sm:py-5 rounded-[20px] sm:rounded-[30px] font-black shadow-2xl shadow-blue-600/40 hover:bg-blue-700 hover:-translate-y-1 active:scale-95 transition-all text-lg sm:text-xl uppercase tracking-widest flex items-center justify-center"
                 >
-                    <span className="text-3xl mr-3">+</span> Add User
+                    <span className="text-2xl sm:text-3xl mr-2 sm:mr-3">+</span> Add User
                 </button>
             </div>
 
-            <div className={`rounded-[48px] border overflow-hidden transition-all ${theme === 'dark' ? 'bg-slate-900 border-white/5' : 'bg-white border-slate-100 shadow-2xl shadow-slate-200/30'}`}>
+            <div className={`rounded-[28px] sm:rounded-[48px] border overflow-hidden transition-all ${theme === 'dark' ? 'bg-slate-900 border-white/5' : 'bg-white border-slate-100 shadow-2xl shadow-slate-200/30'}`}>
                 {/* Desktop Data Table */}
                 <div className="hidden lg:block overflow-x-auto">
                     <table className="w-full text-left border-collapse">

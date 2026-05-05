@@ -37,9 +37,9 @@ const AdminBills: React.FC<Props> = ({ bills, theme, onDeleteBill, onClearAll, o
     return (
         <div className="animate-in fade-in slide-in-from-bottom-5 duration-500">
             {/* Action Bar */}
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
-                <div className="flex items-center gap-6">
-                    <p className={`font-medium ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-6 mb-8">
+                <div className="flex flex-wrap items-center gap-4 sm:gap-6">
+                    <p className={`font-bold text-sm ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
                         {state.filteredBills.length} invoice{state.filteredBills.length !== 1 ? 's' : ''} stored
                     </p>
 
@@ -93,7 +93,7 @@ const AdminBills: React.FC<Props> = ({ bills, theme, onDeleteBill, onClearAll, o
                         <svg className="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                         </svg>
-                        Download All PDF
+                        <span className="truncate">Download All PDF</span>
                     </button>
                     <button
                         onClick={() => printLoadingSheet(state.filteredBills, state.selectedDate || state.todayStr)}
@@ -103,7 +103,7 @@ const AdminBills: React.FC<Props> = ({ bills, theme, onDeleteBill, onClearAll, o
                         <svg className="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                         </svg>
-                        Loading Sheet
+                        <span className="truncate">Loading Sheet</span>
                     </button>
                     <button
                         onClick={onClearAll}
@@ -113,14 +113,14 @@ const AdminBills: React.FC<Props> = ({ bills, theme, onDeleteBill, onClearAll, o
                         <svg className="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                         </svg>
-                        Clear All
+                        <span className="truncate">Clear All</span>
                     </button>
                 </div>
             </div>
 
             {/* Bills Table */}
             {state.filteredBills.length === 0 ? (
-                <div className={`text-center py-20 rounded-[40px] border ${isDark ? 'bg-slate-900 border-white/5' : 'bg-white border-slate-100 shadow-xl'}`}>
+                <div className={`text-center py-16 sm:py-20 rounded-[28px] sm:rounded-[40px] border ${isDark ? 'bg-slate-900 border-white/5' : 'bg-white border-slate-100 shadow-xl'}`}>
                     <div className="text-5xl mb-4">📄</div>
                     <p className={`font-black text-xl italic ${isDark ? 'text-white' : 'text-slate-900'}`}>No Bills Found</p>
                     <p className="text-slate-500 mt-2 font-medium">
@@ -168,7 +168,7 @@ const AdminBills: React.FC<Props> = ({ bills, theme, onDeleteBill, onClearAll, o
                                 </div>
                             </div>
 
-                            <div className={`rounded-[40px] border overflow-x-auto hide-scrollbar ${isDark ? 'bg-slate-900/50 border-white/5' : 'bg-white border-slate-100 shadow-xl'}`}>
+                            <div className={`rounded-[28px] sm:rounded-[40px] border overflow-x-auto hide-scrollbar ${isDark ? 'bg-slate-900/50 border-white/5' : 'bg-white border-slate-100 shadow-xl'}`}>
                                 <div className="min-w-[800px]">
                                     {/* Header */}
                                     <div className={`grid grid-cols-12 gap-4 px-8 py-5 text-[10px] font-black uppercase tracking-widest border-b
