@@ -141,13 +141,9 @@ const AdminDashboard = () => {
                                 backendStatus={state.backendStatus}
                                 lastSynced={state.lastSynced}
                                 isSyncing={state.isSyncing}
-                                emailForwarding={state.emailForwarding}
-                                pushNotifications={state.pushNotifications}
                                 handleManualSync={actions.handleManualSync}
                                 handleAppSync={actions.handleAppSync}
                                 handleLogoutAllStaff={actions.handleLogoutAllStaff}
-                                setEmailForwarding={actions.setEmailForwarding}
-                                setPushNotifications={actions.setPushNotifications}
                                 nextInvoiceNo={state.nextInvoiceNo}
                                 setNextInvoiceNo={actions.setNextInvoiceNo}
                                 lastInvoiceNo={state.lastInvoiceNo}
@@ -162,12 +158,14 @@ const AdminDashboard = () => {
             </div>
 
             {/* Extracted Modals */}
-            <AdminConfirmModal
+             <AdminConfirmModal
                 open={state.confirmModal.open}
                 message={state.confirmModal.message}
                 onConfirm={state.confirmModal.onConfirm}
                 onClose={() => actions.setConfirmModal(m => ({ ...m, open: false }))}
                 theme={state.theme}
+                confirmText={state.confirmModal.confirmText}
+                confirmColor={state.confirmModal.confirmColor}
             />
 
             <AdminEmployeeModal

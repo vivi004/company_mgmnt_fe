@@ -10,12 +10,10 @@ interface SettingsProps {
     backendStatus: string;
     lastSynced: string;
     isSyncing: boolean;
-    emailForwarding: boolean;
-    pushNotifications: boolean;
     handleManualSync: () => void;
     handleAppSync?: () => void;
-    setEmailForwarding: (val: boolean) => void;
-    setPushNotifications: (val: boolean) => void;
+    setEmailForwarding?: (val: boolean) => void;
+    setPushNotifications?: (val: boolean) => void;
     nextInvoiceNo: number;
     setNextInvoiceNo: (val: number) => void | Promise<void>;
     lastInvoiceNo: number;
@@ -28,9 +26,8 @@ interface SettingsProps {
 
 const AdminSettings = ({
     theme, setTheme, companyName, setCompanyName,
-    lastSynced, isSyncing, emailForwarding, pushNotifications,
+    lastSynced, isSyncing,
     handleManualSync, handleAppSync,
-    setEmailForwarding, setPushNotifications,
     nextInvoiceNo, setNextInvoiceNo, lastInvoiceNo,
     profilePic, setProfilePic,
     ledgerSheetUrl = "",
@@ -161,17 +158,7 @@ const AdminSettings = ({
         </div>
     );
 
-    const Toggle = ({ label, desc, active, onChange }: any) => (
-        <div className="flex items-center justify-between p-4 rounded-3xl border border-transparent hover:border-blue-500/20 transition-all cursor-pointer" onClick={() => onChange(!active)}>
-            <div>
-                <p className={`font-black text-sm mb-0.5 ${theme === 'dark' ? 'text-white' : 'text-slate-900'}`}>{label}</p>
-                <p className="text-xs text-slate-500 font-medium">{desc}</p>
-            </div>
-            <div className={`w-12 h-6 rounded-full p-1 transition-all ${active ? 'bg-blue-500' : theme === 'dark' ? 'bg-slate-700' : 'bg-slate-300'}`}>
-                <div className={`w-4 h-4 rounded-full bg-white shadow-md transition-transform ${active ? 'translate-x-6' : 'translate-x-0'}`} />
-            </div>
-        </div>
-    );
+
 
     return (
         <div className="animate-in zoom-in-95 fade-in duration-500 pb-20">
@@ -433,14 +420,7 @@ const AdminSettings = ({
                     </div>
                 </Card>
 
-                {/* Notifications */}
-                <Card>
-                    <SectionHeader icon="🔔" title="Notifications" subtitle="Alerts & Approvals" colorClass="bg-sky-600 text-sky-500 shadow-sky-500/40" />
-                    <div className="space-y-2">
-                        <Toggle label="Email Alerts" desc="Forward urgent staff requests to admin email" active={emailForwarding} onChange={setEmailForwarding} />
-                        <Toggle label="Desktop Push" desc="Browser notifications for pending approvals" active={pushNotifications} onChange={setPushNotifications} />
-                    </div>
-                </Card>
+
 
 
 

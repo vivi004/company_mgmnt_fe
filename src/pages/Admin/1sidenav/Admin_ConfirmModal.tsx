@@ -6,9 +6,11 @@ interface ConfirmModalProps {
     onConfirm: () => void;
     onClose: () => void;
     theme: string;
+    confirmText?: string;
+    confirmColor?: string;
 }
 
-const AdminConfirmModal: React.FC<ConfirmModalProps> = ({ open, message, onConfirm, onClose, theme }) => {
+const AdminConfirmModal: React.FC<ConfirmModalProps> = ({ open, message, onConfirm, onClose, theme, confirmText = "Confirm", confirmColor = "bg-red-600" }) => {
     if (!open) return null;
 
     return (
@@ -33,9 +35,9 @@ const AdminConfirmModal: React.FC<ConfirmModalProps> = ({ open, message, onConfi
                     </button>
                     <button
                         onClick={() => { onClose(); onConfirm(); }}
-                        className="flex-1 py-3 bg-red-600 hover:bg-red-700 text-white rounded-2xl font-black text-sm transition-all shadow-lg shadow-red-600/30"
+                        className={`flex-1 py-3 ${confirmColor} hover:opacity-90 text-white rounded-2xl font-black text-sm transition-all shadow-lg shadow-red-600/30`}
                     >
-                        Confirm Delete
+                        {confirmText}
                     </button>
                 </div>
             </div>

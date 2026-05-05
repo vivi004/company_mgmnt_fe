@@ -11,8 +11,8 @@ export const useAdminDashboardData = () => {
     const [editingEmployee, setEditingEmployee] = useState<Employee | null>(null);
     const [activeTab, setActiveTab] = useState("manage");
     const [backendStatus, setBackendStatus] = useState("Checking...");
-    const [confirmModal, setConfirmModal] = useState<{ open: boolean; message: string; onConfirm: () => void }>({
-        open: false, message: '', onConfirm: () => { }
+    const [confirmModal, setConfirmModal] = useState<{ open: boolean; message: string; onConfirm: () => void; confirmText?: string; confirmColor?: string }>({
+        open: false, message: '', onConfirm: () => { }, confirmText: 'Confirm', confirmColor: 'bg-red-600'
     });
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
@@ -21,8 +21,6 @@ export const useAdminDashboardData = () => {
 
     // NEW ADMINISTRATIVE SETTINGS
     const [lastSynced, setLastSynced] = useState(() => localStorage.getItem('lastSynced') || "Never");
-    const [emailForwarding, setEmailForwarding] = useState(() => localStorage.getItem('emailForwarding') === 'true');
-    const [pushNotifications, setPushNotifications] = useState(() => localStorage.getItem('pushNotifications') === 'true');
     const [isSyncing, setIsSyncing] = useState(false);
     const [nextInvoiceNo, setNextInvoiceNo] = useState(() => parseInt(localStorage.getItem('nextInvoiceNo') || '1001', 10));
     const [lastInvoiceNo, setLastInvoiceNo] = useState(() => parseInt(localStorage.getItem('lastInvoiceNo') || '1000', 10));
@@ -124,7 +122,7 @@ export const useAdminDashboardData = () => {
             } catch {
                 showToast("Failed to delete bill", "error");
             }
-        });
+        }, "Confirm Delete");
     };
 
     const handleClearAllBills = () => {
@@ -244,18 +242,16 @@ export const useAdminDashboardData = () => {
     useEffect(() => {
         localStorage.setItem('companyName', companyName);
         localStorage.setItem('adminTheme', theme);
-        localStorage.setItem('emailForwarding', String(emailForwarding));
-        localStorage.setItem('pushNotifications', String(pushNotifications));
         localStorage.setItem('nextInvoiceNo', String(nextInvoiceNo));
         localStorage.setItem('ledgerSheetUrl', ledgerSheetUrl);
-    }, [companyName, theme, emailForwarding, pushNotifications, nextInvoiceNo, ledgerSheetUrl]);
+    }, [companyName, theme, nextInvoiceNo, ledgerSheetUrl]);
 
     useEffect(() => {
         if (activeTab === 'bills' || activeTab === 'bill-check') loadBills();
     }, [activeTab]);
 
-    const askConfirm = (message: string, onConfirm: () => void) => {
-        setConfirmModal({ open: true, message, onConfirm });
+    const askConfirm = (message: string, onConfirm: () => void, confirmText: string = "Confirm Delete", confirmColor: string = "bg-red-600") => {
+        setConfirmModal({ open: true, message, onConfirm, confirmText, confirmColor });
     };
 
     // SETTINGS ACTIONS
@@ -359,7 +355,7 @@ export const useAdminDashboardData = () => {
             } catch (err: any) {
                 showToast(`Purge failed: ${err.response?.data?.error || err.message}`, "error");
             }
-        });
+        }, "Confirm Purge");
     };
 
     const handleOpenOlModal = (ol: OrderLine | null = null) => {
@@ -440,7 +436,7 @@ export const useAdminDashboardData = () => {
             } catch (err: any) {
                 showToast(`Failed to delete record: ${err.response?.data?.error || err.message}`, "error");
             }
-        });
+        }, "Confirm Delete");
     };
 
     const filteredBillCount = bills.filter(b => {
@@ -456,7 +452,7 @@ export const useAdminDashboardData = () => {
             backendStatus, confirmModal, isMobileMenuOpen, companyName, theme,
             formData, olRequests, orderLines, showOlModal, editingOl, olFormData,
             toasts, bills, unverifiedCount,
-            lastSynced, isSyncing, emailForwarding, pushNotifications, nextInvoiceNo,
+            lastSynced, isSyncing, nextInvoiceNo,
             lastInvoiceNo,
             userProfile, profilePic,
             ledgerSheetUrl,
@@ -466,7 +462,6 @@ export const useAdminDashboardData = () => {
         actions: {
             setActiveTab, setConfirmModal, setIsMobileMenuOpen, setCompanyName,
             setTheme, setFormData, setShowModal, setShowOlModal, setOlFormData,
-            setEmailForwarding, setPushNotifications,
             setNextInvoiceNo: async (val: number) => {
                 setNextInvoiceNo(val);
                 localStorage.setItem('nextInvoiceNo', String(val));
@@ -523,7 +518,7 @@ export const useAdminDashboardData = () => {
                         console.error(err);
                         showToast("Failed to revoke sessions. Check server connection.", "error");
                     }
-                });
+                }, "Confirm Logout", "bg-red-600");
             },
             setBillSelectedDate
         }
