@@ -161,8 +161,8 @@ const AdminSettings = ({
 
 
     return (
-        <div className="animate-in zoom-in-95 fade-in duration-500 pb-20">
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        <div className="animate-in zoom-in-95 fade-in duration-500 pb-20 max-w-[1400px] mx-auto">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 sm:gap-8 lg:gap-10">
 
                 {/* Profile Image card */}
                 <Card>
@@ -186,14 +186,16 @@ const AdminSettings = ({
                             </div>
                         </div>
 
-                        <div className="flex-grow space-y-3 text-center md:text-left">
-                            <h4 className={`font-black italic ${theme === 'dark' ? 'text-white' : 'text-slate-800'}`}>Custom Profile Picture</h4>
-                            <p className="text-slate-500 text-xs font-medium">
-                                Upload a photo to represent your admin profile.
-                            </p>
+                        <div className="flex-grow space-y-4 text-center md:text-left">
+                            <div>
+                                <h4 className={`font-black italic text-lg ${theme === 'dark' ? 'text-white' : 'text-slate-800'}`}>Custom Profile Picture</h4>
+                                <p className="text-slate-500 text-[11px] sm:text-xs font-bold leading-relaxed">
+                                    Personalize your administrative presence with a custom avatar.
+                                </p>
+                            </div>
                             <input type="file" hidden ref={fileInputRef} accept="image/*" onChange={handleFileChange} />
-                            <div className="flex flex-wrap gap-2 justify-center md:justify-start">
-                                <button onClick={() => fileInputRef.current?.click()} className="px-5 py-2.5 bg-indigo-600 text-white font-black rounded-xl text-[10px] uppercase tracking-widest shadow-lg shadow-indigo-600/20 hover:bg-indigo-700 transition-all">
+                            <div className="flex flex-wrap gap-3 justify-center md:justify-start">
+                                <button onClick={() => fileInputRef.current?.click()} className="px-6 py-3 bg-indigo-600 text-white font-black rounded-xl text-[10px] uppercase tracking-widest shadow-lg shadow-indigo-600/20 hover:bg-indigo-700 transition-all hover:-translate-y-0.5">
                                     Browse
                                 </button>
                                 {profilePic && (
@@ -202,7 +204,7 @@ const AdminSettings = ({
                                             setProfilePic("");
                                             localStorage.removeItem('adminProfilePic');
                                         }}
-                                        className={`px-5 py-2.5 font-black rounded-xl text-[10px] uppercase tracking-widest border transition-all ${theme === 'dark' ? 'bg-white/5 border-white/10 text-white hover:bg-red-500/10 hover:text-red-500' : 'bg-white border-slate-100 text-slate-600 hover:bg-red-50 hover:text-red-500'}`}
+                                        className={`px-6 py-3 font-black rounded-xl text-[10px] uppercase tracking-widest border transition-all ${theme === 'dark' ? 'bg-white/5 border-white/10 text-white hover:bg-red-500/10 hover:text-red-500' : 'bg-white border-slate-100 text-slate-600 hover:bg-red-50 hover:text-red-500'}`}
                                     >
                                         Remove
                                     </button>
@@ -253,9 +255,9 @@ const AdminSettings = ({
                                 <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Last Data Fetch</p>
                                 <p className={`font-black text-sm ${theme === 'dark' ? 'text-white' : 'text-slate-900'}`}>{lastSynced}</p>
                             </div>
-                            <div className="flex flex-col gap-2">
+                            <div className="flex flex-col sm:flex-row md:flex-col lg:flex-row gap-2">
                                 <button onClick={handleManualSync} disabled={isSyncing}
-                                    className={`px-6 py-3 rounded-2xl text-xs font-black uppercase tracking-widest transition-all ${isSyncing ? 'opacity-50 cursor-not-allowed bg-slate-500 text-white' : 'bg-emerald-500 hover:bg-emerald-600 text-white shadow-lg shadow-emerald-500/20 hover:-translate-y-0.5'}`}>
+                                    className={`px-6 py-3 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all ${isSyncing ? 'opacity-50 cursor-not-allowed bg-slate-500 text-white' : 'bg-emerald-500 hover:bg-emerald-600 text-white shadow-lg shadow-emerald-500/20 hover:-translate-y-0.5'}`}>
                                     {isSyncing ? 'Syncing...' : 'Sync Web'}
                                 </button>
                                 {handleAppSync && (
@@ -425,20 +427,22 @@ const AdminSettings = ({
 
 
                 {/* Security & Access */}
-                <Card>
-                    <SectionHeader icon="🛡️" title="Security & Access" subtitle="Global Session Control" colorClass="bg-red-600 text-red-500 shadow-red-500/40" />
-                    <div className="space-y-6">
-                        <p className="text-xs font-bold text-slate-500 italic">
-                            Revoke all active staff sessions across all mobile devices. This will force every staff member to log in again immediately.
-                        </p>
-                        <button 
-                            onClick={handleLogoutAllStaff}
-                            className="w-full py-4 bg-red-600 hover:bg-red-700 text-white font-black rounded-2xl text-xs uppercase tracking-widest shadow-lg shadow-red-500/30 transition-all hover:-translate-y-0.5 active:scale-95"
-                        >
-                            Logout All Staff Devices
-                        </button>
-                    </div>
-                </Card>
+                <div className="md:col-span-2">
+                    <Card>
+                        <SectionHeader icon="🛡️" title="Security & Access" subtitle="Global Session Control" colorClass="bg-red-600 text-red-500 shadow-red-500/40" />
+                        <div className="flex flex-col md:flex-row items-center justify-between gap-6">
+                            <p className="text-xs font-bold text-slate-500 italic max-w-xl text-center md:text-left">
+                                Revoke all active staff sessions across all mobile devices. This will force every staff member to log in again immediately. Use this for emergency lockouts or shift resets.
+                            </p>
+                            <button 
+                                onClick={handleLogoutAllStaff}
+                                className="w-full md:w-auto px-10 py-5 bg-red-600 hover:bg-red-700 text-white font-black rounded-2xl text-xs uppercase tracking-widest shadow-lg shadow-red-500/30 transition-all hover:-translate-y-0.5 active:scale-95 shrink-0"
+                            >
+                                Logout All Staff Devices
+                            </button>
+                        </div>
+                    </Card>
+                </div>
 
             </div>
 
