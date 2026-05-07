@@ -58,7 +58,14 @@ const BillCheck = ({ theme, type, userProfileName, onUnverifiedCountChange }: Pr
                 shopName: b.shop_name || b.shopName,
                 villageName: b.village_name || b.villageName,
                 cart: b.cart,
-                customRates: b.custom_rates || b.customRates || {},
+                customRates: (() => {
+                    const raw = b.custom_rates || b.customRates || {};
+                    const cleaned: Record<string, number> = {};
+                    for (const key of Object.keys(raw)) {
+                        if (!key.endsWith('_box') && !key.endsWith('_ltr')) cleaned[key] = raw[key];
+                    }
+                    return cleaned;
+                })(),
                 date: b.bill_date || b.date,
                 deliveryDate: b.delivery_date || b.deliveryDate || b.bill_date || b.date,
                 invoiceNo: b.invoice_no || b.invoiceNo,
@@ -78,6 +85,7 @@ const BillCheck = ({ theme, type, userProfileName, onUnverifiedCountChange }: Pr
                     legacyBills.forEach(async (bill: any) => {
                         const legacyRates: Record<string, number> = {};
                         currentProducts.forEach(p => {
+                            if (p.id.endsWith('_box') || p.id.endsWith('_ltr')) return;
                             if (bill.cart[p.id] || bill.cart[`${p.id}_box`] || bill.cart[`${p.id}_ltr`]) {
                                 legacyRates[p.id] = p.price;
                             }

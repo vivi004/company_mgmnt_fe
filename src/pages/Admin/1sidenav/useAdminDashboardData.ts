@@ -68,7 +68,17 @@ export const useAdminDashboardData = () => {
                 shopName: b.shop_name || b.shopName,
                 villageName: b.village_name || b.villageName,
                 cart: b.cart,
-                customRates: b.custom_rates || b.customRates || {},
+                customRates: (() => {
+                    const raw = b.custom_rates || b.customRates || {};
+                    // Strip stale _box / _ltr keys — they are always derived dynamically
+                    const cleaned: Record<string, number> = {};
+                    for (const key of Object.keys(raw)) {
+                        if (!key.endsWith('_box') && !key.endsWith('_ltr')) {
+                            cleaned[key] = raw[key];
+                        }
+                    }
+                    return cleaned;
+                })(),
                 date: b.bill_date || b.date,
                 deliveryDate: b.delivery_date || b.deliveryDate,
                 invoiceNo: b.invoice_no || b.invoiceNo,
