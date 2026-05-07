@@ -21,6 +21,7 @@ const Admin_ManualBill: React.FC<AdminManualBillProps> = ({ shopName, villageNam
     const { toasts, showToast, removeToast } = useToast();
     
     const [cart, setCart] = useState<Record<string, number>>({});
+    const [rates, setRates] = useState<Record<string, number>>({});
     const [showReview, setShowReview] = useState(false);
     const [showBill, setShowBill] = useState(false);
     const [currentBillId, setCurrentBillId] = useState<number | null>(null);
@@ -46,12 +47,16 @@ const Admin_ManualBill: React.FC<AdminManualBillProps> = ({ shopName, villageNam
         });
     };
 
+    const updateRate = (id: string, rate: number) => {
+        setRates(prev => ({ ...prev, [id]: rate }));
+    };
+
     if (showBill) {
         // Snapshot current rates so future updates don't affect this exact invoice view immediately
         const currentRates: Record<string, number> = {};
         getAllProducts().forEach((p: Product) => {
             if (cart[p.id] || cart[`${p.id}_box`] || cart[`${p.id}_ltr`]) {
-                currentRates[p.id] = p.price;
+                currentRates[p.id] = rates[p.id] ?? p.price;
             }
         });
 
@@ -100,7 +105,7 @@ const Admin_ManualBill: React.FC<AdminManualBillProps> = ({ shopName, villageNam
                         const currentRates: Record<string, number> = {};
                         getAllProducts().forEach((p: Product) => {
                             if (cart[p.id] || cart[`${p.id}_box`] || cart[`${p.id}_ltr`]) {
-                                currentRates[p.id] = p.price;
+                                currentRates[p.id] = rates[p.id] ?? p.price;
                             }
                         });
 
@@ -163,7 +168,9 @@ const Admin_ManualBill: React.FC<AdminManualBillProps> = ({ shopName, villageNam
                 shopName={shopName}
                 theme={theme}
                 cart={cart}
+                rates={rates}
                 updateQuantity={updateQuantity}
+                updateRate={updateRate}
                 onBack={onBack}
                 onReviewOrder={() => setShowReview(true)}
             />
