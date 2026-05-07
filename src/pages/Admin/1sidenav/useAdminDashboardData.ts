@@ -263,7 +263,7 @@ export const useAdminDashboardData = () => {
             const result = await syncRatesFromSheet();
             
             if (result.success) {
-                const now = new Date().toLocaleString('en-IN', { hour12: true });
+                const now = new Date().toLocaleString('en-IN', { hour12: true, timeZone: 'Asia/Kolkata' });
                 setLastSynced(now);
                 localStorage.setItem('lastSynced', now);
                 showToast("Product rates merged locally to Web dashboard!", "success");

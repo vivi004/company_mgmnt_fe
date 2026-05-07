@@ -130,7 +130,7 @@ const AdminSales = ({ theme }: Props) => {
                                     <div className={`col-span-2 text-right font-black text-lg ${isDark ? 'text-white' : 'text-slate-900'}`}>{fmt(row.totalAmount)}</div>
                                     <div className={`col-span-2 text-right font-bold text-sm ${isDark ? 'text-slate-300' : 'text-slate-600'}`}>{fmt(row.avgOrderValue)}</div>
                                     <div className={`col-span-2 text-right text-sm font-medium ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
-                                        {new Date(row.lastSaleDate + 'T00:00:00').toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: '2-digit', timeZone: 'Asia/Kolkata' })}
+                                        {new Date(row.lastSaleDate + 'T00:00:00').toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric', timeZone: 'Asia/Kolkata' })}
                                     </div>
                                 </div>
                             );

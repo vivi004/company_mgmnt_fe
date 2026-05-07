@@ -151,7 +151,12 @@ export function generateLoadingSheet(bills: Bill[], dateStr: string, vehicleNo: 
     });
 
     const grandTotal = shopLines.reduce((s, l) => s + l.amount, 0);
-    const displayDate = new Date(dateStr + 'T00:00:00').toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: '2-digit' }).replace(' ', '-').replace(' ', '-');
+    const displayDate = new Date(dateStr + 'T00:00:00').toLocaleDateString('en-IN', { 
+        day: '2-digit', 
+        month: 'short', 
+        year: 'numeric',
+        timeZone: 'Asia/Kolkata' 
+    }).split(' ').join('-');
 
     const B = 'border-bottom:1px solid #000;padding:6px 4px;';
     const BH = 'border-bottom:1px solid #000;font-weight:bold;font-size:11px;padding:8px 4px;';

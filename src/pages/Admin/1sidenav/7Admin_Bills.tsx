@@ -197,10 +197,10 @@ const AdminBills: React.FC<Props> = ({ bills, theme, onDeleteBill, onClearAll, o
                                         </div>
                                         <div className="col-span-2">
                                             <p className={`text-sm font-black ${isDark ? 'text-slate-200' : 'text-slate-900'}`}>
-                                                {new Date(bill.deliveryDate || bill.date).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: '2-digit', timeZone: 'Asia/Kolkata' })}
+                                                {new Date(bill.deliveryDate || bill.date).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric', timeZone: 'Asia/Kolkata' })}
                                             </p>
                                             <p className="text-[10px] text-slate-500 font-bold uppercase tracking-tight mt-0.5">
-                                                Order: {new Date(bill.date).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: '2-digit', timeZone: 'Asia/Kolkata' })}
+                                                Order: {new Date(bill.date).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric', timeZone: 'Asia/Kolkata' })}
                                             </p>
                                         </div>
                                         <div className={`col-span-1 font-black ${isDark ? 'text-blue-400' : 'text-blue-600'}`}>
