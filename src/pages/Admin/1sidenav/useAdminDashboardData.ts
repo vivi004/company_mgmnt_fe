@@ -88,6 +88,8 @@ export const useAdminDashboardData = () => {
                     legacyBills.forEach(async (bill: any) => {
                         const legacyRates: Record<string, number> = {};
                         currentProducts.forEach(p => {
+                            if (p.id.endsWith('_box') || p.id.endsWith('_ltr')) return;
+
                             if (bill.cart[p.id] || bill.cart[`${p.id}_box`] || bill.cart[`${p.id}_ltr`]) {
                                 legacyRates[p.id] = p.price;
                             }

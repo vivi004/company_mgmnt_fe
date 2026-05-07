@@ -87,6 +87,8 @@ export const useAdminBills = (
         // Ensure newly added items capture the current price instead of staying dynamic
         const finalRates = { ...editRates };
         getAllProducts().forEach(p => {
+            if (p.id.endsWith('_box') || p.id.endsWith('_ltr')) return;
+
             if (finalCart[p.id] || finalCart[`${p.id}_box`] || finalCart[`${p.id}_ltr`]) {
                 if (finalRates[p.id] === undefined) {
                     finalRates[p.id] = p.price;
