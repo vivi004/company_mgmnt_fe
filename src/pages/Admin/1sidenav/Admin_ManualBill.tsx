@@ -118,7 +118,7 @@ const Admin_ManualBill: React.FC<AdminManualBillProps> = ({ shopName, villageNam
                             custom_rates: currentRates,
                             created_by: createdBy,
                             bill_date: new Date().toISOString(),
-                            delivery_date: new Date(deliveryDate + 'T00:00:00').toISOString(),
+                            delivery_date: deliveryDate,
                             status: 'Unverified'
                         };
 
@@ -127,7 +127,7 @@ const Admin_ManualBill: React.FC<AdminManualBillProps> = ({ shopName, villageNam
                                 const res = await api().put(`/api/bills/${currentBillId}`, { 
                                     cart, 
                                     custom_rates: currentRates,
-                                    delivery_date: new Date(deliveryDate + 'T00:00:00').toISOString()
+                                    delivery_date: deliveryDate
                                 });
                                 if (res.data.invoice_no) setInvoiceNo(res.data.invoice_no);
                                 showToast('Order updated!', 'success');

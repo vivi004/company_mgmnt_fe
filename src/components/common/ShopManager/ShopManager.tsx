@@ -249,19 +249,18 @@ const ShopManager = ({ orderLineId, villageName, theme, onBack, type, handleRefr
             custom_rates: finalRates,
             created_by: createdBy,
             bill_date: new Date().toISOString(),
-            delivery_date: new Date(deliveryDate + 'T00:00:00').toISOString(),
+            delivery_date: deliveryDate,
             status: 'Unverified',
             total_amount: totalPrice,
             is_edited_price: isEditedPrice
         };
 
         try {
-            const deliveryDateISO = new Date(deliveryDate + 'T00:00:00').toISOString();
             if (currentBillId) {
                 const res = await api().put(`/api/bills/${currentBillId}`, {
                     cart,
                     custom_rates: finalRates,
-                    delivery_date: deliveryDateISO,
+                    delivery_date: deliveryDate,
                     total_amount: totalPrice,
                     is_edited_price: isEditedPrice
                 });

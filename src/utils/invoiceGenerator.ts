@@ -23,11 +23,15 @@ export const invoiceHTML = (bill: Bill, vehicleNo: string = '') => {
 
     const formatStringDate = (dStr: string) => {
         if (!dStr) return '';
-        const clean = dStr.includes('T') ? dStr.split('T')[0] : dStr.split(' ')[0];
-        const [y, m, d] = clean.split('-');
-        if (!y || !m || !d) return clean;
+        const d = new Date(dStr);
+        if (isNaN(d.getTime())) return dStr;
+        
+        // Use local time components to avoid UTC shift issues
+        const day = d.getDate();
+        const m = d.getMonth() + 1;
+        const y = d.getFullYear();
         const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-        return `${d}-${months[parseInt(m) - 1]}-${y.slice(-2)}`;
+        return `${day}-${months[m - 1]}-${y.toString().slice(-2)}`;
     };
 
     const dds = formatStringDate(bill.deliveryDate || bill.date || '');
