@@ -22,6 +22,7 @@ interface SettingsProps {
     ledgerSheetUrl?: string;
     handleSyncAllToLedger?: () => void;
     handleLogoutAllStaff?: () => void;
+    handleRefreshInvoiceSettings?: () => Promise<void>;
 }
 
 const AdminSettings = ({
@@ -32,7 +33,8 @@ const AdminSettings = ({
     profilePic, setProfilePic,
     ledgerSheetUrl = "",
     handleSyncAllToLedger,
-    handleLogoutAllStaff
+    handleLogoutAllStaff,
+    handleRefreshInvoiceSettings
 }: SettingsProps) => {
 
     const fileInputRef = React.useRef<HTMLInputElement>(null);
@@ -114,11 +116,13 @@ const AdminSettings = ({
                 villageName={manualVillage.trim()}
                 phone={manualPhone.trim()}
                 theme={theme}
+                handleRefreshInvoiceSettings={handleRefreshInvoiceSettings}
                 onBack={() => {
                     setManualBillActive(false);
                     setManualVillage('');
                     setManualShop('');
                     setManualPhone('');
+                    if (handleRefreshInvoiceSettings) handleRefreshInvoiceSettings();
                 }}
                 type="admin"
             />

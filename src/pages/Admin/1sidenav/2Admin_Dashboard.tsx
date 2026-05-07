@@ -113,6 +113,7 @@ const AdminDashboard = () => {
                                 theme={state.theme}
                                 handleOpenOlModal={actions.handleOpenOlModal}
                                 handleDeleteOl={actions.handleDeleteOl}
+                                handleRefreshInvoiceSettings={actions.fetchInvoiceSettings}
                             />
                         )}
                         {state.activeTab === 'bills' && (

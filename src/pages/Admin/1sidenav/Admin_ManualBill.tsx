@@ -14,9 +14,10 @@ interface AdminManualBillProps {
     theme: string;
     onBack: () => void;
     type: 'admin' | 'staff';
+    handleRefreshInvoiceSettings?: () => Promise<void>;
 }
 
-const Admin_ManualBill: React.FC<AdminManualBillProps> = ({ shopName, villageName, phone, theme, onBack, type }) => {
+const Admin_ManualBill: React.FC<AdminManualBillProps> = ({ shopName, villageName, phone, theme, onBack, type, handleRefreshInvoiceSettings }) => {
     const isAdmin = type === 'admin';
     const { toasts, showToast, removeToast } = useToast();
     
@@ -109,18 +110,7 @@ const Admin_ManualBill: React.FC<AdminManualBillProps> = ({ shopName, villageNam
                             }
                         });
 
-                        const currentInvoiceNo = parseInt(localStorage.getItem('nextInvoiceNo') || '1001', 10);
-                        const nextNo = currentInvoiceNo + 1;
-                        localStorage.setItem('nextInvoiceNo', String(nextNo));
-                        localStorage.setItem('lastInvoiceNo', String(currentInvoiceNo));
-                        // Sync to backend in background (non-blocking)
-                        api().put('/api/settings/invoice', {
-                            next_invoice_no: nextNo,
-                            last_invoice_no: currentInvoiceNo
-                        }).catch(e => console.error('Invoice sync failed:', e));
-
                         const billPayload = {
-                            invoice_no: currentInvoiceNo,
                             shop_name: shopName,
                             village_name: villageName,
                             phone: phone,
@@ -144,8 +134,9 @@ const Admin_ManualBill: React.FC<AdminManualBillProps> = ({ shopName, villageNam
                             } else {
                                 const res = await api().post('/api/bills', billPayload);
                                 setCurrentBillId(res.data.id);
-                                setInvoiceNo(res.data.invoice_no || billPayload.invoice_no);
+                                setInvoiceNo(res.data.invoice_no);
                                 showToast(isAdmin ? 'Order placed successfully!' : 'Order submitted for verification!', 'success');
+                                if (handleRefreshInvoiceSettings) handleRefreshInvoiceSettings();
                             }
                             setShowReview(false);
                             setShowBill(true);

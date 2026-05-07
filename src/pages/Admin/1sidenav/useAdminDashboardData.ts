@@ -534,7 +534,8 @@ export const useAdminDashboardData = () => {
                     }
                 }, "Confirm Logout", "bg-red-600");
             },
-            setBillSelectedDate
+            setBillSelectedDate,
+            fetchInvoiceSettings
         }
     };
 };

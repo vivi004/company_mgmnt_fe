@@ -14,9 +14,10 @@ interface OrderLineProps {
     theme: string;
     handleOpenOlModal: (ol?: OrderLine) => void;
     handleDeleteOl: (id: number) => void;
+    handleRefreshInvoiceSettings?: () => Promise<void>;
 }
 
-const AdminOrderLines = ({ orderLines, theme, handleOpenOlModal, handleDeleteOl }: OrderLineProps) => {
+const AdminOrderLines = ({ orderLines, theme, handleOpenOlModal, handleDeleteOl, handleRefreshInvoiceSettings }: OrderLineProps) => {
     const [selectedVillage, setSelectedVillage] = useState<OrderLine | null>(null);
 
     // If a village is selected, show its shop list
@@ -28,6 +29,7 @@ const AdminOrderLines = ({ orderLines, theme, handleOpenOlModal, handleDeleteOl 
                 theme={theme}
                 onBack={() => setSelectedVillage(null)}
                 type="admin"
+                handleRefreshInvoiceSettings={handleRefreshInvoiceSettings}
             />
         );
     }

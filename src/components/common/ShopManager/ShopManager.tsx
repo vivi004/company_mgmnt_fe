@@ -26,9 +26,10 @@ interface Props {
     theme: string;
     onBack: () => void;
     type: 'admin' | 'staff';
+    handleRefreshInvoiceSettings?: () => Promise<void>;
 }
 
-const ShopManager = ({ orderLineId, villageName, theme, onBack, type }: Props) => {
+const ShopManager = ({ orderLineId, villageName, theme, onBack, type, handleRefreshInvoiceSettings }: Props) => {
     const isAdmin = type === 'admin';
     const isDark = theme === 'dark';
     const primaryColor = isAdmin ? 'blue' : 'emerald';
@@ -238,21 +239,10 @@ const ShopManager = ({ orderLineId, villageName, theme, onBack, type }: Props) =
             }
         });
 
-        const currentInvoiceNo = parseInt(localStorage.getItem('nextInvoiceNo') || '1001', 10);
-        const nextNo = currentInvoiceNo + 1;
-        localStorage.setItem('nextInvoiceNo', String(nextNo));
-        localStorage.setItem('lastInvoiceNo', String(currentInvoiceNo));
-        // Sync to backend in background (non-blocking)
-        api().put('/api/settings/invoice', {
-            next_invoice_no: nextNo,
-            last_invoice_no: currentInvoiceNo
-        }).catch(e => console.error('Invoice sync failed:', e));
-
         const cartItemsForTotal = getCartItems(cart, currentRates);
         const totalPrice = cartItemsForTotal.reduce((acc, item) => acc + (item.price * item.quantity), 0);
 
         const billPayload = {
-            invoice_no: currentInvoiceNo,
             shop_name: selectedShop!.shop_name,
             village_name: villageName,
             cart: cart,
@@ -280,8 +270,9 @@ const ShopManager = ({ orderLineId, villageName, theme, onBack, type }: Props) =
             } else {
                 const res = await api().post('/api/bills', billPayload);
                 setCurrentBillId(res.data.id);
-                setInvoiceNo(res.data.invoice_no || billPayload.invoice_no);
+                setInvoiceNo(res.data.invoice_no);
                 showToast(isAdmin ? 'Order placed successfully!' : 'Order submitted for verification!', 'success');
+                if (handleRefreshInvoiceSettings) handleRefreshInvoiceSettings();
             }
             setShowReview(false);
             setShowBill(true);
