@@ -13,6 +13,7 @@ export interface Bill {
     createdBy?: string;
     phone?: string;
     phone2?: string;
+    isEditedPrice?: boolean;
 }
 
 export const invoiceHTML = (bill: Bill, vehicleNo: string = '') => {

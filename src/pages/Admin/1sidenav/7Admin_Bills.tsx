@@ -193,7 +193,14 @@ const AdminBills: React.FC<Props> = ({ bills, theme, onDeleteBill, onClearAll, o
                                             </div>
                                         <div className="col-span-3">
                                             <p className={`font-black ${isDark ? 'text-white' : 'text-slate-900'}`}>{bill.shopName}</p>
-                                            <p className="text-xs text-slate-500 font-medium">{bill.villageName}</p>
+                                            <div className="flex items-center gap-2">
+                                                <p className="text-xs text-slate-500 font-medium">{bill.villageName}</p>
+                                                {bill.isEditedPrice && (
+                                                    <span className="px-1.5 py-0.5 bg-red-100/10 text-red-500 border border-red-500/20 rounded text-[9px] font-black uppercase tracking-widest">
+                                                        Edited Price
+                                                    </span>
+                                                )}
+                                            </div>
                                         </div>
                                         <div className="col-span-2">
                                             <p className={`text-sm font-black ${isDark ? 'text-slate-200' : 'text-slate-900'}`}>

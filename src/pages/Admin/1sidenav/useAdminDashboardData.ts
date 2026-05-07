@@ -74,7 +74,8 @@ export const useAdminDashboardData = () => {
                 invoiceNo: b.invoice_no || b.invoiceNo,
                 createdBy: b.created_by || b.createdBy,
                 phone: b.phone || '',
-                phone2: b.phone2 || ''
+                phone2: b.phone2 || '',
+                isEditedPrice: Boolean(b.is_edited_price || b.isEditedPrice)
             }));
             
             setBills(mappedBills);
