@@ -116,7 +116,7 @@ export const invoiceHTML = (bill: Bill, vehicleNo: string = '') => {
 </tr>
 <tr>
     <td colspan="2" style="${B}font-size:10px;">Dispatch Doc No.</td>
-    <td colspan="2" style="${B}font-size:10px;">Delivery Note Date<br><b style="font-size:11px;">${dds}</b></td>
+    <td colspan="2" style="${B}font-size:10px;">Delivery Note Date<br><b style="font-size:11px;"></b></td>
 </tr>
 <tr>
     <td colspan="2" style="${B}font-size:10px;">Dispatched through</td>
