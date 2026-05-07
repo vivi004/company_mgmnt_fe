@@ -1,7 +1,7 @@
 import { useState, useMemo, useCallback } from 'react';
 import { getAuthAxios } from '../../../utils/apiClient';
 import { useToast } from '../../../components/Toast';
-import { getAllProducts } from '../../../constants/productData';
+import { getCartItems } from '../../../constants/productData';
 
 interface RawBill {
     id: number;
@@ -30,16 +30,7 @@ export interface DailyData {
 }
 
 function computeBillTotal(cart: Record<string, number>, customRates: Record<string, number>): number {
-    const products = getAllProducts();
-    let total = 0;
-    for (const p of products) {
-        const qty = cart[p.id] || 0;
-        if (qty > 0) {
-            const rate = customRates?.[p.id] ?? p.price;
-            total += rate * qty;
-        }
-    }
-    return total;
+    return getCartItems(cart, customRates).reduce((sum, item) => sum + (item.price * item.quantity), 0);
 }
 
 function getTodayLocal(): string {

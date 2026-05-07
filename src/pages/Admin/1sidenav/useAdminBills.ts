@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
-import { getAllProducts } from '../../../constants/productData';
+import { getAllProducts, getCartItems } from '../../../constants/productData';
 import type { Bill } from '../../../utils/invoiceGenerator';
 
 export const useAdminBills = (
@@ -57,7 +57,7 @@ export const useAdminBills = (
     }, {} as Record<string, Bill[]>);
 
     const getTotal = (cart: Record<string, number>, customRates?: Record<string, number>) =>
-        getAllProducts().reduce((sum, p) => sum + (cart[p.id] || 0) * (customRates?.[p.id] ?? p.price), 0);
+        getCartItems(cart, customRates).reduce((sum, item) => sum + (item.price * item.quantity), 0);
 
     const getItemCount = (cart: Record<string, number>) =>
         Object.values(cart).reduce((s, q) => s + q, 0);
