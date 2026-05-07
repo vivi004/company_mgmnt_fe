@@ -30,10 +30,10 @@ function parsePrice(val: any): number | null {
  * Sheet layout (0-indexed rows & cols from the raw CSV):
  * Row 0: Header (நிஷா ஆயில் மில், DATE)
  * Row 1: Category headers
- * Row 2-7: Product data block 1 (Groundnut, Varshini, Palm, Coconut, Neem, Oil Cake)
+ * Row 2-7: Product data block 1 (Groundnut, Varshini, Palm, Coconut, Gingelly, Oil Cake)
  * Row 8: Extra row (Roshini)
  * Row 9: Category headers block 2
- * Row 10-15: Product data block 2 (Castor, Lamp, Gingelly, Mahua, Kumaran, Burfi)
+ * Row 10-15: Product data block 2 (Castor, Lamp, Neem, Mahua, Kumaran, Burfi)
  * Row 16: Extra (Varshini Gold)
  */
 function mapSheetToProducts(rows: string[][]): Record<string, number> {
@@ -85,14 +85,14 @@ function mapSheetToProducts(rows: string[][]): Record<string, number> {
     set('cn-15l', 7, 7);
     set('cn-15kg', 8, 7);
 
-    // ── Block 1: Neem Oil (cols I=8, J=9) ──
-    set('nm-100ml', 2, 9, 0.1);
-    set('nm-200ml', 3, 9, 0.2);
-    set('nm-500ml', 4, 9, 0.5);
-    set('nm-1l-pet', 5, 9);
-    set('nm-5l-can', 6, 9);
-    set('nm-15l', 7, 9);
-    set('nm-15kg', 8, 9);
+    // ── Block 1: Gingelly Oil (cols I=8, J=9) ──
+    set('gg-100ml', 2, 9, 0.1);
+    set('gg-200ml', 3, 9, 0.2);
+    set('gg-500ml', 4, 9, 0.5);
+    set('gg-1l-pet', 5, 9);
+    set('gg-5l-can', 6, 9);
+    set('gg-15l', 7, 9);
+    set('gg-15kg', 8, 9);
 
     // ── Block 1: Oil Cake (cols K=10, L=11) ──
     set('oc-thool-25kg', 2, 11);
@@ -118,14 +118,14 @@ function mapSheetToProducts(rows: string[][]): Record<string, number> {
     set('lo-15l', 15, 3);
     set('lo-15kg', 16, 3);
 
-    // ── Block 2: Gingelly Oil (cols E=4, F=5) ──
-    set('gg-100ml', 10, 5, 0.1);
-    set('gg-200ml', 11, 5, 0.2);
-    set('gg-500ml', 12, 5, 0.5);
-    set('gg-1l-pet', 13, 5);
-    set('gg-5l-can', 14, 5);
-    set('gg-15l', 15, 5);
-    set('gg-15kg', 16, 5);
+    // ── Block 2: Neem Oil (cols E=4, F=5) ──
+    set('nm-100ml', 10, 5, 0.1);
+    set('nm-200ml', 11, 5, 0.2);
+    set('nm-500ml', 12, 5, 0.5);
+    set('nm-1l-pet', 13, 5);
+    set('nm-5l-can', 14, 5);
+    set('nm-15l', 15, 5);
+    set('nm-15kg', 16, 5);
 
     // ── Block 2: Mahua Oil (cols G=6, H=7) ──
     set('mo-100ml', 10, 7, 0.1);

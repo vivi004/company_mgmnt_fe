@@ -157,7 +157,7 @@ const AdminDashboard = () => {
                 </main>
             </div>
 
-            {/* Extracted Modals */}
+          
              <AdminConfirmModal
                 open={state.confirmModal.open}
                 message={state.confirmModal.message}
