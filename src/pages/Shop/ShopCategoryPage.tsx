@@ -34,7 +34,7 @@ const ShopProductCard: React.FC<{ product: Product }> = ({ product }) => {
         </p>
         <h3 className="text-sm sm:text-base font-bold text-gray-800 leading-snug mt-0.5">{product.name}</h3>
         <div className="flex items-baseline gap-2 mt-1">
-          <span className="text-base sm:text-lg font-black text-gray-900">₹{product.price.toFixed(2)}</span>
+          <span className="text-base sm:text-lg font-black text-gray-900">₹{product.price.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</span>
           <span className="text-xs text-gray-400 font-medium">/ {product.unit}</span>
         </div>
       </div>

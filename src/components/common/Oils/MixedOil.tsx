@@ -176,7 +176,7 @@ const MixedOil = ({
                                 <div className="flex flex-wrap items-center justify-between mt-auto gap-4">
                                     <div>
                                         <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1">Unit Price</p>
-                                        <p className={`text-2xl font-black tracking-tighter ${isDark ? 'text-white' : 'text-slate-900'}`}>₹{product.price.toFixed(2)}</p>
+                                        <p className={`text-2xl font-black tracking-tighter ${isDark ? 'text-white' : 'text-slate-900'}`}>₹{product.price.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</p>
                                     </div>
                                     <div className="flex items-center gap-3">
                                         {isAdmin && (
@@ -236,7 +236,7 @@ const MixedOil = ({
                                 <div className="text-right lg:hidden">
                                     <p className="text-[9px] font-black text-slate-500 uppercase tracking-widest mb-0.5">Total</p>
                                     <p className={`text-2xl md:text-3xl font-black tracking-tighter leading-none ${isDark ? 'text-white' : 'text-slate-900'}`}>
-                                        <span className="text-sm mr-0.5 opacity-50 font-medium italic">₹</span>{totalPrice.toLocaleString()}
+                                        <span className="text-sm mr-0.5 opacity-50 font-medium italic">₹</span>{totalPrice.toLocaleString('en-IN', { minimumFractionDigits: 2 })}
                                     </p>
                                 </div>
                             </div>
@@ -244,7 +244,7 @@ const MixedOil = ({
                                 <div className="hidden lg:block text-right pr-4 border-r border-slate-200 dark:border-white/10">
                                     <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1">Total Payable</p>
                                     <p className={`text-4xl font-black tracking-tighter ${isDark ? 'text-white' : 'text-slate-900'}`}>
-                                        <span className="text-xl mr-1 opacity-50 font-medium italic">₹</span>{totalPrice.toLocaleString()}
+                                        <span className="text-xl mr-1 opacity-50 font-medium italic">₹</span>{totalPrice.toLocaleString('en-IN', { minimumFractionDigits: 2 })}
                                     </p>
                                 </div>
                                 <button onClick={onReviewOrder} className={`flex-1 lg:flex-none px-4 md:px-8 py-3 md:py-4 border-2 border-${primaryColor}-500 text-${primaryColor}-500 hover:bg-${primaryColor}-500 hover:text-white font-black rounded-xl md:rounded-2xl text-xs md:text-sm uppercase tracking-widest transition-all hover:-translate-y-1 active:scale-95 text-center`}>Review</button>

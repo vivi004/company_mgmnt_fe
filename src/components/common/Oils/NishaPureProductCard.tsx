@@ -43,7 +43,7 @@ const NishaPureProductCard = ({ product, cart, isDark, isAdmin, primaryColor, up
                         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M12 4v16m8-8H4" /></svg>
                     </button>
                 </div>
-                <span className="text-sm font-black text-slate-500 mt-2">{product.price * boxMultiplier}/box</span>
+                <span className="text-sm font-black text-slate-500 mt-2">₹{(product.price * boxMultiplier).toLocaleString('en-IN', { minimumFractionDigits: 2 })}/box</span>
             </div>
             <div className="hidden sm:block w-px h-16 bg-slate-300 dark:bg-slate-700"></div>
             <div className="flex flex-col items-center flex-1 sm:flex-none">
@@ -57,7 +57,7 @@ const NishaPureProductCard = ({ product, cart, isDark, isAdmin, primaryColor, up
                         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M12 4v16m8-8H4" /></svg>
                     </button>
                 </div>
-                <span className="text-sm font-black text-slate-500 mt-2">{product.price * litreMultiplier}/{litreLabel}</span>
+                <span className="text-sm font-black text-slate-500 mt-2">₹{(product.price * litreMultiplier).toLocaleString('en-IN', { minimumFractionDigits: 2 })}/{litreLabel}</span>
             </div>
         </div>
     );
@@ -70,7 +70,7 @@ const NishaPureProductCard = ({ product, cart, isDark, isAdmin, primaryColor, up
                 <div className="flex flex-wrap lg:flex-nowrap items-center justify-between mt-auto gap-4 w-full">
                     <div className="flex-shrink-0">
                         <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1">Unit Price</p>
-                        <p className={`text-2xl font-black tracking-tighter ${isDark ? 'text-white' : 'text-slate-900'}`}>₹{product.price.toFixed(2)}</p>
+                        <p className={`text-2xl font-black tracking-tighter ${isDark ? 'text-white' : 'text-slate-900'}`}>₹{product.price.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</p>
                         <AdminActions />
                     </div>
                     <BoxLitreControls boxId={product.id + '_box'} litreId={product.id + '_ltr'} boxMultiplier={50} litreStep={1} litreMultiplier={10} litreLabel="PCS" />
@@ -83,7 +83,7 @@ const NishaPureProductCard = ({ product, cart, isDark, isAdmin, primaryColor, up
                 <div className="flex flex-wrap lg:flex-nowrap items-center justify-between mt-auto gap-4 w-full">
                     <div className="flex-shrink-0">
                         <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1">Unit Price</p>
-                        <p className={`text-2xl font-black tracking-tighter ${isDark ? 'text-white' : 'text-slate-900'}`}>₹{product.price.toFixed(2)}</p>
+                        <p className={`text-2xl font-black tracking-tighter ${isDark ? 'text-white' : 'text-slate-900'}`}>₹{product.price.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</p>
                         <AdminActions />
                     </div>
                     <BoxLitreControls boxId={product.id + '_box'} litreId={product.id + '_ltr'} boxMultiplier={25} litreStep={1} litreMultiplier={5} litreLabel="PCS" />
@@ -96,7 +96,7 @@ const NishaPureProductCard = ({ product, cart, isDark, isAdmin, primaryColor, up
                 <div className="flex flex-wrap lg:flex-nowrap items-center justify-between mt-auto gap-4 w-full">
                     <div className="flex-shrink-0">
                         <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1">Unit Price</p>
-                        <p className={`text-2xl font-black tracking-tighter ${isDark ? 'text-white' : 'text-slate-900'}`}>₹{product.price.toFixed(2)}</p>
+                        <p className={`text-2xl font-black tracking-tighter ${isDark ? 'text-white' : 'text-slate-900'}`}>₹{product.price.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</p>
                         <AdminActions />
                     </div>
                     <BoxLitreControls boxId={product.id + '_box'} litreId={product.id + '_ltr'} boxMultiplier={20} litreStep={1} litreMultiplier={2} litreLabel="PCS" />
@@ -109,7 +109,7 @@ const NishaPureProductCard = ({ product, cart, isDark, isAdmin, primaryColor, up
                 <div className="flex flex-wrap lg:flex-nowrap items-center justify-between mt-auto gap-4 w-full">
                     <div className="flex-shrink-0">
                         <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1">Unit Price</p>
-                        <p className={`text-2xl font-black tracking-tighter ${isDark ? 'text-white' : 'text-slate-900'}`}>₹{product.price.toFixed(2)}</p>
+                        <p className={`text-2xl font-black tracking-tighter ${isDark ? 'text-white' : 'text-slate-900'}`}>₹{product.price.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</p>
                         <AdminActions />
                     </div>
                     <BoxLitreControls boxId={product.id + '_box'} litreId={product.id} boxMultiplier={10} litreStep={1} litreMultiplier={1} litreLabel="PCS" />
@@ -122,7 +122,7 @@ const NishaPureProductCard = ({ product, cart, isDark, isAdmin, primaryColor, up
                 <div className="flex flex-wrap lg:flex-nowrap items-center justify-between mt-auto gap-4 w-full">
                     <div className="flex-shrink-0">
                         <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1">Unit Price</p>
-                        <p className={`text-2xl font-black tracking-tighter ${isDark ? 'text-white' : 'text-slate-900'}`}>₹{product.price.toFixed(2)}</p>
+                        <p className={`text-2xl font-black tracking-tighter ${isDark ? 'text-white' : 'text-slate-900'}`}>₹{product.price.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</p>
                         <AdminActions />
                     </div>
                     <BoxLitreControls boxId={product.id + '_box'} litreId={product.id} boxMultiplier={5} litreStep={2} litreMultiplier={1} litreLabel="2L" />
@@ -135,7 +135,7 @@ const NishaPureProductCard = ({ product, cart, isDark, isAdmin, primaryColor, up
             <div className="flex flex-wrap items-center justify-between mt-auto gap-4">
                 <div>
                     <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1">Unit Price</p>
-                    <p className={`text-2xl font-black tracking-tighter ${isDark ? 'text-white' : 'text-slate-900'}`}>₹{product.price.toFixed(2)}</p>
+                    <p className={`text-2xl font-black tracking-tighter ${isDark ? 'text-white' : 'text-slate-900'}`}>₹{product.price.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</p>
                 </div>
                 <div className="flex items-center gap-3">
                     {isAdmin && (

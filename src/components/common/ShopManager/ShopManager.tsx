@@ -599,7 +599,7 @@ const ShopManager = ({ orderLineId, villageName, theme, onBack, type }: Props) =
                                     <p className="text-sm text-slate-500 font-medium mt-0.5">{shop.phone || '—'}</p>
                                     {shop.phone2 && <p className="text-sm text-slate-500 font-medium">{shop.phone2}</p>}
                                     <p className={`text-sm font-black mt-2 ${shop.balance > 0 ? 'text-emerald-400' : 'text-slate-400'}`}>
-                                        BALANCE₹{Number(shop.balance).toFixed(2)}
+                                        BALANCE ₹{Number(shop.balance).toLocaleString('en-IN', { minimumFractionDigits: 2 })}
                                     </p>
                                 </div>
 
@@ -776,11 +776,11 @@ const ShopManager = ({ orderLineId, villageName, theme, onBack, type }: Props) =
 
                                                     return (
                                                         <p className={`text-lg font-black ${colorClass}`}>
-                                                            {sign}₹{Math.abs(tx.amount).toFixed(2)}
+                                                            {sign}₹{Math.abs(tx.amount).toLocaleString('en-IN', { minimumFractionDigits: 2 })}
                                                         </p>
                                                     );
                                                 })()}
-                                                <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mt-1">Balance After: ₹{Number(tx.balance_after).toFixed(2)}</p>
+                                                <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mt-1">Balance After: ₹{Number(tx.balance_after).toLocaleString('en-IN', { minimumFractionDigits: 2 })}</p>
                                             </div>
                                         </div>
                                     ))}

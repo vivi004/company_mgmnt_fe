@@ -29,7 +29,7 @@ export const ShopProductCard: React.FC<ShopProductCardProps> = ({ product }) => 
         <h3 className="text-sm font-bold text-gray-800 leading-snug truncate">{product.name}</h3>
         <p className="text-xs text-gray-500 mt-0.5">
           Unit Price&nbsp;·&nbsp;
-          <span className="font-bold text-gray-700">₹{product.price.toFixed(2)}</span>
+          <span className="font-bold text-gray-700">₹{product.price.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</span>
         </p>
         <p className="text-[10px] text-gray-400 uppercase">{product.unit}</p>
       </div>

@@ -112,7 +112,7 @@ const UnifiedProductCard: React.FC<CardProps> = ({ product, cart, isDark, update
       <div className="flex flex-row sm:flex-col items-center justify-between sm:justify-center w-full sm:w-auto flex-1 gap-2 sm:gap-0">
         <div className="flex flex-col items-start sm:items-center w-16 sm:w-auto shrink-0">
           <span className={`text-[10px] font-black uppercase tracking-widest ${isDark ? 'text-blue-400' : 'text-slate-500'}`}>Box</span>
-          <span className={`text-[9px] sm:text-[10px] font-bold mt-0.5 ${isDark ? 'text-slate-300' : 'text-slate-400'}`}>{(product.price * boxMultiplier).toFixed(2)}</span>
+          <span className={`text-[9px] sm:text-[10px] font-bold mt-0.5 ${isDark ? 'text-slate-300' : 'text-slate-400'}`}>{(product.price * boxMultiplier).toLocaleString('en-IN', { minimumFractionDigits: 2 })}</span>
         </div>
         <div className={`flex items-center gap-1 sm:mt-1 p-1 rounded-xl border ${isDark ? 'bg-slate-900 border-slate-600/50' : 'bg-white border-slate-200 shadow-sm'}`}>
           <button onClick={() => updateQuantity(boxId, -1)} className="w-8 h-8 rounded-lg flex items-center justify-center transition-all hover:bg-red-100 hover:text-red-500 text-slate-400">
@@ -137,7 +137,7 @@ const UnifiedProductCard: React.FC<CardProps> = ({ product, cart, isDark, update
       <div className="flex flex-row sm:flex-col items-center justify-between sm:justify-center w-full sm:w-auto flex-1 gap-2 sm:gap-0">
         <div className="flex flex-col items-start sm:items-center w-16 sm:w-auto shrink-0">
           <span className={`text-[10px] font-black uppercase tracking-widest ${isDark ? 'text-blue-400' : 'text-slate-500'}`}>{litreLabel}</span>
-          <span className={`text-[9px] sm:text-[10px] font-bold mt-0.5 ${isDark ? 'text-slate-300' : 'text-slate-400'}`}>{(product.price * litreMultiplier).toFixed(2)}</span>
+          <span className={`text-[9px] sm:text-[10px] font-bold mt-0.5 ${isDark ? 'text-slate-300' : 'text-slate-400'}`}>{(product.price * litreMultiplier).toLocaleString('en-IN', { minimumFractionDigits: 2 })}</span>
         </div>
         <div className={`flex items-center gap-1 sm:mt-1 p-1 rounded-xl border ${isDark ? 'bg-slate-900 border-slate-600/50' : 'bg-white border-slate-200 shadow-sm'}`}>
           <button onClick={() => updateQuantity(litreId, -litreStep)} className={`w-8 h-8 rounded-lg flex items-center justify-center transition-all ${(cart[litreId] || 0) > 0 ? 'hover:bg-red-100 hover:text-red-500' : ''} text-slate-400`} disabled={!(cart[litreId] || 0)}>
@@ -204,7 +204,7 @@ const UnifiedProductCard: React.FC<CardProps> = ({ product, cart, isDark, update
         </p>
         <h3 className={`text-sm sm:text-base font-bold leading-snug mt-0.5 ${isDark ? 'text-white' : 'text-gray-800'}`}>{product.name}</h3>
         <div className="flex items-baseline gap-2 mt-1">
-          <span className={`text-base sm:text-lg font-black ${isDark ? 'text-white' : 'text-gray-900'}`}>₹{product.price.toFixed(2)}</span>
+          <span className={`text-base sm:text-lg font-black ${isDark ? 'text-white' : 'text-gray-900'}`}>₹{product.price.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</span>
           <span className={`text-[10px] font-medium uppercase ${isDark ? 'text-slate-400' : 'text-gray-400'}`}>Unit price</span>
         </div>
       </div>

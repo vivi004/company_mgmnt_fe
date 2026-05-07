@@ -126,11 +126,11 @@ const ReviewOrder = ({ shopName, villageName, theme, cart, updateQuantity, onBac
                                         </div>
 
                                         <div className={`col-span-2 text-right pr-4 font-black ${isDark ? 'text-slate-300' : 'text-slate-700'}`}>
-                                            ₹{item.price.toFixed(2)}
+                                            ₹{item.price.toLocaleString('en-IN', { minimumFractionDigits: 2 })}
                                         </div>
 
                                         <div className={`col-span-2 text-right font-black text-lg ${isDark ? 'text-white' : 'text-slate-900'}`}>
-                                            ₹{(item.price * item.quantity).toFixed(2)}
+                                            ₹{(item.price * item.quantity).toLocaleString('en-IN', { minimumFractionDigits: 2 })}
                                         </div>
                                     </div>
                                 );
