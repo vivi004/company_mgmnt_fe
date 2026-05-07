@@ -362,13 +362,6 @@ const ShopManager = ({ orderLineId, villageName, theme, onBack, type }: Props) =
     if (selectedShop && showBill) {
         // If currentBillId exists, look up the snapshot rates from the API/context if possible,
         // but since we just placed the order, we can snapshot the current cart rates here for the immediate display view.
-        const currentRates: Record<string, number> = {};
-        getAllProducts().forEach(p => {
-            if (cart[p.id] || cart[`${p.id}_box`] || cart[`${p.id}_ltr`]) {
-                currentRates[p.id] = p.price;
-            }
-        });
-
         return (
             <Bills
                 shopName={selectedShop.shop_name}
