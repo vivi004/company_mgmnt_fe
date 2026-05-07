@@ -12,7 +12,7 @@ interface Props {
     theme: string;
     onDeleteBill: (id: number) => void;
     onClearAll: () => void;
-    onEditBill: (id: number, newCart: Record<string, number>, newRates?: Record<string, number>, newDate?: string) => void;
+    onEditBill: (id: number, newCart: Record<string, number>, newRates?: Record<string, number>, newDate?: string, isEditedPrice?: boolean) => void;
     selectedDate: string;
     setSelectedDate: (date: string) => void;
 }

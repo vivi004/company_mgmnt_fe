@@ -142,7 +142,7 @@ export const useAdminDashboardData = () => {
         showToast("Clear all is disabled for primary ledger for safety. Delete individual bills if needed.", "info");
     };
 
-    const handleEditBill = async (id: number, newCart: Record<string, number>, newRates?: Record<string, number>, newDate?: string) => {
+    const handleEditBill = async (id: number, newCart: Record<string, number>, newRates?: Record<string, number>, newDate?: string, isEditedPrice?: boolean) => {
         try {
             // Use the centralized pricing logic to calculate the total amount
             const { getCartItems } = await import('../../../constants/productData');
@@ -158,7 +158,8 @@ export const useAdminDashboardData = () => {
                 custom_rates: newRates,
                 total_amount: totalAmount,
                 delivery_date: newDate,
-                created_by: actingName
+                created_by: actingName,
+                is_edited_price: isEditedPrice ?? false
             });
             showToast("Bill updated successfully", "success");
             

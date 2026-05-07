@@ -47,6 +47,7 @@ const ShopManager = ({ orderLineId, villageName, theme, onBack, type }: Props) =
     const [currentBillId, setCurrentBillId] = useState<number | null>(null);
     const [invoiceNo, setInvoiceNo] = useState<number>(0);
     const [currentRates, setCurrentRates] = useState<Record<string, number>>({});
+    const [isEditedPrice, setIsEditedPrice] = useState(false);
 
     // Ledger & Adjustment States
     const [showLedger, setShowLedger] = useState(false);
@@ -94,6 +95,17 @@ const ShopManager = ({ orderLineId, villageName, theme, onBack, type }: Props) =
             setLoading(false);
         }
     };
+
+    useEffect(() => {
+        if (!selectedShop) {
+            setCart({});
+            setCurrentRates({});
+            setShowReview(false);
+            setShowBill(false);
+            setCurrentBillId(null);
+            setIsEditedPrice(false);
+        }
+    }, [selectedShop]);
 
     const fetchLedger = async (shop: Shop) => {
         setSelectedShop(shop);
@@ -182,6 +194,22 @@ const ShopManager = ({ orderLineId, villageName, theme, onBack, type }: Props) =
         }
     };
 
+    const updateRate = (id: string, rate: number) => {
+        setCurrentRates(prev => {
+            const next = { ...prev };
+            const p = getAllProducts().find(x => x.id === id);
+            if (rate === 0 || (p && rate === p.price)) {
+                delete next[id];
+            } else {
+                next[id] = rate;
+            }
+            // Flush variants so they recalculate from the new base rate
+            delete next[`${id}_box`];
+            delete next[`${id}_ltr`];
+            return next;
+        });
+    };
+
     const updateQuantity = (id: string, delta: number) => {
         setCart(prev => {
             const current = prev[id] || 0;
@@ -193,6 +221,74 @@ const ShopManager = ({ orderLineId, villageName, theme, onBack, type }: Props) =
             }
             return { ...prev, [id]: next };
         });
+    };
+
+    const handlePlaceOrder = async () => {
+        const storedUser = JSON.parse(localStorage.getItem('user') || '{}');
+        const createdBy = storedUser.first_name ? `${storedUser.first_name} ${storedUser.last_name || ''}`.trim() : (isAdmin ? 'Admin' : 'Staff');
+
+        // Snapshot final rates for this bill
+        const finalRates: Record<string, number> = {};
+        getAllProducts().forEach(p => {
+            // Skip variant products from snapshotting; they derive prices dynamically
+            if (p.id.endsWith('_box') || p.id.endsWith('_ltr')) return;
+
+            if (cart[p.id] || cart[`${p.id}_box`] || cart[`${p.id}_ltr`]) {
+                finalRates[p.id] = currentRates[p.id] ?? p.price;
+            }
+        });
+
+        const currentInvoiceNo = parseInt(localStorage.getItem('nextInvoiceNo') || '1001', 10);
+        const nextNo = currentInvoiceNo + 1;
+        localStorage.setItem('nextInvoiceNo', String(nextNo));
+        localStorage.setItem('lastInvoiceNo', String(currentInvoiceNo));
+        // Sync to backend in background (non-blocking)
+        api().put('/api/settings/invoice', {
+            next_invoice_no: nextNo,
+            last_invoice_no: currentInvoiceNo
+        }).catch(e => console.error('Invoice sync failed:', e));
+
+        const cartItemsForTotal = getCartItems(cart, currentRates);
+        const totalPrice = cartItemsForTotal.reduce((acc, item) => acc + (item.price * item.quantity), 0);
+
+        const billPayload = {
+            invoice_no: currentInvoiceNo,
+            shop_name: selectedShop!.shop_name,
+            village_name: villageName,
+            cart: cart,
+            custom_rates: finalRates,
+            created_by: createdBy,
+            bill_date: new Date().toISOString(),
+            delivery_date: new Date(deliveryDate + 'T00:00:00').toISOString(),
+            status: 'Unverified',
+            total_amount: totalPrice,
+            is_edited_price: isEditedPrice
+        };
+
+        try {
+            const deliveryDateISO = new Date(deliveryDate + 'T00:00:00').toISOString();
+            if (currentBillId) {
+                const res = await api().put(`/api/bills/${currentBillId}`, {
+                    cart,
+                    custom_rates: finalRates,
+                    delivery_date: deliveryDateISO,
+                    total_amount: totalPrice,
+                    is_edited_price: isEditedPrice
+                });
+                if (res.data.invoice_no) setInvoiceNo(res.data.invoice_no);
+                showToast('Order updated!', 'success');
+            } else {
+                const res = await api().post('/api/bills', billPayload);
+                setCurrentBillId(res.data.id);
+                setInvoiceNo(res.data.invoice_no || billPayload.invoice_no);
+                showToast(isAdmin ? 'Order placed successfully!' : 'Order submitted for verification!', 'success');
+            }
+            setShowReview(false);
+            setShowBill(true);
+            fetchShops(); // Refresh the list so the progress bar updates immediately
+        } catch (err: any) {
+            showToast(err.response?.data?.error || 'Failed to place order', 'error');
+        }
     };
 
     const openAdd = () => {
@@ -313,72 +409,11 @@ const ShopManager = ({ orderLineId, villageName, theme, onBack, type }: Props) =
                     cart={cart}
                     updateQuantity={updateQuantity}
                     onBack={() => setShowReview(false)}
-                    onPlaceOrder={async () => {
-                        const storedUser = JSON.parse(localStorage.getItem('user') || '{}');
-                        const createdBy = storedUser.first_name ? `${storedUser.first_name} ${storedUser.last_name || ''}`.trim() : (isAdmin ? 'Admin' : 'Staff');
-
-                        // Snapshot current rates so future Google Sheet updates don't affect this invoice
-                        const rates: Record<string, number> = {};
-                        getAllProducts().forEach(p => {
-                            if (cart[p.id] || cart[`${p.id}_box`] || cart[`${p.id}_ltr`]) {
-                                rates[p.id] = p.price;
-                            }
-                        });
-                        setCurrentRates(rates);
-
-                        const currentInvoiceNo = parseInt(localStorage.getItem('nextInvoiceNo') || '1001', 10);
-                        const nextNo = currentInvoiceNo + 1;
-                        localStorage.setItem('nextInvoiceNo', String(nextNo));
-                        localStorage.setItem('lastInvoiceNo', String(currentInvoiceNo));
-                        // Sync to backend in background (non-blocking)
-                        api().put('/api/settings/invoice', {
-                            next_invoice_no: nextNo,
-                            last_invoice_no: currentInvoiceNo
-                        }).catch(e => console.error('Invoice sync failed:', e));
-
-                        const cartItemsForTotal = getCartItems(cart, currentRates);
-                        const totalPrice = cartItemsForTotal.reduce((acc, item) => acc + (item.price * item.quantity), 0);
-
-                        const billPayload = {
-                            invoice_no: currentInvoiceNo,
-                            shop_name: selectedShop!.shop_name,
-                            village_name: villageName,
-                            cart: cart,
-                            custom_rates: rates,
-                            created_by: createdBy,
-                            bill_date: new Date().toISOString(),
-                            delivery_date: new Date(deliveryDate + 'T00:00:00').toISOString(),
-                            status: 'Unverified',
-                            total_amount: totalPrice
-                        };
-
-                        try {
-                            const deliveryDateISO = new Date(deliveryDate + 'T00:00:00').toISOString();
-                            if (currentBillId) {
-                                const res = await api().put(`/api/bills/${currentBillId}`, {
-                                    cart,
-                                    custom_rates: rates,
-                                    delivery_date: deliveryDateISO,
-                                    total_amount: totalPrice
-                                });
-                                if (res.data.invoice_no) setInvoiceNo(res.data.invoice_no);
-                                showToast('Order updated!', 'success');
-                            } else {
-                                const res = await api().post('/api/bills', billPayload);
-                                setCurrentBillId(res.data.id);
-                                setInvoiceNo(res.data.invoice_no || billPayload.invoice_no);
-                                showToast(isAdmin ? 'Order placed successfully!' : 'Order submitted for verification!', 'success');
-                            }
-                            setShowReview(false);
-                            setShowBill(true);
-                            fetchShops(); // Refresh the list so the progress bar updates immediately
-                        } catch (err: any) {
-                            showToast(err.response?.data?.error || 'Failed to place order', 'error');
-                        }
-                    }}
+                    onPlaceOrder={handlePlaceOrder}
                     type={type}
                     deliveryDate={deliveryDate}
                     onDeliveryDateChange={setDeliveryDate}
+                    customRates={currentRates}
                 />
             </>
         );
@@ -392,9 +427,14 @@ const ShopManager = ({ orderLineId, villageName, theme, onBack, type }: Props) =
                     shopName={selectedShop.shop_name}
                     theme={theme}
                     cart={cart}
+                    rates={currentRates}
                     updateQuantity={updateQuantity}
+                    updateRate={updateRate}
                     onBack={() => setSelectedShop(null)}
-                    onReviewOrder={() => setShowReview(true)}
+                    onReviewOrder={(edited) => {
+                        setIsEditedPrice(edited);
+                        setShowReview(true);
+                    }}
                 />
             </>
         );

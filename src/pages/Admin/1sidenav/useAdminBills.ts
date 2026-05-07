@@ -4,7 +4,7 @@ import type { Bill } from '../../../utils/invoiceGenerator';
 
 export const useAdminBills = (
     bills: Bill[],
-    onEditBill: (id: number, newCart: Record<string, number>, newRates?: Record<string, number>, newDate?: string) => void,
+    onEditBill: (id: number, newCart: Record<string, number>, newRates?: Record<string, number>, newDate?: string, isEditedPrice?: boolean) => void,
     externalSelectedDate?: string,
     setExternalSelectedDate?: (date: string) => void
 ) => {
@@ -97,7 +97,14 @@ export const useAdminBills = (
         });
 
         const deliveryDateISO = editDeliveryDate ? new Date(editDeliveryDate + 'T00:00:00').toISOString() : editingBill.deliveryDate;
-        onEditBill(editingBill.id, finalCart, finalRates, deliveryDateISO);
+
+        // Detect if any rate was changed from the original bill
+        const originalRates = editingBill.customRates || {};
+        const hasEditedPrice = Object.keys(finalRates).some(id => {
+            return finalRates[id] !== undefined && finalRates[id] !== (originalRates[id] ?? finalRates[id]);
+        }) || editingBill.isEditedPrice === true; // preserve flag if previously set
+
+        onEditBill(editingBill.id, finalCart, finalRates, deliveryDateISO, hasEditedPrice);
         setEditingBill(null);
     };
 

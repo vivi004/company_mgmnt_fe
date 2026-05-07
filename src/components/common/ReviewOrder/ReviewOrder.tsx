@@ -12,13 +12,14 @@ interface Props {
     type?: 'admin' | 'staff';
     deliveryDate: string;
     onDeliveryDateChange: (date: string) => void;
+    customRates?: Record<string, number>;
 }
 
-const ReviewOrder = ({ shopName, villageName, theme, cart, updateQuantity, onBack, onPlaceOrder, type = 'admin', deliveryDate, onDeliveryDateChange }: Props) => {
+const ReviewOrder = ({ shopName, villageName, theme, cart, updateQuantity, onBack, onPlaceOrder, type = 'admin', deliveryDate, onDeliveryDateChange, customRates = {} }: Props) => {
     const isDark = theme === 'dark';
     const [placing, setPlacing] = useState(false);
 
-    const cartItems = getCartItems(cart);
+    const cartItems = getCartItems(cart, customRates);
 
     const totalItems = cartItems.reduce((acc, item) => acc + item.quantity, 0);
     const totalPrice = cartItems.reduce((acc, item) => acc + (item.price * item.quantity), 0);
@@ -129,8 +130,13 @@ const ReviewOrder = ({ shopName, villageName, theme, cart, updateQuantity, onBac
                                             ₹{item.price.toLocaleString('en-IN', { minimumFractionDigits: 2 })}
                                         </div>
 
-                                        <div className={`col-span-2 text-right font-black text-lg ${isDark ? 'text-white' : 'text-slate-900'}`}>
-                                            ₹{(item.price * item.quantity).toLocaleString('en-IN', { minimumFractionDigits: 2 })}
+                                        <div className="col-span-2 text-right flex flex-col items-end gap-1">
+                                            <div className="flex items-baseline gap-2">
+                                                <p className={`font-black text-base sm:text-lg ${isDark ? 'text-white' : 'text-slate-900'}`}>₹{(item.price * item.quantity).toLocaleString('en-IN', { minimumFractionDigits: 2 })}</p>
+                                                {customRates[item.id] !== undefined && (
+                                                    <span className="text-[8px] font-black uppercase tracking-widest text-orange-500 bg-orange-500/10 px-1.5 py-0.5 rounded border border-orange-500/20">Edited Price</span>
+                                                )}
+                                            </div>
                                         </div>
                                     </div>
                                 );

@@ -94,7 +94,31 @@ const AdminBillsEditModal: React.FC<AdminBillsEditModalProps> = ({
                             .filter(p => p.name.toLowerCase().includes(searchQuery.toLowerCase()) || p.size.toLowerCase().includes(searchQuery.toLowerCase()) || p.brand.toLowerCase().includes(searchQuery.toLowerCase()))
                             .map(p => {
                                 const qty = editCart[p.id] || 0;
-                                const customRate = editRates[p.id] ?? p.price;
+
+                                // Detect if this is a box or ltr variant
+                                const isBoxVariant = p.id.endsWith('_box');
+                                const isLtrVariant = p.id.endsWith('_ltr');
+                                const isVariant = isBoxVariant || isLtrVariant;
+
+                                let displayRate: number;
+                                if (isVariant) {
+                                    // Derive rate from base product's editRate × multiplier
+                                    // Multiplier = variant's static price / base product's static price
+                                    const baseId = isBoxVariant ? p.id.slice(0, -4) : p.id.slice(0, -4);
+                                    // Find the base product to get its static price
+                                    const allBase = getAllProducts();
+                                    const baseProduct = allBase.find(b => b.id === baseId);
+                                    if (baseProduct && baseProduct.price > 0) {
+                                        const multiplier = Math.round(p.price / baseProduct.price);
+                                        const baseEditRate = editRates[baseId] ?? baseProduct.price;
+                                        displayRate = baseEditRate * multiplier;
+                                    } else {
+                                        displayRate = editRates[p.id] ?? p.price;
+                                    }
+                                } else {
+                                    displayRate = editRates[p.id] ?? p.price;
+                                }
+
                                 return (
                                     <div key={p.id} className={`p-4 rounded-[24px] border flex flex-col justify-between transition-all ${isDark ? 'bg-slate-800/50 border-white/5' : 'bg-white border-slate-100 shadow-sm'} ${qty > 0 ? (isDark ? 'border-blue-500/50 bg-blue-500/5' : 'border-blue-500/50 shadow-md bg-blue-50/50') : ''}`}>
                                         <div className="flex items-start justify-between mb-3">
@@ -104,19 +128,28 @@ const AdminBillsEditModal: React.FC<AdminBillsEditModalProps> = ({
                                             </div>
                                             <div className="flex items-center gap-1.5 shrink-0">
                                                 <span className={`text-[10px] font-black uppercase tracking-wider ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>Rate: ₹</span>
-                                                <input
-                                                    type="number"
-                                                    value={customRate === 0 ? '' : customRate}
-                                                    onChange={(e) => setEditRates(prev => ({ ...prev, [p.id]: Number(e.target.value) }))}
-                                                    className={`w-16 px-2 py-1.5 rounded-xl border text-xs font-black outline-none text-center transition-all focus:border-blue-500
-                                                            ${isDark ? 'bg-slate-900/50 border-white/10 text-white' : 'bg-white border-slate-200 text-slate-900 shadow-inner'}`}
-                                                />
+                                                {isVariant ? (
+                                                    // Variant: show computed rate as read-only
+                                                    <div className={`w-16 px-2 py-1.5 rounded-xl border text-xs font-black text-center
+                                                            ${isDark ? 'bg-slate-900/30 border-white/5 text-slate-300' : 'bg-slate-100 border-slate-200 text-slate-600'}`}>
+                                                        {displayRate.toLocaleString('en-IN')}
+                                                    </div>
+                                                ) : (
+                                                    // Base product: fully editable
+                                                    <input
+                                                        type="number"
+                                                        value={displayRate === 0 ? '' : displayRate}
+                                                        onChange={(e) => setEditRates(prev => ({ ...prev, [p.id]: Number(e.target.value) }))}
+                                                        className={`w-16 px-2 py-1.5 rounded-xl border text-xs font-black outline-none text-center transition-all focus:border-blue-500
+                                                                ${isDark ? 'bg-slate-900/50 border-white/10 text-white' : 'bg-white border-slate-200 text-slate-900 shadow-inner'}`}
+                                                    />
+                                                )}
                                             </div>
                                         </div>
 
                                         <div className="flex items-center justify-between mt-auto pt-3 border-t border-dashed border-slate-200 dark:border-white/5">
                                             <div className={`font-black text-sm ${isDark ? 'text-blue-400' : 'text-blue-600'}`}>
-                                                ₹{((customRate) * qty).toLocaleString('en-IN', { minimumFractionDigits: 2 })}
+                                                ₹{(displayRate * qty).toLocaleString('en-IN', { minimumFractionDigits: 2 })}
                                             </div>
                                             <div className={`flex items-center gap-1 rounded-xl p-1 border shadow-inner ${isDark ? 'bg-slate-900/80 border-white/10' : 'bg-slate-50 border-slate-200'}`}>
                                                 <button
