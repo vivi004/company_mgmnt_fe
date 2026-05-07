@@ -352,9 +352,9 @@ export interface NishaSubcategory {
 export const DEFAULT_NISHA_SUBCATEGORIES: NishaSubcategory[] = [
     { id: 'GN', name: 'Groundnut Oil', icon: '🥜' },
     { id: 'CN', name: 'Coconut Oil', icon: '🥥' },
-    { id: 'GG', name: 'Gingelly Oil', icon: '🌻' },
-    { id: 'CS', name: 'Castor Oil', icon: '🌱' },
-    { id: 'NM', name: 'Neem Oil', icon: '🌿' },
+    { id: 'GG', name: 'Gingelly Oil', icon: '🏺' },
+    { id: 'CS', name: 'Castor Oil', icon: '🌿' },
+    { id: 'NM', name: 'Neem Oil', icon: '🍃' },
     { id: 'MO', name: 'Mahua Oil(iluppa ennai)', icon: '🧴' },
     { id: 'LO', name: 'Lamp oil', icon: '🪔' },
 ];
