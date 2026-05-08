@@ -289,7 +289,8 @@ export function getCartItems(cart: Record<string, number>, customRates?: Record<
             items.push({
                 ...p,
                 id: p.id + '_box',
-                name: `${p.name} (Box)`,
+                name: p.name,
+                size: is100ml ? '1 BOX (50x100ml)' : is200ml ? '1 BOX (25x200ml)' : is500ml ? '1 BOX (20x500ml)' : is1L ? '1 BOX (10x1L)' : is2L ? '1 BOX (5x2L)' : p.size,
                 price: effectivePrice * multiplier,
                 quantity: cart[p.id + '_box']
             });

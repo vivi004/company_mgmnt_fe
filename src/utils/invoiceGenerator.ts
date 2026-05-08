@@ -31,7 +31,7 @@ export const invoiceHTML = (bill: Bill, vehicleNo: string = '') => {
         const m = d.getMonth() + 1;
         const y = d.getFullYear();
         const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-        return `${day}-${months[m - 1]}-${y.toString().slice(-2)}`;
+        return `${day}-${months[m - 1]}-${y}`;
     };
 
     const dds = formatStringDate(bill.deliveryDate || bill.date || '');
