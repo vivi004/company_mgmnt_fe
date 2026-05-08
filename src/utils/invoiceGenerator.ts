@@ -135,7 +135,7 @@ export const invoiceHTML = (bill: Bill, vehicleNo: string = '') => {
         ${bill.villageName.toUpperCase()}<br>
         ${bill.phone || bill.phone2 ? `Mobile No: ${bill.phone || bill.phone2}<br>` : ''}State Name&nbsp;&nbsp;&nbsp;&nbsp;: Tamil Nadu, Code : 33
     </td>
-    <td colspan="4" style="${B}font-size:10px;vertical-align:top;">Terms of Delivery</td>
+    <td colspan="4" style="${B}font-size:10px;vertical-align:top;">Terms of Delivery<br><b style="font-size:12px;">IMMEDIATE</b></td>
 </tr>
 
 <!-- Column headers -->
