@@ -96,7 +96,7 @@ export const useAdminBills = (
             }
         });
 
-        const deliveryDateISO = editDeliveryDate ? new Date(editDeliveryDate + 'T00:00:00').toISOString() : editingBill.deliveryDate;
+        const finalDeliveryDate = editDeliveryDate || editingBill.deliveryDate;
 
         // Detect if any rate was changed from the original bill
         const originalRates = editingBill.customRates || {};
@@ -104,7 +104,7 @@ export const useAdminBills = (
             return finalRates[id] !== undefined && finalRates[id] !== (originalRates[id] ?? finalRates[id]);
         }) || editingBill.isEditedPrice === true; // preserve flag if previously set
 
-        onEditBill(editingBill.id, finalCart, finalRates, deliveryDateISO, hasEditedPrice);
+        onEditBill(editingBill.id, finalCart, finalRates, finalDeliveryDate, hasEditedPrice);
         setEditingBill(null);
     };
 

@@ -206,13 +206,12 @@ const BillCheck = ({ theme, type, userProfileName, onUnverifiedCountChange }: Pr
 
         try {
             const totalAmount = getTotal(finalCart, finalRates);
-            const deliveryDateISO = editDeliveryDate ? new Date(editDeliveryDate + 'T00:00:00').toISOString() : editingBill.deliveryDate;
-            
+            const finalDeliveryDate = editDeliveryDate || editingBill.deliveryDate;
             await api().put(`/api/bills/${editingBill.id}`, { 
                 cart: finalCart, 
                 custom_rates: finalRates,
                 total_amount: totalAmount,
-                delivery_date: deliveryDateISO,
+                delivery_date: finalDeliveryDate,
                 created_by: (() => {
                     const storedUser = JSON.parse(localStorage.getItem('user') || '{}');
                     return storedUser.first_name ? `${storedUser.first_name} ${storedUser.last_name || ''}`.trim() : (isAdmin ? 'Admin' : 'Staff');
