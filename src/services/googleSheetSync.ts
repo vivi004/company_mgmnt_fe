@@ -5,7 +5,7 @@
  * Sheet ID: 1gSE3fMAzka_eIlIU2sFR4xC4_IxJTeHAgJkp5YQCSvM
  */
 
-const SHEET_RATES_KEY = 'googleSheetRates_v4';
+const SHEET_RATES_KEY = 'googleSheetRates_v5';
 const SHEET_SYNC_TIME_KEY = 'googleSheetSyncTime_v1';
 
 interface SheetRatesData {
@@ -69,7 +69,8 @@ function mapSheetToProducts(rows: string[][]): Record<string, number> {
     set('mo-v-15kg', 6, 3); // 2440
 
     // ── Block 1: Roshini Mixed Oil (row 8, cols C=2, D=3) ──
-    set('mo-r-820g', 8, 3); // 1380 (BOX)
+    set('mo-r-0.5lpo', 8, 3); // 1380 (BOX)
+    set('mo-r-1lpo', 8, 3); // 1380 (BOX)
 
     // ── Block 1: ROSI GOLD Palm Oil (cols E=4, F=5) ──
     set('po-r-850g', 3, 5);
