@@ -20,6 +20,7 @@ export const DEFAULT_NISHA_PRODUCTS: Product[] = [
     { id: 'gn-1l-pet', name: 'Groundnut Oil', brand: 'Nisha', size: '1 ltr', price: 220, unit: 'Litre', icon: '🥜' },
     { id: 'gn-2l', name: 'Groundnut Oil', brand: 'Nisha', size: '2 ltr', price: 440, unit: 'Litre', icon: '🥜' },
     { id: 'gn-5l-can', name: 'Groundnut Oil', brand: 'Nisha', size: '5 Ltr Can', price: 1100, unit: 'CAN', icon: '🥜' },
+    { id: 'gn-5l-can-r', name: 'Groundnut Oil (R)', brand: 'Nisha', size: '5 Ltr Can', price: 1100, unit: 'CAN', icon: '🥜' },
     { id: 'gn-5kg-can', name: 'Groundnut Oil', brand: 'Nisha', size: '5 Kg Can', price: 1245, unit: 'CAN', icon: '🥜' },
     { id: 'gn-15l', name: 'Groundnut Oil', brand: 'Nisha', size: '15 LTR', price: 3260, unit: 'Litre', icon: '🥜' },
     { id: 'gn-15kg', name: 'Groundnut Oil', brand: 'Nisha', size: '15 KG', price: 3530, unit: 'KG', icon: '🥜' },
@@ -82,7 +83,9 @@ export const DEFAULT_NISHA_PRODUCTS: Product[] = [
 export const DEFAULT_MIXED_OIL_PRODUCTS: Product[] = [
     { id: 'mo-v-0.5po', name: 'Varshini Gold', brand: 'VARSHINI', size: '1/2 Pkt', price: 1500, unit: 'BOX', icon: '🛢️' },
     { id: 'mo-v-1lpo', name: 'Varshini Gold', brand: 'VARSHINI', size: '1 Ltr Pkt', price: 1500, unit: 'BOX', icon: '🛢️' },
-    { id: 'mo-v-5lcan', name: 'Varshini Gold', brand: 'VARSHINI', size: '5 Ltr Can', price: 775, unit: 'CAN', icon: '🛢️' },
+    { id: 'mo-v-5lcan', name: 'Varshini Gold (White)', brand: 'VARSHINI', size: '5 Ltr Can', price: 775, unit: 'CAN', icon: '🛢️' },
+    { id: 'mo-v-5lcan-y', name: 'Varshini Gold (Yellow)', brand: 'VARSHINI', size: '5 Ltr Can', price: 800, unit: 'CAN', icon: '🛢️' },
+    { id: 'mo-v-5lcan-ny', name: 'Varshini Gold (Nisha Yellow)', brand: 'VARSHINI', size: '5 Ltr Can', price: 820, unit: 'CAN', icon: '🛢️' },
     { id: 'mo-v-15l', name: 'Varshini Gold', brand: 'VARSHINI', size: '15 LTR', price: 2230, unit: 'Litre', icon: '🛢️' },
     { id: 'mo-v-15kg', name: 'Varshini Gold', brand: 'VARSHINI', size: '15 KG', price: 2440, unit: 'KG', icon: '🛢️' },
     { id: 'mo-r-820g', name: 'ROSHINI', brand: 'ROSHINI', size: '820 GM', price: 1380, unit: 'BOX', icon: '🛢️' },
@@ -112,16 +115,16 @@ export const DEFAULT_OIL_CAKE_PRODUCTS: Product[] = [
 
 /* ── localStorage-backed dynamic product management ── */
 
-const NISHA_KEY = 'nishaProducts_v5';
-const MIXED_KEY = 'mixedOilProducts_v5';
-const PALM_KEY = 'palmOilProducts_v5';
-const BURFI_KEY = 'burfiProducts_v5';
-const OIL_CAKE_KEY = 'oilCakeProducts_v5';
+const NISHA_KEY = 'nishaProducts_v6';
+const MIXED_KEY = 'mixedOilProducts_v6';
+const PALM_KEY = 'palmOilProducts_v6';
+const BURFI_KEY = 'burfiProducts_v6';
+const OIL_CAKE_KEY = 'oilCakeProducts_v6';
 
 /**
  * Helper to apply synced sheet rates to a list of products
  */
-const SERVER_RATES_KEY = 'serverProductRates_v1';
+const SERVER_RATES_KEY = 'serverProductRates_v3';
 
 export async function fetchAndCacheRatesFromServer() {
     try {

@@ -5,7 +5,7 @@
  * Sheet ID: 1gSE3fMAzka_eIlIU2sFR4xC4_IxJTeHAgJkp5YQCSvM
  */
 
-const SHEET_RATES_KEY = 'googleSheetRates_v1';
+const SHEET_RATES_KEY = 'googleSheetRates_v4';
 const SHEET_SYNC_TIME_KEY = 'googleSheetSyncTime_v1';
 
 interface SheetRatesData {
@@ -54,6 +54,7 @@ function mapSheetToProducts(rows: string[][]): Record<string, number> {
     set('gn-1l-pet', 3, 1);
     set('gn-2l', 4, 1); // 440 is for 2L? Yes, 220*2. Factor 1 because price in sheet is already 440.
     set('gn-5l-can', 5, 1);
+    set('gn-5l-can-r', 5, 1);
     set('gn-5kg-can', 6, 1);
     set('gn-15l', 7, 1);
     set('gn-15kg', 8, 1);
@@ -61,7 +62,9 @@ function mapSheetToProducts(rows: string[][]): Record<string, number> {
     // ── Block 1: Varshini Mixed Oil (cols C=2, D=3) ──
     set('mo-v-0.5po', 2, 3); // 1500 (BOX)
     set('mo-v-1lpo', 3, 3); // 1500 (BOX)
-    set('mo-v-5lcan', 4, 3); // 775
+    set('mo-v-5lcan', 4, 3); // 800
+    set('mo-v-5lcan-y', 4, 3); // Connect with regular 5L Can
+    set('mo-v-5lcan-ny', 17, 3); // Connect with Nisha Yellow (Row 18, Col D in Sheet)
     set('mo-v-15l', 5, 3); // 2230
     set('mo-v-15kg', 6, 3); // 2440
 

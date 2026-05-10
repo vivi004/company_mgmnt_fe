@@ -10,16 +10,7 @@ interface StaffProductRatesProps {
 const StaffProductRates = ({ theme }: StaffProductRatesProps) => {
 
     return (
-        <div className="space-y-10 animate-in fade-in slide-in-from-bottom-5 duration-700 pb-20">
-            {/* Welcome Banner */}
-            <div className="bg-gradient-to-r from-blue-600 to-indigo-600 rounded-[48px] p-6 sm:p-10 text-white shadow-2xl shadow-blue-600/30 relative overflow-hidden group">
-                <div className="relative z-10">
-                    <h2 className="text-3xl sm:text-4xl font-black italic tracking-tighter mb-2 sm:mb-4">Live Product Rates</h2>
-                    <p className="text-blue-100 text-sm sm:text-xl font-bold opacity-90 italic">View the Master Rate Sheet directly.</p>
-                </div>
-                <div className="absolute top-0 right-0 w-80 h-80 bg-white/10 rounded-full -mr-20 -mt-20 blur-3xl group-hover:scale-110 transition-transform duration-700" />
-            </div>
-
+        <div className="space-y-6 animate-in fade-in slide-in-from-bottom-5 duration-700 pb-20">
             {/* Content Section */}
             <div className="space-y-6">
                 <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
