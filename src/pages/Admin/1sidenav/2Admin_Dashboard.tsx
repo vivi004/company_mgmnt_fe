@@ -5,6 +5,7 @@ import AdminOrderLines from "./5Admin_OrderLines";
 import AdminSettings from "./6Admin_Settings";
 import AdminBills from "./7Admin_Bills";
 import AdminSales from "./8Admin_Sales";
+import AdminCollections from "./9Admin_Collections";
 import BillCheck from "../../../components/common/BillCheck/BillCheck";
 import { Drawer, IconButton } from "@mui/material";
 import MenuIcon from "@mui/icons-material/Menu";
@@ -114,6 +115,12 @@ const AdminDashboard = () => {
                                 handleOpenOlModal={actions.handleOpenOlModal}
                                 handleDeleteOl={actions.handleDeleteOl}
                                 handleRefreshInvoiceSettings={actions.fetchInvoiceSettings}
+                            />
+                        )}
+                        {state.activeTab === 'collections' && (
+                            <AdminCollections
+                                theme={state.theme}
+                                orderLines={state.orderLines}
                             />
                         )}
                         {state.activeTab === 'bills' && (

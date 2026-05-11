@@ -9,6 +9,7 @@ import { ToastContainer } from "../../../components/Toast";
 import { useStaffDashboardData } from './useStaffDashboardData';
 import StaffProfileModal from './Staff_ProfileModal';
 import StaffSectorModal from './Staff_SectorModal';
+import AdminCollections from "../../Admin/1sidenav/9Admin_Collections";
 
 const StaffDashboard = () => {
     const { state, actions } = useStaffDashboardData();
@@ -75,6 +76,12 @@ const StaffDashboard = () => {
                                 orderLines={state.orderLines}
                                 olLoading={state.olLoading}
                                 theme={state.theme}
+                            />
+                        )}
+                        {state.activeTab === 'collections' && (
+                            <AdminCollections
+                                theme={state.theme}
+                                orderLines={state.orderLines}
                             />
                         )}
                         {state.activeTab === 'bill-check' && (

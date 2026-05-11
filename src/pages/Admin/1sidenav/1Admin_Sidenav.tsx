@@ -92,6 +92,18 @@ const AdminSidenav = ({ activeTab, setActiveTab, companyName, requestCount, olRe
                 </button>
 
                 <button
+                    onClick={() => setActiveTab("collections")}
+                    className={`w-full flex items-center space-x-4 px-5 py-4 rounded-2xl transition-all duration-300 group ${activeTab === 'collections' ? 'bg-blue-600 text-white shadow-xl shadow-blue-600/30' : 'text-slate-400 hover:bg-white/10 hover:text-white'}`}
+                >
+                    <div className={`p-2 rounded-xl border ${activeTab === 'collections' ? 'bg-white/20 border-white/30' : 'bg-slate-800 border-slate-700'} group-hover:scale-110 transition-transform`}>
+                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z" />
+                        </svg>
+                    </div>
+                    <span className="font-bold tracking-tight">Today Collection</span>
+                </button>
+
+                <button
                     onClick={() => setActiveTab("bills")}
                     className={`w-full flex items-center justify-between px-5 py-4 rounded-2xl transition-all duration-300 group ${activeTab === 'bills' ? 'bg-blue-600 text-white shadow-xl shadow-blue-600/30' : 'text-slate-400 hover:bg-white/10 hover:text-white'}`}
                 >

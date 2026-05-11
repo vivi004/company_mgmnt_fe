@@ -60,7 +60,14 @@ const ShopManager = ({ orderLineId, villageName, theme, onBack, type, handleRefr
     const [adjData, setAdjData] = useState({ amount: '', description: '' });
     const [submittingAdj, setSubmittingAdj] = useState(false);
     const [showPaymentModal, setShowPaymentModal] = useState(false);
-    const [paymentData, setPaymentData] = useState({ amount: '', method: 'Cash', upiApp: 'PhonePe', description: '' });
+    const [paymentData, setPaymentData] = useState({ 
+        amount: '', 
+        dualCashAmount: '',
+        dualUpiAmount: '',
+        method: 'Cash', 
+        upiApp: 'PhonePe', 
+        description: '' 
+    });
     const [submittingPayment, setSubmittingPayment] = useState(false);
 
     // Delivery Date (default = tomorrow)
@@ -175,18 +182,39 @@ const ShopManager = ({ orderLineId, villageName, theme, onBack, type, handleRefr
         try {
             const storedUser = JSON.parse(localStorage.getItem('user') || '{}');
             const userName = storedUser.first_name ? `${storedUser.first_name} ${storedUser.last_name || ''}`.trim() : 'Admin';
-            const method = paymentData.method === 'UPI' ? paymentData.upiApp : 'Cash';
+            let method = paymentData.method;
+            let description = paymentData.description;
+            let amount = parseFloat(paymentData.amount);
+
+            if (paymentData.method === 'UPI') {
+                method = paymentData.upiApp;
+            } else if (paymentData.method === 'Dual Mode') {
+                const cashAmt = parseFloat(paymentData.dualCashAmount) || 0;
+                const upiAmt = parseFloat(paymentData.dualUpiAmount) || 0;
+                amount = cashAmt + upiAmt;
+                method = `Cash + ${paymentData.upiApp}`;
+                if (!description) {
+                    description = `Split Payment: Cash (₹${cashAmt}) + ${paymentData.upiApp} (₹${upiAmt})`;
+                }
+            }
+
+            const cash_amount = paymentData.method === 'Dual Mode' ? parseFloat(paymentData.dualCashAmount) || 0 : (paymentData.method === 'Cash' ? amount : 0);
+            const upi_amount = paymentData.method === 'Dual Mode' ? parseFloat(paymentData.dualUpiAmount) || 0 : (paymentData.method === 'UPI' ? amount : 0);
+            const cheque_amount = paymentData.method === 'Cheque' ? amount : 0;
 
             await api().post(`/api/shops/${selectedShop.id}/collect-payment`, {
-                amount: parseFloat(paymentData.amount),
+                amount: amount,
                 payment_method: method,
-                description: paymentData.description || `${method} payment collected by ${userName}`,
+                cash_amount,
+                upi_amount,
+                cheque_amount,
+                description: description || `${method} payment collected by ${userName}`,
                 created_by: userName
             });
             showToast('Payment recorded!', 'success');
             setShowPaymentModal(false);
             setSelectedShop(null);
-            setPaymentData({ amount: '', method: 'Cash', upiApp: 'PhonePe', description: '' });
+            setPaymentData({ amount: '', dualCashAmount: '', dualUpiAmount: '', method: 'Cash', upiApp: 'PhonePe', description: '' });
             fetchShops();
         } catch (err: any) {
             showToast(err.response?.data?.error || 'Failed to record payment', 'error');
@@ -243,6 +271,7 @@ const ShopManager = ({ orderLineId, villageName, theme, onBack, type, handleRefr
         const totalPrice = cartItemsForTotal.reduce((acc, item) => acc + (item.price * item.quantity), 0);
 
         const billPayload = {
+            shop_id: selectedShop!.id,
             shop_name: selectedShop!.shop_name,
             village_name: villageName,
             cart: cart,
@@ -886,30 +915,61 @@ const ShopManager = ({ orderLineId, villageName, theme, onBack, type, handleRefr
                             </button>
                         </div>
                         <form onSubmit={handleCollectPayment} className="space-y-6">
-                            <div>
-                                <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-2 mb-2 block">Amount to Collect (₹)</label>
-                                <input
-                                    required
-                                    type="number"
-                                    step="0.01"
-                                    autoFocus
-                                    value={paymentData.amount}
-                                    onChange={e => setPaymentData({ ...paymentData, amount: e.target.value })}
-                                    className={`w-full rounded-2xl px-6 py-5 text-2xl font-black border focus:outline-none focus:ring-4
-                                        ${isDark ? 'bg-slate-800 border-white/10 text-emerald-400 focus:ring-emerald-500/20' : 'bg-slate-50 border-emerald-100 text-emerald-600 focus:ring-emerald-600/10'}`}
-                                    placeholder="0.00"
-                                />
-                            </div>
+                            {paymentData.method !== 'Dual Mode' ? (
+                                <div>
+                                    <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-2 mb-2 block">Amount to Collect (₹)</label>
+                                    <input
+                                        required
+                                        type="number"
+                                        step="0.01"
+                                        autoFocus
+                                        value={paymentData.amount}
+                                        onChange={e => setPaymentData({ ...paymentData, amount: e.target.value })}
+                                        className={`w-full rounded-2xl px-6 py-5 text-2xl font-black border focus:outline-none focus:ring-4
+                                            ${isDark ? 'bg-slate-800 border-white/10 text-emerald-400 focus:ring-emerald-500/20' : 'bg-slate-50 border-emerald-100 text-emerald-600 focus:ring-emerald-600/10'}`}
+                                        placeholder="0.00"
+                                    />
+                                </div>
+                            ) : (
+                                <div className="grid grid-cols-2 gap-3 animate-in fade-in slide-in-from-top-2 duration-300">
+                                    <div>
+                                        <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-2 mb-2 block">Cash Amount (₹)</label>
+                                        <input
+                                            required
+                                            type="number"
+                                            step="0.01"
+                                            value={paymentData.dualCashAmount}
+                                            onChange={e => setPaymentData({ ...paymentData, dualCashAmount: e.target.value })}
+                                            className={`w-full rounded-xl px-4 py-3 font-black border focus:outline-none
+                                                ${isDark ? 'bg-slate-800 border-white/10 text-white' : 'bg-slate-50 border-slate-100 text-slate-900'}`}
+                                            placeholder="0.00"
+                                        />
+                                    </div>
+                                    <div>
+                                        <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-2 mb-2 block">UPI Amount (₹)</label>
+                                        <input
+                                            required
+                                            type="number"
+                                            step="0.01"
+                                            value={paymentData.dualUpiAmount}
+                                            onChange={e => setPaymentData({ ...paymentData, dualUpiAmount: e.target.value })}
+                                            className={`w-full rounded-xl px-4 py-3 font-black border focus:outline-none
+                                                ${isDark ? 'bg-slate-800 border-white/10 text-white' : 'bg-slate-50 border-slate-100 text-slate-900'}`}
+                                            placeholder="0.00"
+                                        />
+                                    </div>
+                                </div>
+                            )}
 
                             <div>
                                 <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-2 mb-3 block">Payment Method</label>
-                                <div className="grid grid-cols-2 gap-3">
-                                    {(['Cash', 'UPI'] as const).map((m) => (
+                                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                                    {(['Cash', 'UPI', 'Cheque', 'Dual Mode'] as const).map((m) => (
                                         <button
                                             key={m}
                                             type="button"
                                             onClick={() => setPaymentData({ ...paymentData, method: m })}
-                                            className={`py-4 rounded-2xl border font-black uppercase tracking-widest text-xs transition-all
+                                            className={`py-3 rounded-xl border font-black uppercase tracking-widest text-[9px] transition-all
                                                 ${paymentData.method === m
                                                     ? 'bg-emerald-600 border-emerald-600 text-white shadow-lg shadow-emerald-600/20'
                                                     : 'bg-slate-50 border-slate-100 text-slate-400 hover:bg-slate-100'}`}
