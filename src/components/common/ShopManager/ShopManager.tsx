@@ -428,30 +428,32 @@ const ShopManager = ({ orderLineId, villageName, theme, onBack, type, handleRefr
             <ToastContainer toasts={toasts} removeToast={removeToast} />
 
             {/* Header */}
-            <div className="flex items-center gap-6 flex-wrap">
-                <button
-                    onClick={onBack}
-                    className={`w-12 h-12 flex items-center justify-center rounded-2xl border font-black transition-all hover:-translate-x-1
-                        ${isDark ? 'bg-slate-800 border-white/10 text-white hover:bg-slate-700' : 'bg-white border-slate-200 text-slate-700 hover:bg-slate-50 shadow-md'}`}
-                >
-                    ←
-                </button>
-                <div>
-                    <h2 className={`text-3xl font-black italic tracking-tighter ${isDark ? 'text-white' : 'text-slate-900'}`}>
-                        Select Shop
-                    </h2>
-                    <p className="text-sm font-bold text-slate-400 mt-1">
-                        Area: <span className={`text-${primaryColor}-400 font-black`}>{villageName}</span>
-                    </p>
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-6">
+                <div className="flex items-center gap-4 sm:gap-6">
+                    <button
+                        onClick={onBack}
+                        className={`w-12 h-12 flex-shrink-0 flex items-center justify-center rounded-2xl border font-black transition-all hover:-translate-x-1
+                            ${isDark ? 'bg-slate-800 border-white/10 text-white hover:bg-slate-700' : 'bg-white border-slate-200 text-slate-700 hover:bg-slate-50 shadow-md'}`}
+                    >
+                        ←
+                    </button>
+                    <div className="min-w-0">
+                        <h2 className={`text-2xl sm:text-3xl font-black italic tracking-tighter truncate ${isDark ? 'text-white' : 'text-slate-900'}`}>
+                            Select Shop
+                        </h2>
+                        <p className="text-xs sm:text-sm font-bold text-slate-400 mt-1 truncate">
+                            Area: <span className={`text-${primaryColor}-400 font-black`}>{villageName}</span>
+                        </p>
+                    </div>
                 </div>
-                <div className="ml-auto flex items-center gap-4">
-                    <div className={`px-4 py-2 rounded-2xl text-xs font-black uppercase tracking-widest border
+                <div className="flex items-center gap-3 sm:gap-4 w-full sm:w-auto">
+                    <div className={`flex-1 sm:flex-initial px-4 py-3 rounded-2xl text-[10px] sm:text-xs font-black uppercase tracking-widest border text-center
                         ${isDark ? `bg-${primaryColor}-500/10 text-${primaryColor}-400 border-${primaryColor}-500/20` : `bg-${primaryColor}-50 text-${primaryColor}-600 border-${primaryColor}-100`}`}>
                         {shops.length} Shops
                     </div>
                     <button
                         onClick={openAdd}
-                        className={`px-6 py-3 bg-${primaryColor}-600 hover:bg-${primaryColor}-700 text-white font-black rounded-2xl text-xs uppercase tracking-widest transition-all shadow-lg shadow-${primaryColor}-600/20 hover:-translate-y-0.5 active:scale-95`}
+                        className={`flex-1 sm:flex-initial px-6 py-3 bg-${primaryColor}-600 hover:bg-${primaryColor}-700 text-white font-black rounded-2xl text-[10px] sm:text-xs uppercase tracking-widest transition-all shadow-lg shadow-${primaryColor}-600/20 hover:-translate-y-0.5 active:scale-95`}
                     >
                         + Add Shop
                     </button>
@@ -626,36 +628,36 @@ const ShopManager = ({ orderLineId, villageName, theme, onBack, type, handleRefr
                                     </p>
                                 </div>
 
-                                <div className="flex flex-col gap-2">
+                                <div className="flex flex-col gap-3">
                                     <button
                                         onClick={(e) => { e.preventDefault(); e.stopPropagation(); setSelectedShop(shop); setPaymentData(p => ({ ...p, amount: '', method: 'Cash' })); setShowPaymentModal(true); }}
-                                        className={`p-2 rounded-xl border transition-all ${isDark ? 'bg-white/5 border-white/10 text-emerald-400 hover:bg-emerald-500/20' : 'bg-emerald-50 border-emerald-100 text-emerald-600 hover:bg-emerald-600 hover:text-white'}`}
+                                        className={`p-3 rounded-2xl border transition-all ${isDark ? 'bg-white/5 border-white/10 text-emerald-400 hover:bg-emerald-500/20' : 'bg-emerald-50 border-emerald-100 text-emerald-600 hover:bg-emerald-600 hover:text-white'}`}
                                         title="Collect Payment"
                                     >
-                                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
                                     </button>
                                     <button
                                         onClick={(e) => { e.preventDefault(); e.stopPropagation(); fetchLedger(shop); }}
-                                        className={`p-2 rounded-xl border transition-all ${isDark ? 'bg-white/5 border-white/10 text-indigo-400 hover:bg-indigo-500/20' : 'bg-indigo-50 border-indigo-100 text-indigo-600 hover:bg-indigo-600 hover:text-white'}`}
+                                        className={`p-3 rounded-2xl border transition-all ${isDark ? 'bg-white/5 border-white/10 text-indigo-400 hover:bg-indigo-500/20' : 'bg-indigo-50 border-indigo-100 text-indigo-600 hover:bg-indigo-600 hover:text-white'}`}
                                         title="Ledger"
                                     >
-                                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 17v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2m3.222.882a.5.5 0 010-.764L15.39 8.388a.5.5 0 01.44-.061l1.597.532a.5.5 0 00.54-.124l1.26-1.26a.5.5 0 00-.518-.813l-1.18.393a.5.5 0 01-.44-.061l-1.597-.532a.5.5 0 00-.54.124l-1.26 1.26a.5.5 0 00.518.813l1.18-.393z" /></svg>
+                                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 17v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2m3.222.882a.5.5 0 010-.764L15.39 8.388a.5.5 0 01.44-.061l1.597.532a.5.5 0 00.54-.124l1.26-1.26a.5.5 0 00-.518-.813l-1.18.393a.5.5 0 01-.44-.061l-1.597-.532a.5.5 0 00-.54.124l-1.26 1.26a.5.5 0 00.518.813l1.18-.393z" /></svg>
                                     </button>
                                     {isAdmin && (
                                         <>
                                             <button
                                                 onClick={(e) => { e.preventDefault(); e.stopPropagation(); openEdit(shop); }}
-                                                className={`p-2 rounded-xl border transition-all ${isDark ? 'bg-white/5 border-white/10 text-blue-400 hover:bg-blue-500/20' : 'bg-blue-50 border-blue-100 text-blue-600 hover:bg-blue-600 hover:text-white'}`}
+                                                className={`p-3 rounded-2xl border transition-all ${isDark ? 'bg-white/5 border-white/10 text-blue-400 hover:bg-blue-500/20' : 'bg-blue-50 border-blue-100 text-blue-600 hover:bg-blue-600 hover:text-white'}`}
                                                 title="Edit"
                                             >
-                                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" /></svg>
+                                                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" /></svg>
                                             </button>
                                             <button
                                                 onClick={(e) => { e.preventDefault(); e.stopPropagation(); handleDelete(shop.id); }}
-                                                className={`p-2 rounded-xl border transition-all ${isDark ? 'bg-white/5 border-white/10 text-red-400 hover:bg-red-500/20' : 'bg-red-50 border-red-100 text-red-50 hover:bg-red-600 hover:text-white'}`}
+                                                className={`p-3 rounded-2xl border transition-all ${isDark ? 'bg-white/5 border-white/10 text-red-400 hover:bg-red-500/20' : 'bg-red-50 border-red-100 text-red-500 hover:bg-red-600 hover:text-white'}`}
                                                 title="Delete"
                                             >
-                                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
+                                                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
                                             </button>
                                         </>
                                     )}
@@ -672,9 +674,9 @@ const ShopManager = ({ orderLineId, villageName, theme, onBack, type, handleRefr
 
             {/* Modal */}
             {showModal && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 overflow-y-auto no-scrollbar">
+                <div className="fixed inset-0 z-50 flex flex-col justify-end sm:justify-center items-center overflow-y-auto no-scrollbar p-0 sm:p-4">
                     <div className="fixed inset-0 bg-slate-950/80 backdrop-blur-xl" onClick={() => setShowModal(false)} />
-                    <div className={`relative my-auto rounded-[40px] w-full max-w-md border shadow-2xl p-8 animate-in zoom-in-95 duration-300
+                    <div className={`relative w-full max-w-md border shadow-2xl p-8 animate-in slide-in-from-bottom-5 sm:zoom-in-95 duration-300 rounded-t-[40px] sm:rounded-[40px] max-h-[95vh] overflow-y-auto no-scrollbar
                         ${isDark ? 'bg-slate-900 border-white/10' : 'bg-white border-slate-100'}`}>
                         <div className="flex items-center justify-between mb-8">
                             <div>
@@ -723,9 +725,9 @@ const ShopManager = ({ orderLineId, villageName, theme, onBack, type, handleRefr
 
             {/* Ledger Modal */}
             {showLedger && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+                <div className="fixed inset-0 z-50 flex flex-col justify-end sm:justify-center items-center overflow-y-auto no-scrollbar p-0 sm:p-4">
                     <div className="fixed inset-0 bg-slate-950/80 backdrop-blur-xl" onClick={() => { setShowLedger(false); setSelectedShop(null); }} />
-                    <div className={`relative my-auto rounded-[40px] w-full max-w-4xl max-h-[80vh] border shadow-2xl overflow-hidden flex flex-col
+                    <div className={`relative w-full max-w-4xl max-h-[90vh] border shadow-2xl overflow-hidden flex flex-col rounded-t-[40px] sm:rounded-[40px] animate-in slide-in-from-bottom-5 duration-300
                         ${isDark ? 'bg-slate-900 border-white/10 text-white' : 'bg-white border-slate-100 text-slate-900'}`}>
                         <div className="p-8 border-b border-white/5 flex items-center justify-between bg-slate-950/20">
                             <div>
@@ -827,9 +829,9 @@ const ShopManager = ({ orderLineId, villageName, theme, onBack, type, handleRefr
 
             {/* Adjust Balance Modal */}
             {showAdjustModal && (
-                <div className="fixed inset-0 z-[60] flex items-center justify-center p-4">
+                <div className="fixed inset-0 z-[60] flex flex-col justify-end sm:justify-center items-center overflow-y-auto no-scrollbar p-0 sm:p-4">
                     <div className="fixed inset-0 bg-slate-950/90 backdrop-blur-md" onClick={() => { setShowAdjustModal(false); setSelectedShop(null); }} />
-                    <div className={`relative my-auto rounded-[40px] w-full max-w-sm border shadow-2xl p-8
+                    <div className={`relative w-full max-w-sm border shadow-2xl p-8 rounded-t-[40px] sm:rounded-[40px] animate-in slide-in-from-bottom-5 duration-300 max-h-[90vh] overflow-y-auto no-scrollbar
                         ${isDark ? 'bg-slate-900 border-white/10' : 'bg-white border-slate-100'}`}>
                         <h3 className="text-2xl font-black italic tracking-tight mb-6">Manual Adjustment</h3>
                         <form onSubmit={handleAdjustment} className="space-y-4">
@@ -870,9 +872,9 @@ const ShopManager = ({ orderLineId, villageName, theme, onBack, type, handleRefr
             )}
             {/* Collect Payment Modal */}
             {showPaymentModal && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 overflow-y-auto no-scrollbar">
+                <div className="fixed inset-0 z-50 flex flex-col justify-end sm:justify-center items-center overflow-y-auto no-scrollbar p-0 sm:p-4">
                     <div className="fixed inset-0 bg-slate-950/80 backdrop-blur-xl" onClick={() => { setShowPaymentModal(false); setSelectedShop(null); }} />
-                    <div className={`relative my-auto rounded-[40px] w-full max-w-md border shadow-2xl p-8 animate-in zoom-in-95 duration-300
+                    <div className={`relative w-full max-w-md border shadow-2xl p-8 animate-in slide-in-from-bottom-5 sm:zoom-in-95 duration-300 rounded-t-[40px] sm:rounded-[40px] max-h-[90vh] overflow-y-auto no-scrollbar
                         ${isDark ? 'bg-slate-900 border-white/10 text-white' : 'bg-white border-slate-100 text-slate-900'}`}>
                         <div className="flex items-center justify-between mb-8">
                             <div>

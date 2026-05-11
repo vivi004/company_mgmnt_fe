@@ -111,26 +111,26 @@ const BoxLitreControls = memo(({ boxId, litreId, boxMultiplier, litreStep, litre
   const litreRate = currentBaseRate * litreMultiplier;
 
   return (
-    <div className={`flex flex-col sm:flex-row items-center gap-2 sm:gap-4 p-2 rounded-[24px] border ${isDark ? 'bg-slate-950/40 border-white/5' : 'bg-slate-50 border-slate-200 shadow-inner'}`}>
+    <div className={`flex flex-col sm:flex-row items-stretch sm:items-center gap-3 sm:gap-4 p-3 rounded-[24px] border ${isDark ? 'bg-slate-950/40 border-white/5' : 'bg-slate-50 border-slate-200 shadow-inner'}`}>
       
       {/* Box Section */}
-      <div className="flex items-center gap-3 flex-1 sm:flex-none">
-        <div className="flex flex-col items-end min-w-[70px]">
+      <div className="flex items-center justify-between sm:justify-start gap-3 flex-1">
+        <div className="flex flex-col items-start sm:items-end min-w-[60px] sm:min-w-[70px]">
           <span className="text-[10px] font-black text-slate-400 uppercase tracking-tighter">Box</span>
           <span className={`text-xs font-black ${isDark ? 'text-blue-400' : 'text-blue-600'}`}>₹{boxRate.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</span>
         </div>
         <div className={`flex items-center gap-1 p-1 rounded-xl border ${isDark ? 'bg-slate-900 border-white/10' : 'bg-white border-slate-200 shadow-sm'}`}>
-          <button onClick={() => updateQuantity(boxId, -1)} className="w-8 h-8 rounded-lg flex items-center justify-center hover:bg-red-50 text-slate-400 hover:text-red-500 transition-colors">
-            <RemoveIcon style={{ fontSize: 16 }} />
+          <button onClick={() => updateQuantity(boxId, -1)} className="w-10 h-10 sm:w-8 sm:h-8 rounded-lg flex items-center justify-center hover:bg-red-50 text-slate-400 hover:text-red-500 transition-colors">
+            <RemoveIcon style={{ fontSize: 18 }} />
           </button>
           <input
             type="number" min="0" value={cart[boxId] || ''}
             onChange={(e) => handleManualQuantity(boxId, parseInt(e.target.value) || 0)}
             placeholder="0"
-            className={`w-10 text-center text-sm font-black bg-transparent outline-none ${isDark ? 'text-white' : 'text-slate-900'} [-moz-appearance:_textfield][&::-webkit-inner-spin-button]:m-0[&::-webkit-inner-spin-button]:appearance-none`}
+            className={`w-12 sm:w-10 text-center text-base sm:text-sm font-black bg-transparent outline-none ${isDark ? 'text-white' : 'text-slate-900'} [-moz-appearance:_textfield][&::-webkit-inner-spin-button]:m-0[&::-webkit-inner-spin-button]:appearance-none`}
           />
-          <button onClick={() => updateQuantity(boxId, 1)} className="w-8 h-8 rounded-lg bg-blue-600 text-white flex items-center justify-center hover:bg-blue-700 shadow-lg shadow-blue-600/20">
-            <AddIcon style={{ fontSize: 16 }} />
+          <button onClick={() => updateQuantity(boxId, 1)} className="w-10 h-10 sm:w-8 sm:h-8 rounded-lg bg-blue-600 text-white flex items-center justify-center hover:bg-blue-700 shadow-lg shadow-blue-600/20">
+            <AddIcon style={{ fontSize: 18 }} />
           </button>
         </div>
       </div>
@@ -140,23 +140,23 @@ const BoxLitreControls = memo(({ boxId, litreId, boxMultiplier, litreStep, litre
       <div className={`sm:hidden w-full h-px ${isDark ? 'bg-white/10' : 'bg-slate-200'}`}></div>
 
       {/* Litre Section */}
-      <div className="flex items-center gap-3 flex-1 sm:flex-none">
-        <div className="flex flex-col items-end min-w-[70px]">
+      <div className="flex items-center justify-between sm:justify-start gap-3 flex-1">
+        <div className="flex flex-col items-start sm:items-end min-w-[60px] sm:min-w-[70px]">
           <span className="text-[10px] font-black text-slate-400 uppercase tracking-tighter">{litreLabel}</span>
           <span className={`text-xs font-black ${isDark ? 'text-blue-400' : 'text-blue-600'}`}>₹{litreRate.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</span>
         </div>
         <div className={`flex items-center gap-1 p-1 rounded-xl border ${isDark ? 'bg-slate-900 border-white/10' : 'bg-white border-slate-200 shadow-sm'}`}>
-          <button onClick={() => updateQuantity(litreId, -litreStep)} className="w-8 h-8 rounded-lg flex items-center justify-center hover:bg-red-50 text-slate-400 hover:text-red-500 transition-colors">
-            <RemoveIcon style={{ fontSize: 16 }} />
+          <button onClick={() => updateQuantity(litreId, -litreStep)} className="w-10 h-10 sm:w-8 sm:h-8 rounded-lg flex items-center justify-center hover:bg-red-50 text-slate-400 hover:text-red-500 transition-colors">
+            <RemoveIcon style={{ fontSize: 18 }} />
           </button>
           <input
             type="number" min="0" step={litreStep} value={cart[litreId] || ''}
             onChange={(e) => handleManualQuantity(litreId, parseFloat(e.target.value) || 0, product)}
             placeholder="0"
-            className={`w-10 text-center text-sm font-black bg-transparent outline-none ${isDark ? 'text-white' : 'text-slate-900'} [-moz-appearance:_textfield][&::-webkit-inner-spin-button]:m-0[&::-webkit-inner-spin-button]:appearance-none`}
+            className={`w-12 sm:w-10 text-center text-base sm:text-sm font-black bg-transparent outline-none ${isDark ? 'text-white' : 'text-slate-900'} [-moz-appearance:_textfield][&::-webkit-inner-spin-button]:m-0[&::-webkit-inner-spin-button]:appearance-none`}
           />
-          <button onClick={() => updateQuantity(litreId, litreStep)} className="w-8 h-8 rounded-lg bg-blue-600 text-white flex items-center justify-center hover:bg-blue-700 shadow-lg shadow-blue-600/20">
-            <AddIcon style={{ fontSize: 16 }} />
+          <button onClick={() => updateQuantity(litreId, litreStep)} className="w-10 h-10 sm:w-8 sm:h-8 rounded-lg bg-blue-600 text-white flex items-center justify-center hover:bg-blue-700 shadow-lg shadow-blue-600/20">
+            <AddIcon style={{ fontSize: 18 }} />
           </button>
         </div>
       </div>
@@ -262,7 +262,7 @@ const UnifiedProductCard = memo(({ product, cart, rates, isDark, updateQuantity,
                     setPriceInput(product.price.toString());
                   }
                 }}
-                className={`w-16 text-xs font-black bg-transparent outline-none ${isDark ? 'text-white' : 'text-slate-900'}`}
+                className={`w-20 text-xs font-black bg-transparent outline-none ${isDark ? 'text-white' : 'text-slate-900'}`}
               />
             </div>
             <span className="text-[9px] font-black text-slate-400 uppercase tracking-[0.1em]">Unit Price</span>
@@ -393,34 +393,36 @@ const UnifiedOrderingView: React.FC<Props> = ({ shopName, theme, cart, rates, up
         })}
       </div>
 
-      {/* ── Body ── */}
-      <div className="flex flex-1 overflow-hidden relative">
-
-        {/* ── Left Sidebar ── */}
-        <aside className={`flex flex-col w-20 sm:w-28 shrink-0 overflow-y-auto custom-scrollbar border-r ${isDark ? 'bg-slate-950 border-white/5' : 'bg-white border-gray-200'}`}>
-          {activeCat.subcategories.map(sub => {
-            const isSel = sub.id === activeSubcatId;
-            return (
-              <button
-                key={sub.id}
-                onClick={() => setActiveSubcatId(sub.id)}
-                className={`flex flex-col items-center justify-center py-4 px-1 relative transition-all duration-200 border-b ${isDark ? 'border-white/5' : 'border-gray-50'
-                  } ${isSel
-                    ? isDark ? 'bg-blue-900/30' : 'bg-blue-50'
-                    : isDark ? 'hover:bg-slate-900' : 'hover:bg-gray-50'
-                  }`}
-              >
-                <span className="text-2xl sm:text-3xl leading-none mb-1.5">{sub.icon}</span>
-                <span className={`text-[10px] text-center leading-tight font-bold ${isSel ? 'text-blue-500' : isDark ? 'text-slate-400' : 'text-gray-500'}`}>
-                  {sub.name}
-                </span>
-                {isSel && (
-                  <div className="absolute right-0 top-1/2 -translate-y-1/2 w-1 h-10 bg-blue-500 rounded-l-full" />
-                )}
-              </button>
-            );
-          })}
-        </aside>
+      {/* ── Main Content Area ── */}
+      <div className="flex flex-1 overflow-hidden flex-col sm:flex-row relative">
+        {/* ── Subcategory Navigation (Responsive) ── */}
+      <div className={`flex sm:flex-col w-full sm:w-28 shrink-0 overflow-x-auto sm:overflow-y-auto custom-scrollbar border-b sm:border-b-0 sm:border-r ${isDark ? 'bg-slate-950 border-white/5' : 'bg-white border-gray-200'}`}>
+        {activeCat.subcategories.map(sub => {
+          const isSel = sub.id === activeSubcatId;
+          return (
+            <button
+              key={sub.id}
+              onClick={() => setActiveSubcatId(sub.id)}
+              className={`flex flex-row sm:flex-col items-center justify-center py-3 sm:py-5 px-4 sm:px-1 relative transition-all duration-200 border-r sm:border-r-0 sm:border-b whitespace-nowrap gap-2 sm:gap-0 ${isDark ? 'border-white/5' : 'border-gray-50'
+                } ${isSel
+                  ? isDark ? 'bg-blue-900/30' : 'bg-blue-50'
+                  : isDark ? 'hover:bg-slate-900' : 'hover:bg-gray-50'
+                }`}
+            >
+              <span className="text-xl sm:text-3xl leading-none">{sub.icon}</span>
+              <span className={`text-[10px] sm:text-[10px] text-center leading-tight font-black uppercase tracking-tighter ${isSel ? 'text-blue-500' : isDark ? 'text-slate-400' : 'text-gray-500'}`}>
+                {sub.name}
+              </span>
+              {isSel && (
+                <>
+                  <div className="hidden sm:block absolute right-0 top-1/2 -translate-y-1/2 w-1 h-10 bg-blue-500 rounded-l-full" />
+                  <div className="sm:hidden absolute bottom-0 left-1/2 -translate-x-1/2 w-10 h-1 bg-blue-500 rounded-t-full" />
+                </>
+              )}
+            </button>
+          );
+        })}
+      </div>
 
         {/* ── Product List ── */}
         <main 

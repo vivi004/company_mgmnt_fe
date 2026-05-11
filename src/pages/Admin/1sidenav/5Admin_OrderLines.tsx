@@ -36,7 +36,7 @@ const AdminOrderLines = ({ orderLines, theme, handleOpenOlModal, handleDeleteOl,
 
     return (
         <div className="space-y-10 animate-in fade-in slide-in-from-right-5 duration-700">
-            <div className="flex flex-col sm:flex-row justify-between items-end gap-6 mb-12">
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-6 mb-12">
                 <div>
                     <h3 className={`text-3xl font-black tracking-tight ${theme === 'dark' ? 'text-white' : 'text-slate-900'}`}>Order Lines Management</h3>
                     <p className="text-slate-500 font-bold mt-1 uppercase text-xs tracking-[0.2em]">Click a village to view its shops</p>

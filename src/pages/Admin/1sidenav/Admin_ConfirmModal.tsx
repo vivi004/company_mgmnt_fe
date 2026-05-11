@@ -14,9 +14,9 @@ const AdminConfirmModal: React.FC<ConfirmModalProps> = ({ open, message, onConfi
     if (!open) return null;
 
     return (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+        <div className="fixed inset-0 z-[100] flex flex-col justify-end sm:justify-center items-center overflow-y-auto no-scrollbar p-0 sm:p-4">
             <div className="absolute inset-0 bg-slate-950/80 backdrop-blur-xl" onClick={onClose} />
-            <div className={`relative rounded-3xl w-full max-w-md shadow-2xl border p-8 ${theme === 'dark' ? 'bg-slate-900 border-white/10' : 'bg-white border-slate-100'}`}>
+            <div className={`relative rounded-t-[40px] sm:rounded-3xl w-full max-w-md shadow-2xl border p-8 animate-in slide-in-from-bottom-5 sm:zoom-in-95 duration-300 max-h-[90vh] overflow-y-auto no-scrollbar ${theme === 'dark' ? 'bg-slate-900 border-white/10' : 'bg-white border-slate-100'}`}>
                 <div className="flex items-start gap-4">
                     <div className="w-12 h-12 bg-red-500/10 rounded-2xl flex items-center justify-center flex-shrink-0">
                         <span className="text-2xl">⚠️</span>

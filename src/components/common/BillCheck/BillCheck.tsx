@@ -407,9 +407,9 @@ const BillCheck = ({ theme, type, userProfileName, onUnverifiedCountChange }: Pr
 
             {/* Edit Bill Modal */}
             {editingBill && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+                <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center sm:p-4 overflow-hidden">
                     <div className="absolute inset-0 bg-slate-950/80 backdrop-blur-xl animate-in fade-in duration-300" onClick={() => setEditingBill(null)} />
-                    <div className={`relative rounded-[40px] w-full max-w-4xl max-h-[90vh] flex flex-col shadow-2xl animate-in zoom-in-95 duration-500 border 
+                    <div className={`relative rounded-t-[40px] sm:rounded-[40px] w-full max-w-4xl max-h-[90vh] flex flex-col shadow-2xl animate-in slide-in-from-bottom-5 sm:zoom-in-95 duration-500 border 
                         ${isAdmin
                             ? (isDark ? 'bg-slate-900 border-white/10' : 'bg-white border-slate-100')
                             : (isDark ? 'bg-slate-900 border-amber-500/20' : 'bg-white border-slate-100')}`}>

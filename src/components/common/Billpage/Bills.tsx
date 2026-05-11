@@ -1,4 +1,4 @@
-import { useRef } from 'react';
+import React, { useRef } from 'react';
 import { invoiceHTML, type Bill } from '../../../utils/invoiceGenerator';
 
 interface Props {
@@ -19,6 +19,18 @@ interface Props {
 const Bills = ({ shopName, villageName, theme, invoiceNo, cart, customRates, onNewOrder, onEditOrder, type = 'admin', phone, phone2, deliveryDate }: Props) => {
     const isDark = theme === 'dark';
     const printRef = useRef<HTMLDivElement>(null);
+    const [scale, setScale] = React.useState(1);
+
+    React.useEffect(() => {
+        const handleResize = () => {
+            if (typeof window !== 'undefined') {
+                setScale(Math.min(1, (window.innerWidth - 32) / 800));
+            }
+        };
+        handleResize();
+        window.addEventListener('resize', handleResize);
+        return () => window.removeEventListener('resize', handleResize);
+    }, []);
 
     const mockBill: Bill = {
         id: invoiceNo,
@@ -76,10 +88,15 @@ td,th{border:none}
                 </div>
             </div>
 
-            <div className="overflow-x-auto no-scrollbar pb-4 -mx-4 px-4 sm:mx-0 sm:px-0">
+            <div className="relative w-full overflow-hidden rounded-2xl border border-slate-200 dark:border-white/10 bg-white">
                 <div 
                     ref={printRef} 
-                    className="min-w-[800px]"
+                    className="origin-top-left"
+                    style={{ 
+                        width: '800px',
+                        transform: `scale(${scale})`,
+                        height: `${800 * scale * 1.8}px` 
+                    }}
                     dangerouslySetInnerHTML={{ __html: invoiceHTML(mockBill, '') }}
                 />
             </div>

@@ -17,9 +17,9 @@ const AdminOrderLineModal: React.FC<AdminOrderLineModalProps> = ({
     if (!open) return null;
 
     return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+        <div className="fixed inset-0 z-50 flex flex-col justify-end sm:justify-center items-center overflow-y-auto no-scrollbar p-0 sm:p-4">
             <div className="absolute inset-0 bg-slate-950/80 backdrop-blur-xl animate-in fade-in duration-300" onClick={onClose} />
-            <div className={`relative rounded-[60px] w-full max-w-xl shadow-[0_0_100px_rgba(16,185,129,0.2)] animate-in zoom-in-95 duration-500 border overflow-hidden ${theme === 'dark' ? 'bg-slate-900 border-white/10' : 'bg-white border-slate-100'}`}>
+            <div className={`relative rounded-t-[40px] sm:rounded-[60px] w-full max-w-xl max-h-[90vh] overflow-y-auto no-scrollbar shadow-[0_0_100px_rgba(16,185,129,0.2)] animate-in slide-in-from-bottom-10 sm:zoom-in-95 duration-500 border overflow-hidden ${theme === 'dark' ? 'bg-slate-900 border-white/10' : 'bg-white border-slate-100'}`}>
                 <div className="p-12">
                     <div className="flex justify-between items-center mb-12">
                         <div>
