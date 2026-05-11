@@ -1,3 +1,4 @@
+import React from 'react';
 import { useCollections } from './useCollections';
 import type { OrderLine } from '../../../types/DashboardTypes';
 
@@ -20,7 +21,7 @@ const AdminCollections = ({ theme, orderLines }: Props) => {
 
     // Mode badge renderer for a single row
     const renderModeBadges = (cash: number, upi: number, cheque: number) => {
-        const badges: JSX.Element[] = [];
+        const badges: React.ReactNode[] = [];
         if (cash > 0) badges.push(
             <span key="cash" className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-green-500/10 text-green-600 dark:text-green-400 border border-green-500/20">
                 💵 Cash ₹{fmt(cash)}
