@@ -16,7 +16,7 @@ const AdminCollections = ({ theme, orderLines }: Props) => {
         selectedOlId, setSelectedOlId,
         collections, loading,
         totals, modeBreakdown,
-        refresh, addExpense
+        refresh, addExpense, expenses
     } = useCollections(orderLines);
 
     // Expense Modal State
@@ -311,7 +311,7 @@ const AdminCollections = ({ theme, orderLines }: Props) => {
                                 </h3>
                                 <button
                                     onClick={() => setShowExpModal(true)}
-                                    className={`px-3 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-wider transition-all border ${isDark ? 'bg-amber-900/20 border-amber-500/30 text-amber-400 hover:bg-amber-900/40' : 'bg-amber-50 border-amber-200 text-amber-700 hover:bg-amber-100'}`}
+                                    className={`px-5 py-2.5 rounded-xl text-xs font-black uppercase tracking-widest transition-all border shadow-lg ${isDark ? 'bg-amber-600 border-amber-500 text-white hover:bg-amber-500 shadow-amber-900/40' : 'bg-amber-500 border-amber-400 text-white hover:bg-amber-400 shadow-amber-200'}`}
                                 >
                                     💸 Add Expense
                                 </button>
@@ -319,47 +319,64 @@ const AdminCollections = ({ theme, orderLines }: Props) => {
                             <table className="w-full text-sm">
                                 <thead>
                                     <tr className={`text-[10px] font-black uppercase tracking-widest ${isDark ? 'bg-slate-800/50 text-slate-400' : 'bg-slate-50 text-slate-500'}`}>
-                                        <th className="text-left px-5 py-3">Payment Mode</th>
-                                        <th className="text-right px-5 py-3">Total Collected</th>
+                                        <th className="text-left px-5 py-3">Payment Mode / Detail</th>
+                                        <th className="text-right px-5 py-3">Amount</th>
                                         <th className="text-right px-5 py-3">% Share</th>
                                     </tr>
                                 </thead>
                                 <tbody>
+                                    {/* ── INCOME MODES ── */}
                                     {[
-                                        { icon: '💵', label: 'Cash', amount: modeBreakdown.netCash, raw: modeBreakdown.rawCash, percent: modeBreakdown.cashPercent, color: 'green', isNet: true },
+                                        { icon: '💵', label: 'Cash (Net)', amount: modeBreakdown.netCash, raw: modeBreakdown.rawCash, percent: modeBreakdown.cashPercent, color: 'green', isNet: true },
                                         { icon: '📱', label: 'UPI', amount: modeBreakdown.upi, percent: modeBreakdown.upiPercent, color: 'blue' },
                                         { icon: '📝', label: 'Cheque', amount: modeBreakdown.cheque, percent: modeBreakdown.chequePercent, color: 'amber' },
-                                        { icon: '🥪', label: 'Expenses', amount: modeBreakdown.totalExpenses, isExpense: true },
                                     ].map(mode => (
-                                        <tr key={mode.label} className={`border-t transition-colors ${isDark ? 'border-white/5 hover:bg-slate-800/30' : 'border-slate-50 hover:bg-slate-50/50'} ${mode.isExpense && modeBreakdown.totalExpenses > 0 ? (isDark ? 'bg-amber-900/10' : 'bg-amber-50') : ''}`}>
-                                            <td className={`px-5 py-3.5 font-bold ${isDark ? 'text-white' : 'text-slate-900'}`}>
+                                        <tr key={mode.label} className={`border-t transition-colors ${isDark ? 'border-white/5 hover:bg-slate-800/30' : 'border-slate-50 hover:bg-slate-50/50'}`}>
+                                            <td className={`px-5 py-4 font-bold ${isDark ? 'text-white' : 'text-slate-900'}`}>
                                                 <div className="flex items-center gap-3">
                                                     <span className="text-xl">{mode.icon}</span>
                                                     <span className="uppercase tracking-widest text-[11px]">{mode.label}</span>
                                                 </div>
                                             </td>
-                                            <td className="px-5 py-3.5 text-right font-black">
+                                            <td className="px-5 py-4 text-right font-black">
                                                 {mode.isNet && modeBreakdown.totalExpenses > 0 ? (
                                                     <div className="flex flex-col items-end">
-                                                        <span className={isDark ? 'text-white' : 'text-slate-900'}>₹{fmt(mode.amount)}</span>
-                                                        <span className="text-[10px] text-slate-500">(₹{fmt(mode.raw || 0)} - ₹{fmt(modeBreakdown.totalExpenses)})</span>
+                                                        <span className={isDark ? 'text-white' : 'text-slate-900 text-base'}>₹{fmt(mode.amount)}</span>
+                                                        <span className="text-[10px] text-slate-500 font-bold">(₹{fmt(mode.raw || 0)} - ₹{fmt(modeBreakdown.totalExpenses)})</span>
                                                     </div>
                                                 ) : (
-                                                    <span className={mode.isExpense ? 'text-amber-500' : isDark ? 'text-white' : 'text-slate-900'}>
-                                                        {mode.isExpense ? `- ₹${fmt(mode.amount)}` : `₹${fmt(mode.amount)}`}
-                                                    </span>
+                                                    <span className={isDark ? 'text-white' : 'text-slate-900 text-base'}>₹{fmt(mode.amount)}</span>
                                                 )}
                                             </td>
-                                            <td className="px-5 py-3.5 text-right font-black text-slate-400">
-                                                {mode.percent ? `${mode.percent}%` : '—'}
+                                            <td className="px-5 py-4 text-right font-black text-slate-400">
+                                                {mode.percent}%
                                             </td>
                                         </tr>
                                     ))}
-                                    {/* Mode Breakdown TOTAL */}
-                                    <tr className={`border-t-2 font-black ${isDark ? 'border-blue-500/30 bg-blue-950/20' : 'border-blue-200 bg-blue-50/50'}`}>
-                                        <td className={`px-5 py-4 text-base uppercase tracking-wider ${isDark ? 'text-blue-400' : 'text-blue-700'}`}>Total</td>
-                                        <td className={`px-5 py-4 text-right text-base ${isDark ? 'text-white' : 'text-slate-900'}`}>₹{fmt(modeBreakdown.total)}</td>
-                                        <td className={`px-5 py-4 text-right text-base ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>100%</td>
+
+                                    {/* ── INDIVIDUAL EXPENSES ── */}
+                                    {expenses.map((exp, eIdx) => (
+                                        <tr key={`exp-${exp.id || eIdx}`} className={`border-t border-dashed ${isDark ? 'border-white/5 bg-amber-950/10' : 'bg-amber-50/30 border-slate-100'}`}>
+                                            <td className="px-5 py-3">
+                                                <div className="flex items-center gap-3 pl-4">
+                                                    <span className="text-sm">🥪</span>
+                                                    <span className={`text-[10px] font-black uppercase tracking-widest ${isDark ? 'text-amber-400/80' : 'text-amber-700/80'}`}>
+                                                        Expense: {exp.description || 'General'}
+                                                    </span>
+                                                </div>
+                                            </td>
+                                            <td className="px-5 py-3 text-right font-black text-amber-500 text-xs">
+                                                - ₹{fmt(exp.amount)}
+                                            </td>
+                                            <td className="px-5 py-3 text-right"></td>
+                                        </tr>
+                                    ))}
+
+                                    {/* ── TOTAL Row ── */}
+                                    <tr className={`font-black ${isDark ? 'bg-blue-900/20' : 'bg-blue-50/80'} border-t-2 ${isDark ? 'border-blue-500/30' : 'border-blue-200'}`}>
+                                        <td className={`px-5 py-5 text-sm uppercase tracking-widest ${isDark ? 'text-blue-400' : 'text-blue-700'}`}>Net Total Collected</td>
+                                        <td className={`px-5 py-5 text-right text-xl ${isDark ? 'text-white' : 'text-slate-900'}`}>₹{fmt(modeBreakdown.total)}</td>
+                                        <td className="px-5 py-5 text-right"><span className="text-[10px] text-slate-400 uppercase tracking-tighter">100% Share</span></td>
                                     </tr>
                                 </tbody>
                             </table>
