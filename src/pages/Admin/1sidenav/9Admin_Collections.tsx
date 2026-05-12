@@ -16,28 +16,57 @@ const AdminCollections = ({ theme, orderLines }: Props) => {
         selectedOlId, setSelectedOlId,
         collections, loading,
         totals, modeBreakdown,
-        refresh, addExpense, expenses
+        refresh, addExpense, updateExpense, deleteExpense, expenses
     } = useCollections(orderLines);
 
     // Expense Modal State
     const [showExpModal, setShowExpModal] = useState(false);
+    const [editingExpId, setEditingExpId] = useState<number | null>(null);
     const [expAmount, setExpAmount] = useState('');
     const [expDesc, setExpDesc] = useState('');
     const [savingExp, setSavingExp] = useState(false);
 
-    const handleAddExpense = async () => {
+    const handleOpenAdd = () => {
+        setEditingExpId(null);
+        setExpAmount('');
+        setExpDesc('');
+        setShowExpModal(true);
+    };
+
+    const handleOpenEdit = (exp: any) => {
+        setEditingExpId(exp.id);
+        setExpAmount(String(exp.amount));
+        setExpDesc(exp.description);
+        setShowExpModal(true);
+    };
+
+    const handleSaveExpense = async () => {
         const amt = parseFloat(expAmount);
         if (isNaN(amt) || amt <= 0) return alert('Enter valid amount');
         setSavingExp(true);
         try {
-            await addExpense(amt, expDesc);
+            if (editingExpId) {
+                await updateExpense(editingExpId, amt, expDesc);
+            } else {
+                await addExpense(amt, expDesc);
+            }
             setShowExpModal(false);
             setExpAmount('');
             setExpDesc('');
+            setEditingExpId(null);
         } catch (err) {
-            alert('Failed to add expense');
+            alert('Failed to save expense');
         } finally {
             setSavingExp(false);
+        }
+    };
+
+    const handleDeleteExpense = async (id: number) => {
+        if (!window.confirm('Are you sure you want to delete this expense?')) return;
+        try {
+            await deleteExpense(id);
+        } catch (err) {
+            alert('Failed to delete expense');
         }
     };
 
@@ -141,8 +170,12 @@ const AdminCollections = ({ theme, orderLines }: Props) => {
                     <div className="absolute inset-0 bg-slate-950/80 backdrop-blur-sm" onClick={() => setShowExpModal(false)} />
                     <div className={`relative w-full max-w-md rounded-3xl border shadow-2xl overflow-hidden transition-all transform animate-in zoom-in-95 duration-200 ${isDark ? 'bg-slate-900 border-white/10' : 'bg-white border-slate-100'}`}>
                         <div className="p-6 border-b border-white/5 bg-gradient-to-r from-amber-500/10 to-transparent">
-                            <h3 className={`text-xl font-black tracking-tighter ${isDark ? 'text-white' : 'text-slate-900'}`}>🥪 RECORD EXPENSE</h3>
-                            <p className="text-xs font-bold text-slate-500 uppercase mt-1 tracking-widest">Deduct from today's cash collection</p>
+                            <h3 className={`text-xl font-black tracking-tighter ${isDark ? 'text-white' : 'text-slate-900'}`}>
+                                {editingExpId ? '✏️ EDIT EXPENSE' : '🥪 RECORD EXPENSE'}
+                            </h3>
+                            <p className="text-xs font-bold text-slate-500 uppercase mt-1 tracking-widest">
+                                {editingExpId ? 'Modify existing expense entry' : 'Deduct from today\'s cash collection'}
+                            </p>
                         </div>
                         <div className="p-6 space-y-4">
                             <div>
@@ -174,11 +207,11 @@ const AdminCollections = ({ theme, orderLines }: Props) => {
                                 Cancel
                             </button>
                             <button
-                                onClick={handleAddExpense}
+                                onClick={handleSaveExpense}
                                 disabled={savingExp}
                                 className={`flex-1 px-6 py-3 rounded-xl font-black text-xs uppercase tracking-widest transition-all bg-amber-600 text-white hover:bg-amber-500 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg shadow-amber-500/30`}
                             >
-                                {savingExp ? 'Saving...' : 'Add Expense'}
+                                {savingExp ? 'Saving...' : editingExpId ? 'Update Expense' : 'Add Expense'}
                             </button>
                         </div>
                     </div>
@@ -310,7 +343,7 @@ const AdminCollections = ({ theme, orderLines }: Props) => {
                                     💰 Collection Breakdown by Mode
                                 </h3>
                                 <button
-                                    onClick={() => setShowExpModal(true)}
+                                    onClick={handleOpenAdd}
                                     className={`px-5 py-2.5 rounded-xl text-xs font-black uppercase tracking-widest transition-all border shadow-lg ${isDark ? 'bg-amber-600 border-amber-500 text-white hover:bg-amber-500 shadow-amber-900/40' : 'bg-amber-500 border-amber-400 text-white hover:bg-amber-400 shadow-amber-200'}`}
                                 >
                                     💸 Add Expense
@@ -356,7 +389,7 @@ const AdminCollections = ({ theme, orderLines }: Props) => {
 
                                     {/* ── INDIVIDUAL EXPENSES ── */}
                                     {expenses.map((exp, eIdx) => (
-                                        <tr key={`exp-${exp.id || eIdx}`} className={`border-t border-dashed ${isDark ? 'border-white/5 bg-amber-950/10' : 'bg-amber-50/30 border-slate-100'}`}>
+                                        <tr key={`exp-${exp.id || eIdx}`} className={`border-t border-dashed group ${isDark ? 'border-white/5 bg-amber-950/10' : 'bg-amber-50/30 border-slate-100'}`}>
                                             <td className="px-5 py-3">
                                                 <div className="flex items-center gap-3 pl-4">
                                                     <span className="text-sm">🥪</span>
@@ -365,8 +398,26 @@ const AdminCollections = ({ theme, orderLines }: Props) => {
                                                     </span>
                                                 </div>
                                             </td>
-                                            <td className="px-5 py-3 text-right font-black text-amber-500 text-xs">
-                                                - ₹{fmt(exp.amount)}
+                                            <td className="px-5 py-3 text-right">
+                                                <div className="flex items-center justify-end gap-4">
+                                                    <span className="font-black text-amber-500 text-xs">- ₹{fmt(exp.amount)}</span>
+                                                    <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                                                        <button 
+                                                            onClick={() => handleOpenEdit(exp)}
+                                                            className="p-1 hover:bg-blue-500/20 rounded text-blue-400 transition-colors"
+                                                            title="Edit"
+                                                        >
+                                                            ✏️
+                                                        </button>
+                                                        <button 
+                                                            onClick={() => handleDeleteExpense(exp.id)}
+                                                            className="p-1 hover:bg-red-500/20 rounded text-red-400 transition-colors"
+                                                            title="Delete"
+                                                        >
+                                                            🗑️
+                                                        </button>
+                                                    </div>
+                                                </div>
                                             </td>
                                             <td className="px-5 py-3 text-right"></td>
                                         </tr>

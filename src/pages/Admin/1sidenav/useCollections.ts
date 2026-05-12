@@ -112,6 +112,26 @@ export const useCollections = (orderLines: OrderLine[]) => {
         }
     };
 
+    const updateExpense = async (id: number, amount: number, description: string) => {
+        try {
+            await api().put(`/api/collections/expenses/${id}`, { amount, description });
+            await fetchCollections();
+        } catch (err) {
+            console.error('Failed to update expense:', err);
+            throw err;
+        }
+    };
+
+    const deleteExpense = async (id: number) => {
+        try {
+            await api().delete(`/api/collections/expenses/${id}`);
+            await fetchCollections();
+        } catch (err) {
+            console.error('Failed to delete expense:', err);
+            throw err;
+        }
+    };
+
     // Computed totals for Table 1 TOTAL row
     const totals = useMemo(() => {
         return collections.reduce(
@@ -164,6 +184,8 @@ export const useCollections = (orderLines: OrderLine[]) => {
         totals,
         modeBreakdown,
         refresh: fetchCollections,
-        addExpense
+        addExpense,
+        updateExpense,
+        deleteExpense
     };
 };
