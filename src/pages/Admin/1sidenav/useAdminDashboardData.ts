@@ -36,11 +36,11 @@ export const useAdminDashboardData = () => {
     const [orderLines, setOrderLines] = useState<OrderLine[]>([]);
     const [showOlModal, setShowOlModal] = useState(false);
     const [editingOl, setEditingOl] = useState<OrderLine | null>(null);
-    const [olFormData, setOlFormData] = useState({ name: "", node_id: "" });
+    const [olFormData, setOlFormData] = useState({ name: "", node_id: "", area_name: "" });
 
     const { toasts, showToast, removeToast } = useToast();
 
-    const [bills, setBills] = useState<Array<{ id: number; shopName: string; villageName: string; cart: Record<string, number>; customRates?: Record<string, number>; date: string; deliveryDate?: string; invoiceNo: number }>>([]);
+    const [bills, setBills] = useState<Array<{ id: number; shopName: string; villageName: string; areaName?: string; specificArea?: string; cart: Record<string, number>; customRates?: Record<string, number>; date: string; deliveryDate?: string; invoiceNo: number }>>([]);
     const [unverifiedCount, setUnverifiedCount] = useState(0);
     const [billSelectedDate, setBillSelectedDate] = useState(() => {
         // Default to today's date in Indian Time
@@ -67,6 +67,8 @@ export const useAdminDashboardData = () => {
                 id: b.id,
                 shopName: b.shop_name || b.shopName,
                 villageName: b.village_name || b.villageName,
+                areaName: b.area_name || b.areaName || '',
+                specificArea: b.specific_area || b.specificArea || '',
                 cart: b.cart,
                 customRates: (() => {
                     const raw = b.custom_rates || b.customRates || {};
@@ -375,10 +377,10 @@ export const useAdminDashboardData = () => {
     const handleOpenOlModal = (ol: OrderLine | null = null) => {
         if (ol) {
             setEditingOl(ol);
-            setOlFormData({ name: ol.name, node_id: ol.node_id });
+            setOlFormData({ name: ol.name, node_id: ol.node_id, area_name: ol.area_name || ol.name });
         } else {
             setEditingOl(null);
-            setOlFormData({ name: "", node_id: "" });
+            setOlFormData({ name: "", node_id: "", area_name: "" });
         }
         setShowOlModal(true);
     };

@@ -145,7 +145,7 @@ export function generateLoadingSheet(bills: Bill[], dateStr: string, vehicleNo: 
         return {
             sno: i + 1,
             invoiceNo: bill.invoiceNo,
-            partyName: `${bill.shopName}-${bill.villageName}`.toUpperCase(),
+            partyName: `${bill.shopName}-${(bill.specificArea || bill.areaName || bill.villageName)}`.toUpperCase(),
             amount: total
         };
     });

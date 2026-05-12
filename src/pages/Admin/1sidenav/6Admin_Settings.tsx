@@ -41,6 +41,7 @@ const AdminSettings = ({
     const [manualVillage, setManualVillage] = useState('');
     const [manualShop, setManualShop] = useState('');
     const [manualPhone, setManualPhone] = useState('');
+    const [manualSpecificArea, setManualSpecificArea] = useState('');
     const [manualBillActive, setManualBillActive] = useState(false);
     // Local draft for invoice number — only synced to DB on explicit save
     const [draftInvoiceNo, setDraftInvoiceNo] = useState<string>(String(nextInvoiceNo));
@@ -115,6 +116,7 @@ const AdminSettings = ({
                 shopName={manualShop.trim()}
                 villageName={manualVillage.trim()}
                 phone={manualPhone.trim()}
+                specificArea={manualSpecificArea.trim()}
                 theme={theme}
                 handleRefreshInvoiceSettings={handleRefreshInvoiceSettings}
                 onBack={() => {
@@ -122,6 +124,7 @@ const AdminSettings = ({
                     setManualVillage('');
                     setManualShop('');
                     setManualPhone('');
+                    setManualSpecificArea('');
                     if (handleRefreshInvoiceSettings) handleRefreshInvoiceSettings();
                 }}
                 type="admin"
@@ -320,6 +323,11 @@ const AdminSettings = ({
                         <div className="space-y-1">
                             <label className={`text-[10px] font-black italic px-2 uppercase tracking-widest ${theme === 'dark' ? 'text-slate-400' : 'text-slate-500'}`}>Shop Name</label>
                             <input type="text" placeholder="e.g. General Traders" value={manualShop} onChange={e => setManualShop(e.target.value)}
+                                className={`w-full px-5 py-3 rounded-2xl font-bold text-sm border focus:outline-none focus:ring-2 transition-all ${theme === 'dark' ? 'bg-slate-800 border-white/10 text-white focus:border-pink-500' : 'bg-slate-50 border-slate-200 text-slate-900 focus:border-pink-500'}`} />
+                        </div>
+                        <div className="space-y-1">
+                            <label className={`text-[10px] font-black italic px-2 uppercase tracking-widest ${theme === 'dark' ? 'text-slate-400' : 'text-slate-500'}`}>Specific Area / Landmark (Optional)</label>
+                            <input type="text" placeholder="e.g. Near Bustand / Complex" value={manualSpecificArea} onChange={e => setManualSpecificArea(e.target.value)}
                                 className={`w-full px-5 py-3 rounded-2xl font-bold text-sm border focus:outline-none focus:ring-2 transition-all ${theme === 'dark' ? 'bg-slate-800 border-white/10 text-white focus:border-pink-500' : 'bg-slate-50 border-slate-200 text-slate-900 focus:border-pink-500'}`} />
                         </div>
                         <div className="space-y-1">

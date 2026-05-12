@@ -8,6 +8,8 @@ interface Bill {
     id: number;
     shopName: string;
     villageName: string;
+    areaName?: string;
+    specificArea?: string;
     cart: Record<string, number>;
     customRates?: Record<string, number>;
     date: string;
@@ -57,6 +59,8 @@ const BillCheck = ({ theme, type, userProfileName, onUnverifiedCountChange }: Pr
                 id: b.id,
                 shopName: b.shop_name || b.shopName,
                 villageName: b.village_name || b.villageName,
+                areaName: b.area_name || b.areaName || '',
+                specificArea: b.specific_area || b.specificArea || '',
                 cart: b.cart,
                 customRates: (() => {
                     const raw = b.custom_rates || b.customRates || {};

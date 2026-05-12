@@ -14,9 +14,10 @@ interface Props {
     phone?: string;
     phone2?: string;
     deliveryDate?: string;
+    specificArea?: string;
 }
 
-const Bills = ({ shopName, villageName, theme, invoiceNo, cart, customRates, onNewOrder, onEditOrder, type = 'admin', phone, phone2, deliveryDate }: Props) => {
+const Bills = ({ shopName, villageName, theme, invoiceNo, cart, customRates, onNewOrder, onEditOrder, type = 'admin', phone, phone2, deliveryDate, specificArea }: Props) => {
     const isDark = theme === 'dark';
     const printRef = useRef<HTMLDivElement>(null);
     const [scale, setScale] = React.useState(1);
@@ -36,6 +37,7 @@ const Bills = ({ shopName, villageName, theme, invoiceNo, cart, customRates, onN
         id: invoiceNo,
         shopName,
         villageName,
+        specificArea,
         cart,
         customRates,
         date: new Date().toISOString(),

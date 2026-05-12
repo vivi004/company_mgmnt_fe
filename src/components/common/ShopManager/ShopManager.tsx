@@ -406,6 +406,7 @@ const ShopManager = ({ orderLineId, villageName, theme, onBack, type, handleRefr
                 }}
                 type={type}
                 deliveryDate={new Date(deliveryDate + 'T00:00:00').toISOString()}
+                specificArea={selectedShop.owner_name}
             />
         );
     }
@@ -721,7 +722,7 @@ const ShopManager = ({ orderLineId, villageName, theme, onBack, type, handleRefr
                         <form onSubmit={handleSubmit} className="space-y-5">
                             {[
                                 { label: 'Shop Name', key: 'shop_name', type: 'text', required: true, placeholder: 'e.g. Annai Store' },
-                                { label: 'Area Name', key: 'owner_name', type: 'text', required: false, placeholder: 'e.g. Entrance' },
+                                { label: 'Landmark / Sub-Area', key: 'owner_name', type: 'text', required: false, placeholder: 'e.g. Entrance / Near Bazzar' },
                                 { label: 'Owner Name', key: 'shop_owner', type: 'text', required: false, placeholder: 'e.g. Ravi' },
                                 { label: 'Phone 1', key: 'phone', type: 'text', required: false, placeholder: 'e.g. 9876543210' },
                                 { label: 'Phone 2', key: 'phone2', type: 'text', required: false, placeholder: 'e.g. 9876543211' },

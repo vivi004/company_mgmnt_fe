@@ -4,6 +4,7 @@ import ShopManager from '../../../components/common/ShopManager/ShopManager';
 interface OrderLine {
     id: number;
     name: string;
+    area_name?: string;
     node_id: string;
     total_balance?: number | string;
     shop_count?: number;

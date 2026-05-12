@@ -5,6 +5,8 @@ export interface Bill {
     id: number;
     shopName: string;
     villageName: string;
+    areaName?: string;
+    specificArea?: string;
     cart: Record<string, number>;
     customRates?: Record<string, number>;
     date: string;
@@ -132,10 +134,10 @@ export const invoiceHTML = (bill: Bill, vehicleNo: string = '') => {
     <td colspan="2" style="${B}line-height:1.7;padding:5px 5px 8px;vertical-align:top;">
         <span style="font-size:9px;">Buyer (Bill to)</span><br>
         <b style="font-size:12px;">${bill.shopName.toUpperCase()}</b><br>
-        ${bill.villageName.toUpperCase()}<br>
+        ${(bill.specificArea || bill.areaName || bill.villageName).toUpperCase()}<br>
         ${bill.phone || bill.phone2 ? `Mobile No: ${bill.phone || bill.phone2}<br>` : ''}State Name&nbsp;&nbsp;&nbsp;&nbsp;: Tamil Nadu, Code : 33
     </td>
-    <td colspan="4" style="${B}font-size:10px;vertical-align:top;">Terms of Delivery<br><b style="font-size:12px;">IMMEDIATE</b></td>
+    <td colspan="4" style="${B}font-size:10px;vertical-align:top;">Terms of Delivery<br><b style="font-size:12px;">IMMEDIATE - COD/UPI</b></td>
 </tr>
 
 <!-- Column headers -->

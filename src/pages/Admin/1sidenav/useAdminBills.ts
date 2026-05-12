@@ -51,10 +51,14 @@ export const useAdminBills = (
 
     const groupedBills = filteredBills.reduce((acc, bill) => {
         const creator = bill.createdBy || 'Admin';
-        if (!acc[creator]) acc[creator] = [];
-        acc[creator].push(bill);
+        if (!acc[creator]) acc[creator] = {};
+        
+        const village = bill.villageName || 'General';
+        if (!acc[creator][village]) acc[creator][village] = [];
+        
+        acc[creator][village].push(bill);
         return acc;
-    }, {} as Record<string, Bill[]>);
+    }, {} as Record<string, Record<string, Bill[]>>);
 
     const getTotal = (cart: Record<string, number>, customRates?: Record<string, number>) =>
         getCartItems(cart, customRates).reduce((sum, item) => sum + (item.price * item.quantity), 0);

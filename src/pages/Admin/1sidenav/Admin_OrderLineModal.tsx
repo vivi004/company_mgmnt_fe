@@ -6,8 +6,8 @@ interface AdminOrderLineModalProps {
     onClose: () => void;
     onSubmit: (e: React.FormEvent) => void;
     editingOl: OrderLine | null;
-    olFormData: { name: string; node_id: string };
-    setOlFormData: React.Dispatch<React.SetStateAction<{ name: string; node_id: string }>>;
+    olFormData: { name: string; node_id: string; area_name: string };
+    setOlFormData: React.Dispatch<React.SetStateAction<{ name: string; node_id: string; area_name: string }>>;
     theme: string;
 }
 
@@ -40,6 +40,12 @@ const AdminOrderLineModal: React.FC<AdminOrderLineModalProps> = ({
                             <div className="space-y-3">
                                 <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-4">Village Name</label>
                                 <input required type="text" placeholder="Enter Sector Name (e.g. Sathyamanglam)" className={`w-full rounded-[25px] px-8 py-5 border transition-all font-black text-sm focus:outline-none focus:ring-4 ${theme === 'dark' ? 'bg-slate-800 border-white/10 text-white focus:ring-emerald-500/20 focus:border-emerald-500' : 'bg-slate-50 border-slate-100 text-slate-900 focus:ring-emerald-600/10 focus:border-emerald-600'}`} value={olFormData.name} onChange={e => setOlFormData({ ...olFormData, name: e.target.value })} />
+                            </div>
+
+                            <div className="space-y-3">
+                                <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-4">Area Name <span className="text-emerald-500">(Shown on Bills & Loading Sheet)</span></label>
+                                <input type="text" placeholder="Enter Area Name (e.g. KOVAI PERIVU)" className={`w-full rounded-[25px] px-8 py-5 border transition-all font-black text-sm focus:outline-none focus:ring-4 ${theme === 'dark' ? 'bg-slate-800 border-white/10 text-white focus:ring-emerald-500/20 focus:border-emerald-500' : 'bg-slate-50 border-slate-100 text-slate-900 focus:ring-emerald-600/10 focus:border-emerald-600'}`} value={olFormData.area_name} onChange={e => setOlFormData({ ...olFormData, area_name: e.target.value })} />
+                                <p className="text-[9px] font-bold text-slate-400 ml-4 uppercase tracking-wider">This area name will be displayed on invoices and loading sheets instead of the village name</p>
                             </div>
 
                             <div className="space-y-3">

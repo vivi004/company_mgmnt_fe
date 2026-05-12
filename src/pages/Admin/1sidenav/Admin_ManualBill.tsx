@@ -11,13 +11,14 @@ interface AdminManualBillProps {
     shopName: string;
     villageName: string;
     phone?: string;
+    specificArea?: string;
     theme: string;
     onBack: () => void;
     type: 'admin' | 'staff';
     handleRefreshInvoiceSettings?: () => Promise<void>;
 }
 
-const Admin_ManualBill: React.FC<AdminManualBillProps> = ({ shopName, villageName, phone, theme, onBack, type, handleRefreshInvoiceSettings }) => {
+const Admin_ManualBill: React.FC<AdminManualBillProps> = ({ shopName, villageName, phone, specificArea, theme, onBack, type, handleRefreshInvoiceSettings }) => {
     const isAdmin = type === 'admin';
     const { toasts, showToast, removeToast } = useToast();
     
@@ -66,6 +67,7 @@ const Admin_ManualBill: React.FC<AdminManualBillProps> = ({ shopName, villageNam
                 <Bills
                     shopName={shopName}
                     villageName={villageName}
+                    specificArea={specificArea}
                     theme={theme}
                     invoiceNo={invoiceNo}
                     cart={cart}

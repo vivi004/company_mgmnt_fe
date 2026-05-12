@@ -26,6 +26,7 @@ export interface ProfileRequest {
 export interface OrderLine {
     id: number;
     name: string;
+    area_name?: string;
     node_id: string;
     created_at?: string;
 }
