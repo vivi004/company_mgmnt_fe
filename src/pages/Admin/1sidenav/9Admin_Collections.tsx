@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useCollections } from './useCollections';
 import type { OrderLine } from '../../../types/DashboardTypes';
 
@@ -16,8 +16,30 @@ const AdminCollections = ({ theme, orderLines }: Props) => {
         selectedOlId, setSelectedOlId,
         collections, loading,
         totals, modeBreakdown,
-        refresh,
+        refresh, addExpense
     } = useCollections(orderLines);
+
+    // Expense Modal State
+    const [showExpModal, setShowExpModal] = useState(false);
+    const [expAmount, setExpAmount] = useState('');
+    const [expDesc, setExpDesc] = useState('');
+    const [savingExp, setSavingExp] = useState(false);
+
+    const handleAddExpense = async () => {
+        const amt = parseFloat(expAmount);
+        if (isNaN(amt) || amt <= 0) return alert('Enter valid amount');
+        setSavingExp(true);
+        try {
+            await addExpense(amt, expDesc);
+            setShowExpModal(false);
+            setExpAmount('');
+            setExpDesc('');
+        } catch (err) {
+            alert('Failed to add expense');
+        } finally {
+            setSavingExp(false);
+        }
+    };
 
     // Mode badge renderer for a single row
     const renderModeBadges = (cash: number, upi: number, cheque: number) => {
@@ -112,6 +134,56 @@ const AdminCollections = ({ theme, orderLines }: Props) => {
                     </div>
                 ))}
             </div>
+
+            {/* ── Expense Modal ── */}
+            {showExpModal && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+                    <div className="absolute inset-0 bg-slate-950/80 backdrop-blur-sm" onClick={() => setShowExpModal(false)} />
+                    <div className={`relative w-full max-w-md rounded-3xl border shadow-2xl overflow-hidden transition-all transform animate-in zoom-in-95 duration-200 ${isDark ? 'bg-slate-900 border-white/10' : 'bg-white border-slate-100'}`}>
+                        <div className="p-6 border-b border-white/5 bg-gradient-to-r from-amber-500/10 to-transparent">
+                            <h3 className={`text-xl font-black tracking-tighter ${isDark ? 'text-white' : 'text-slate-900'}`}>🥪 RECORD EXPENSE</h3>
+                            <p className="text-xs font-bold text-slate-500 uppercase mt-1 tracking-widest">Deduct from today's cash collection</p>
+                        </div>
+                        <div className="p-6 space-y-4">
+                            <div>
+                                <label className="block text-[10px] font-black uppercase tracking-widest text-slate-500 mb-1.5">Amount (₹)</label>
+                                <input
+                                    type="number"
+                                    value={expAmount}
+                                    onChange={(e) => setExpAmount(e.target.value)}
+                                    placeholder="0.00"
+                                    className={`w-full px-4 py-3 rounded-xl border font-black text-lg focus:ring-2 outline-none transition-all ${isDark ? 'bg-slate-800 border-white/5 text-white focus:ring-amber-500/50' : 'bg-slate-50 border-slate-200 text-slate-900 focus:ring-amber-500/20'}`}
+                                />
+                            </div>
+                            <div>
+                                <label className="block text-[10px] font-black uppercase tracking-widest text-slate-500 mb-1.5">Description</label>
+                                <input
+                                    type="text"
+                                    value={expDesc}
+                                    onChange={(e) => setExpDesc(e.target.value)}
+                                    placeholder="e.g. Tea Cost, Fuel, etc."
+                                    className={`w-full px-4 py-3 rounded-xl border font-bold text-sm focus:ring-2 outline-none transition-all ${isDark ? 'bg-slate-800 border-white/5 text-white focus:ring-blue-500/50' : 'bg-slate-50 border-slate-200 text-slate-900 focus:ring-blue-500/20'}`}
+                                />
+                            </div>
+                        </div>
+                        <div className="p-6 flex gap-3">
+                            <button
+                                onClick={() => setShowExpModal(false)}
+                                className={`flex-1 px-6 py-3 rounded-xl font-black text-xs uppercase tracking-widest transition-all ${isDark ? 'bg-slate-800 text-slate-400 hover:text-white hover:bg-slate-700' : 'bg-slate-100 text-slate-500 hover:bg-slate-200 hover:text-slate-700'}`}
+                            >
+                                Cancel
+                            </button>
+                            <button
+                                onClick={handleAddExpense}
+                                disabled={savingExp}
+                                className={`flex-1 px-6 py-3 rounded-xl font-black text-xs uppercase tracking-widest transition-all bg-amber-600 text-white hover:bg-amber-500 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg shadow-amber-500/30`}
+                            >
+                                {savingExp ? 'Saving...' : 'Add Expense'}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
 
             {/* ── Loading State ── */}
             {loading ? (
@@ -233,10 +305,16 @@ const AdminCollections = ({ theme, orderLines }: Props) => {
                     {/* ═══════ TABLE 2: Payment Mode Breakdown ═══════ */}
                     {modeBreakdown.total > 0 && (
                         <div className={`rounded-2xl border overflow-hidden ${isDark ? 'bg-slate-900/50 border-white/5' : 'bg-white border-slate-100 shadow-sm'}`}>
-                            <div className={`px-5 py-4 border-b ${isDark ? 'border-white/5' : 'border-slate-100'}`}>
+                            <div className={`px-5 py-4 border-b flex items-center justify-between ${isDark ? 'border-white/5' : 'border-slate-100'}`}>
                                 <h3 className={`text-sm font-black uppercase tracking-widest ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
                                     💰 Collection Breakdown by Mode
                                 </h3>
+                                <button
+                                    onClick={() => setShowExpModal(true)}
+                                    className={`px-3 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-wider transition-all border ${isDark ? 'bg-amber-900/20 border-amber-500/30 text-amber-400 hover:bg-amber-900/40' : 'bg-amber-50 border-amber-200 text-amber-700 hover:bg-amber-100'}`}
+                                >
+                                    💸 Add Expense
+                                </button>
                             </div>
                             <table className="w-full text-sm">
                                 <thead>
@@ -248,19 +326,32 @@ const AdminCollections = ({ theme, orderLines }: Props) => {
                                 </thead>
                                 <tbody>
                                     {[
-                                        { icon: '💵', label: 'Cash', amount: modeBreakdown.cash, percent: modeBreakdown.cashPercent, color: 'green' },
+                                        { icon: '💵', label: 'Cash', amount: modeBreakdown.netCash, raw: modeBreakdown.rawCash, percent: modeBreakdown.cashPercent, color: 'green', isNet: true },
                                         { icon: '📱', label: 'UPI', amount: modeBreakdown.upi, percent: modeBreakdown.upiPercent, color: 'blue' },
                                         { icon: '📝', label: 'Cheque', amount: modeBreakdown.cheque, percent: modeBreakdown.chequePercent, color: 'amber' },
+                                        { icon: '🥪', label: 'Expenses', amount: modeBreakdown.totalExpenses, isExpense: true },
                                     ].map(mode => (
-                                        <tr key={mode.label} className={`border-t transition-colors ${isDark ? 'border-white/5 hover:bg-slate-800/30' : 'border-slate-50 hover:bg-slate-50/50'}`}>
+                                        <tr key={mode.label} className={`border-t transition-colors ${isDark ? 'border-white/5 hover:bg-slate-800/30' : 'border-slate-50 hover:bg-slate-50/50'} ${mode.isExpense && modeBreakdown.totalExpenses > 0 ? (isDark ? 'bg-amber-900/10' : 'bg-amber-50') : ''}`}>
                                             <td className={`px-5 py-3.5 font-bold ${isDark ? 'text-white' : 'text-slate-900'}`}>
-                                                <span className="mr-2">{mode.icon}</span>{mode.label}
+                                                <div className="flex items-center gap-3">
+                                                    <span className="text-xl">{mode.icon}</span>
+                                                    <span className="uppercase tracking-widest text-[11px]">{mode.label}</span>
+                                                </div>
                                             </td>
-                                            <td className={`px-5 py-3.5 text-right font-black ${mode.amount > 0 ? `text-${mode.color}-500` : isDark ? 'text-slate-500' : 'text-slate-400'}`}>
-                                                ₹{fmt(mode.amount)}
+                                            <td className="px-5 py-3.5 text-right font-black">
+                                                {mode.isNet && modeBreakdown.totalExpenses > 0 ? (
+                                                    <div className="flex flex-col items-end">
+                                                        <span className={isDark ? 'text-white' : 'text-slate-900'}>₹{fmt(mode.amount)}</span>
+                                                        <span className="text-[10px] text-slate-500">(₹{fmt(mode.raw || 0)} - ₹{fmt(modeBreakdown.totalExpenses)})</span>
+                                                    </div>
+                                                ) : (
+                                                    <span className={mode.isExpense ? 'text-amber-500' : isDark ? 'text-white' : 'text-slate-900'}>
+                                                        {mode.isExpense ? `- ₹${fmt(mode.amount)}` : `₹${fmt(mode.amount)}`}
+                                                    </span>
+                                                )}
                                             </td>
-                                            <td className={`px-5 py-3.5 text-right font-bold ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
-                                                {mode.percent}%
+                                            <td className="px-5 py-3.5 text-right font-black text-slate-400">
+                                                {mode.percent ? `${mode.percent}%` : '—'}
                                             </td>
                                         </tr>
                                     ))}

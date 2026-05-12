@@ -21,6 +21,14 @@ export interface DailyCollection {
     total_balance: number;
 }
 
+export interface Expense {
+    id: number;
+    order_line_id: number;
+    amount: number;
+    description: string;
+    expense_date: string;
+}
+
 export const useCollections = (orderLines: OrderLine[]) => {
     const [selectedDate, setSelectedDate] = useState(() => {
         const now = new Date();
@@ -29,6 +37,7 @@ export const useCollections = (orderLines: OrderLine[]) => {
     });
     const [selectedOlId, setSelectedOlId] = useState<number | null>(null);
     const [collections, setCollections] = useState<DailyCollection[]>([]);
+    const [expenses, setExpenses] = useState<Expense[]>([]);
     const [loading, setLoading] = useState(false);
 
     const api = () => getAuthAxios();
@@ -53,8 +62,12 @@ export const useCollections = (orderLines: OrderLine[]) => {
             const res = await api().get(
                 `/api/collections/by-orderline/${selectedOlId}?date=${selectedDate}`
             );
+            
+            const rawCollections = res.data.collections || [];
+            const rawExpenses = res.data.expenses || [];
+
             // Parse numeric fields (they may come as strings from MySQL)
-            const parsed: DailyCollection[] = res.data.map((row: any) => ({
+            const parsed: DailyCollection[] = rawCollections.map((row: any) => ({
                 ...row,
                 todays_bill_amount: parseFloat(row.todays_bill_amount) || 0,
                 cash_collected: parseFloat(row.cash_collected) || 0,
@@ -66,12 +79,36 @@ export const useCollections = (orderLines: OrderLine[]) => {
                 old_balance: parseFloat(row.old_balance) || 0,
                 total_balance: parseFloat(row.total_balance) || 0,
             }));
+
+            const parsedExpenses: Expense[] = rawExpenses.map((ex: any) => ({
+                ...ex,
+                amount: parseFloat(ex.amount) || 0
+            }));
+
             setCollections(parsed);
+            setExpenses(parsedExpenses);
         } catch (err) {
             console.error('Failed to fetch collections:', err);
             setCollections([]);
+            setExpenses([]);
         } finally {
             setLoading(false);
+        }
+    };
+
+    const addExpense = async (amount: number, description: string) => {
+        if (!selectedOlId || !selectedDate) return;
+        try {
+            await api().post('/api/collections/expenses', {
+                order_line_id: selectedOlId,
+                amount,
+                description,
+                date: selectedDate
+            });
+            await fetchCollections();
+        } catch (err) {
+            console.error('Failed to add expense:', err);
+            throw err;
         }
     };
 
@@ -95,20 +132,26 @@ export const useCollections = (orderLines: OrderLine[]) => {
 
     // Computed mode breakdown for Table 2
     const modeBreakdown = useMemo(() => {
-        const cash = collections.reduce((sum, r) => sum + r.cash_collected, 0);
+        const rawCash = collections.reduce((sum, r) => sum + r.cash_collected, 0);
         const upi = collections.reduce((sum, r) => sum + r.upi_collected, 0);
         const cheque = collections.reduce((sum, r) => sum + r.cheque_collected, 0);
-        const total = cash + upi + cheque;
+        const totalExpenses = expenses.reduce((sum, e) => sum + e.amount, 0);
+        
+        const netCash = rawCash - totalExpenses;
+        const total = netCash + upi + cheque;
+
         return {
-            cash,
+            rawCash,
+            netCash,
+            totalExpenses,
             upi,
             cheque,
             total,
-            cashPercent: total > 0 ? ((cash / total) * 100).toFixed(1) : '0.0',
+            cashPercent: total > 0 ? ((netCash / total) * 100).toFixed(1) : '0.0',
             upiPercent: total > 0 ? ((upi / total) * 100).toFixed(1) : '0.0',
             chequePercent: total > 0 ? ((cheque / total) * 100).toFixed(1) : '0.0',
         };
-    }, [collections]);
+    }, [collections, expenses]);
 
     return {
         selectedDate,
@@ -116,9 +159,11 @@ export const useCollections = (orderLines: OrderLine[]) => {
         selectedOlId,
         setSelectedOlId,
         collections,
+        expenses,
         loading,
         totals,
         modeBreakdown,
         refresh: fetchCollections,
+        addExpense
     };
 };
