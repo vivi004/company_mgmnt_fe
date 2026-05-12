@@ -41,6 +41,7 @@ export const useAdminDashboardData = () => {
     const { toasts, showToast, removeToast } = useToast();
 
     const [bills, setBills] = useState<Array<{ id: number; shopName: string; villageName: string; areaName?: string; specificArea?: string; cart: Record<string, number>; customRates?: Record<string, number>; date: string; deliveryDate?: string; invoiceNo: number }>>([]);
+    const [motorVehicles, setMotorVehicles] = useState<any[]>([]);
     const [unverifiedCount, setUnverifiedCount] = useState(0);
     const [billSelectedDate, setBillSelectedDate] = useState(() => {
         // Default to today's date in Indian Time
@@ -251,6 +252,11 @@ export const useAdminDashboardData = () => {
         loadBills();
         fetchInvoiceSettings();
         
+        // Load vehicles globally once
+        api().get('/api/settings/vehicles')
+            .then(res => setMotorVehicles(res.data))
+            .catch(err => console.error('Failed to load vehicles', err));
+        
         // Refresh product rates from server
         import('../../../constants/productData').then(m => m.fetchAndCacheRatesFromServer());
     }, []);
@@ -263,7 +269,11 @@ export const useAdminDashboardData = () => {
     }, [companyName, theme, nextInvoiceNo, ledgerSheetUrl]);
 
     useEffect(() => {
-        if (activeTab === 'bills' || activeTab === 'bill-check') loadBills();
+        if (activeTab === 'bills' || activeTab === 'bill-check') {
+            // Only re-load if we don't have bills or if it's been a while (optional)
+            // For now, let's just make it more resilient
+            loadBills();
+        }
     }, [activeTab]);
 
     const askConfirm = (message: string, onConfirm: () => void, confirmText: string = "Confirm Delete", confirmColor: string = "bg-red-600") => {
@@ -473,7 +483,8 @@ export const useAdminDashboardData = () => {
             userProfile, profilePic,
             ledgerSheetUrl,
             billSelectedDate,
-            filteredBillCount
+            filteredBillCount,
+            motorVehicles
         },
         actions: {
             setActiveTab, setConfirmModal, setIsMobileMenuOpen, setCompanyName,

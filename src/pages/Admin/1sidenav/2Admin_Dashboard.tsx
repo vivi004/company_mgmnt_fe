@@ -62,7 +62,7 @@ const AdminDashboard = () => {
                 </div>
             </Drawer>
 
-            <div className={`flex-grow flex flex-col min-w-0 overflow-hidden relative transition-colors duration-500 ${state.theme === 'dark' ? 'bg-slate-950' : 'bg-slate-50'}`}>
+            <div className={`flex-grow flex flex-col min-w-0 overflow-hidden relative ${state.theme === 'dark' ? 'bg-slate-950' : 'bg-slate-50'}`}>
                 {/* Mobile hamburger menu button */}
                 <div className="lg:hidden fixed top-3 left-3 z-50">
                     <IconButton
@@ -132,6 +132,7 @@ const AdminDashboard = () => {
                                 onEditBill={actions.handleEditBill}
                                 selectedDate={state.billSelectedDate}
                                 setSelectedDate={actions.setBillSelectedDate}
+                                motorVehicles={state.motorVehicles}
                             />
                         )}
                         {state.activeTab === 'bill-check' && (

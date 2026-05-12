@@ -26,6 +26,7 @@ export const useAdminBills = (
     const [editRates, setEditRates] = useState<Record<string, number>>({});
     const [editDeliveryDate, setEditDeliveryDate] = useState<string>('');
     const [searchQuery, setSearchQuery] = useState('');
+    const [listSearchQuery, setListSearchQuery] = useState('');
     const [selectedCategory, setSelectedCategory] = useState('All');
 
     // Close calendar when clicking outside
@@ -39,15 +40,26 @@ export const useAdminBills = (
         return () => document.removeEventListener('mousedown', handleClickOutside);
     }, []);
 
-    const filteredBills = selectedDate
-        ? bills.filter(b => {
-             // Use deliveryDate if available, otherwise fallback to created date
-             const targetDate = b.deliveryDate || b.date || '';
-             // Robust parsing for local MySQL dates
-             const localDateStr = targetDate.includes('T') ? targetDate.split('T')[0] : targetDate.split(' ')[0];
-             return localDateStr === selectedDate;
-          })
-        : bills;
+    const filteredBills = bills.filter(b => {
+        // 1. Date Filter
+        if (selectedDate) {
+            const targetDate = b.deliveryDate || b.date || '';
+            const localDateStr = targetDate.includes('T') ? targetDate.split('T')[0] : targetDate.split(' ')[0];
+            if (localDateStr !== selectedDate) return false;
+        }
+
+        // 2. Search Filter
+        if (listSearchQuery.trim()) {
+            const query = listSearchQuery.toLowerCase().trim();
+            const shopMatch = b.shopName?.toLowerCase().includes(query);
+            const villageMatch = b.villageName?.toLowerCase().includes(query);
+            const invMatch = b.invoiceNo?.toString().includes(query);
+            const areaMatch = b.specificArea?.toLowerCase().includes(query);
+            if (!shopMatch && !villageMatch && !invMatch && !areaMatch) return false;
+        }
+
+        return true;
+    });
 
     const groupedBills = filteredBills.reduce((acc, bill) => {
         const creator = bill.createdBy || 'Admin';
@@ -158,13 +170,13 @@ export const useAdminBills = (
     return {
         state: {
             selectedDate, isCalendarOpen, currentCalDate, editingBill,
-            editCart, editRates, searchQuery, selectedCategory,
+            editCart, editRates, searchQuery, listSearchQuery, selectedCategory,
             minDate, maxDate, todayStr, filteredBills, groupedBills,
             editDeliveryDate
         },
         actions: {
             setSelectedDate, setIsCalendarOpen, setEditingBill,
-            setEditCart, setEditRates, setSearchQuery, setSelectedCategory,
+            setEditCart, setEditRates, setSearchQuery, setListSearchQuery, setSelectedCategory,
             setEditDeliveryDate,
             openEditModal, handleSaveEdit, handlePrevMonth, handleNextMonth, handleDateSelect
         },

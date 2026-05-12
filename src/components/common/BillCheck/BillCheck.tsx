@@ -40,11 +40,24 @@ const BillCheck = ({ theme, type, userProfileName, onUnverifiedCountChange }: Pr
     const [editRates, setEditRates] = useState<Record<string, number>>({});
     const [editDeliveryDate, setEditDeliveryDate] = useState<string>('');
     const [searchQuery, setSearchQuery] = useState('');
+    const [listSearchQuery, setListSearchQuery] = useState('');
     const [selectedCategory, setSelectedCategory] = useState('All');
 
     useEffect(() => {
         loadUnverifiedBills();
     }, [userProfileName, type]);
+
+    const filteredUnverified = unverifiedBills.filter(b => {
+        if (!listSearchQuery.trim()) return true;
+        const query = listSearchQuery.toLowerCase().trim();
+        return (
+            b.shopName.toLowerCase().includes(query) ||
+            b.villageName.toLowerCase().includes(query) ||
+            b.invoiceNo.toString().includes(query) ||
+            (b.createdBy || '').toLowerCase().includes(query) ||
+            (b.specificArea || '').toLowerCase().includes(query)
+        );
+    });
 
     const loadUnverifiedBills = async () => {
         try {
@@ -229,7 +242,7 @@ const BillCheck = ({ theme, type, userProfileName, onUnverifiedCountChange }: Pr
         }
     };
 
-    const groupedBills = unverifiedBills.reduce((acc, bill) => {
+    const groupedBills = filteredUnverified.reduce((acc, bill) => {
         const creator = bill.createdBy || 'Admin';
         if (!acc[creator]) acc[creator] = [];
         acc[creator].push(bill);
@@ -248,9 +261,28 @@ const BillCheck = ({ theme, type, userProfileName, onUnverifiedCountChange }: Pr
                     </p>
                 </div>
                 <div className="flex items-center gap-3 flex-wrap">
+                    {/* Search Bar */}
+                    <div className="relative group w-full sm:w-64">
+                        <div className={`absolute left-4 top-1/2 -translate-y-1/2 transition-colors ${isDark ? 'text-slate-500 group-focus-within:text-blue-400' : 'text-slate-400 group-focus-within:text-blue-600'}`}>
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                            </svg>
+                        </div>
+                        <input
+                            type="text"
+                            placeholder="Search pending..."
+                            value={listSearchQuery}
+                            onChange={(e) => setListSearchQuery(e.target.value)}
+                            className={`w-full pl-10 pr-4 py-2.5 rounded-2xl text-[11px] font-black uppercase tracking-widest transition-all border outline-none
+                                ${isDark 
+                                    ? 'bg-slate-900 border-white/10 text-white focus:border-blue-500/50' 
+                                    : 'bg-white border-slate-200 text-slate-900 shadow-sm focus:border-blue-500/50'}`}
+                        />
+                    </div>
+
                     <div className={`px-3 sm:px-4 py-2 rounded-2xl text-[10px] sm:text-xs font-black uppercase tracking-widest border
                         ${isDark ? 'bg-amber-500/10 text-amber-400 border-amber-500/20' : 'bg-amber-50 text-amber-600 border-amber-100'}`}>
-                        {unverifiedBills.length} {isAdmin ? 'Pending' : 'In Queue'}
+                        {filteredUnverified.length} {isAdmin ? 'Pending' : 'In Queue'}
                     </div>
                     {unverifiedBills.length > 0 && (
                         <button
