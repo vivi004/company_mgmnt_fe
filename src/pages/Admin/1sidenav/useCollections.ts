@@ -86,11 +86,10 @@ export const useCollections = (orderLines: OrderLine[]) => {
                     todaysBillBalance: row.todays_bill_amount > 0 ? (acc.todaysBillBalance + Math.max(0, row.todays_bill_amount - rowCollected)) : acc.todaysBillBalance,
                     totalManualAdjust: acc.totalManualAdjust + row.manual_adjustments,
                     totalFutureBills: acc.totalFutureBills + row.future_bills,
-                    totalPastBills: acc.totalPastBills + row.past_bills,
                     totalBalance: acc.totalBalance + row.total_balance,
                 };
             },
-            { amountCollected: 0, todaysBillAmount: 0, todaysBillBalance: 0, totalManualAdjust: 0, totalFutureBills: 0, totalPastBills: 0, totalBalance: 0 }
+            { amountCollected: 0, todaysBillAmount: 0, todaysBillBalance: 0, totalManualAdjust: 0, totalFutureBills: 0, totalBalance: 0 }
         );
     }, [collections]);
 
