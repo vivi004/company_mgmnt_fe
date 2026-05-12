@@ -91,10 +91,11 @@ const AdminCollections = ({ theme, orderLines }: Props) => {
             </div>
 
             {/* ── Summary Cards ── */}
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4 mb-6">
+            <div className="grid grid-cols-2 sm:grid-cols-5 gap-3 sm:gap-4 mb-6">
                 {[
                     { label: 'Billed Today', value: `₹${fmt(totals.todaysBillAmount)}`, icon: '🧾', color: 'blue' },
                     { label: 'Collected', value: `₹${fmt(totals.amountCollected)}`, icon: '💰', color: 'green' },
+                    { label: 'Adjustments', value: `₹${fmt(totals.totalAdjustments)}`, icon: '⚙️', color: totals.totalAdjustments === 0 ? 'slate' : totals.totalAdjustments > 0 ? 'blue' : 'amber' },
                     { label: 'Pending', value: `₹${fmt(totals.todaysBillBalance)}`, icon: '⏳', color: totals.todaysBillBalance > 0 ? 'amber' : 'green' },
                     { label: 'Shops', value: String(collections.length), icon: '🏪', color: 'purple' },
                 ].map((card) => (
@@ -140,11 +141,12 @@ const AdminCollections = ({ theme, orderLines }: Props) => {
                                     <tr className={`text-[10px] font-black uppercase tracking-widest ${isDark ? 'bg-slate-800/50 text-slate-400' : 'bg-slate-50 text-slate-500'}`}>
                                         <th className="text-left px-5 py-3">#</th>
                                         <th className="text-left px-5 py-3">Shop Name</th>
-                                        <th className="text-right px-5 py-3">Amount Collected</th>
+                                        <th className="text-right px-5 py-3">Collected</th>
                                         <th className="text-left px-5 py-3">Mode</th>
+                                        <th className="text-right px-5 py-3">Adjust</th>
                                         <th className="text-right px-5 py-3">Today's Bill</th>
-                                        <th className="text-right px-5 py-3">Bill Balance</th>
-                                        <th className="text-right px-5 py-3">Total Balance</th>
+                                        <th className="text-right px-5 py-3">Bill Bal</th>
+                                        <th className="text-right px-5 py-3">Total Bal</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -159,6 +161,9 @@ const AdminCollections = ({ theme, orderLines }: Props) => {
                                                     ₹{fmt(collected)}
                                                 </td>
                                                 <td className="px-5 py-3.5">{renderModeBadges(row.cash_collected, row.upi_collected, row.cheque_collected)}</td>
+                                                <td className={`px-5 py-3.5 text-right font-bold ${row.adjustments !== 0 ? (row.adjustments > 0 ? 'text-blue-500' : 'text-amber-500') : isDark ? 'text-slate-600' : 'text-slate-300'}`}>
+                                                    {row.adjustments !== 0 ? `₹${fmt(row.adjustments)}` : '—'}
+                                                </td>
                                                 <td className={`px-5 py-3.5 text-right font-bold ${isDark ? 'text-white' : 'text-slate-900'}`}>₹{fmt(row.todays_bill_amount)}</td>
                                                 <td className={`px-5 py-3.5 text-right font-bold ${billBalance > 0 ? 'text-amber-500' : billBalance < 0 ? 'text-green-500' : isDark ? 'text-slate-400' : 'text-slate-500'}`}>
                                                     ₹{fmt(billBalance)}
@@ -177,6 +182,9 @@ const AdminCollections = ({ theme, orderLines }: Props) => {
                                             ₹{fmt(totals.amountCollected)}
                                         </td>
                                         <td className="px-5 py-4"></td>
+                                        <td className={`px-5 py-4 text-right text-base ${totals.totalAdjustments !== 0 ? 'text-blue-400' : isDark ? 'text-slate-600' : 'text-slate-400'}`}>
+                                            ₹{fmt(totals.totalAdjustments)}
+                                        </td>
                                         <td className={`px-5 py-4 text-right text-base ${isDark ? 'text-white' : 'text-slate-900'}`}>₹{fmt(totals.todaysBillAmount)}</td>
                                         <td className={`px-5 py-4 text-right text-base ${totals.todaysBillBalance > 0 ? 'text-amber-500' : 'text-green-500'}`}>₹{fmt(totals.todaysBillBalance)}</td>
                                         <td className={`px-5 py-4 text-right text-base ${totals.totalBalance > 0 ? 'text-red-500' : 'text-green-500'}`}>₹{fmt(totals.totalBalance)}</td>
