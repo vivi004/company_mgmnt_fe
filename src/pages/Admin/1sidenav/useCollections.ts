@@ -14,7 +14,9 @@ export interface DailyCollection {
     cash_collected: number;
     upi_collected: number;
     cheque_collected: number;
-    adjustments: number;
+    manual_adjustments: number;
+    future_bills: number;
+    past_bills: number;
     old_balance: number;
     total_balance: number;
 }
@@ -58,7 +60,9 @@ export const useCollections = (orderLines: OrderLine[]) => {
                 cash_collected: parseFloat(row.cash_collected) || 0,
                 upi_collected: parseFloat(row.upi_collected) || 0,
                 cheque_collected: parseFloat(row.cheque_collected) || 0,
-                adjustments: parseFloat(row.adjustments) || 0,
+                manual_adjustments: parseFloat(row.manual_adjustments) || 0,
+                future_bills: parseFloat(row.future_bills) || 0,
+                past_bills: parseFloat(row.past_bills) || 0,
                 old_balance: parseFloat(row.old_balance) || 0,
                 total_balance: parseFloat(row.total_balance) || 0,
             }));
@@ -80,11 +84,13 @@ export const useCollections = (orderLines: OrderLine[]) => {
                     amountCollected: acc.amountCollected + rowCollected,
                     todaysBillAmount: acc.todaysBillAmount + row.todays_bill_amount,
                     todaysBillBalance: row.todays_bill_amount > 0 ? (acc.todaysBillBalance + Math.max(0, row.todays_bill_amount - rowCollected)) : acc.todaysBillBalance,
-                    totalAdjustments: acc.totalAdjustments + row.adjustments,
+                    totalManualAdjust: acc.totalManualAdjust + row.manual_adjustments,
+                    totalFutureBills: acc.totalFutureBills + row.future_bills,
+                    totalPastBills: acc.totalPastBills + row.past_bills,
                     totalBalance: acc.totalBalance + row.total_balance,
                 };
             },
-            { amountCollected: 0, todaysBillAmount: 0, todaysBillBalance: 0, totalAdjustments: 0, totalBalance: 0 }
+            { amountCollected: 0, todaysBillAmount: 0, todaysBillBalance: 0, totalManualAdjust: 0, totalFutureBills: 0, totalPastBills: 0, totalBalance: 0 }
         );
     }, [collections]);
 

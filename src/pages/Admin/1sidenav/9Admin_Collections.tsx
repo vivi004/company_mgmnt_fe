@@ -91,11 +91,12 @@ const AdminCollections = ({ theme, orderLines }: Props) => {
             </div>
 
             {/* ── Summary Cards ── */}
-            <div className="grid grid-cols-2 sm:grid-cols-5 gap-3 sm:gap-4 mb-6">
+            <div className="grid grid-cols-2 sm:grid-cols-6 gap-3 sm:gap-4 mb-6">
                 {[
                     { label: 'Billed Today', value: `₹${fmt(totals.todaysBillAmount)}`, icon: '🧾', color: 'blue' },
                     { label: 'Collected', value: `₹${fmt(totals.amountCollected)}`, icon: '💰', color: 'green' },
-                    { label: 'Adjustments', value: `₹${fmt(totals.totalAdjustments)}`, icon: '⚙️', color: totals.totalAdjustments === 0 ? 'slate' : totals.totalAdjustments > 0 ? 'blue' : 'amber' },
+                    { label: 'Upcoming Bills', value: `₹${fmt(totals.totalFutureBills + totals.totalPastBills)}`, icon: '📅', color: (totals.totalFutureBills + totals.totalPastBills) > 0 ? 'purple' : 'slate' },
+                    { label: 'Manual Adj', value: `₹${fmt(totals.totalManualAdjust)}`, icon: '⚙️', color: totals.totalManualAdjust === 0 ? 'slate' : totals.totalManualAdjust > 0 ? 'blue' : 'amber' },
                     { label: 'Pending', value: `₹${fmt(totals.todaysBillBalance)}`, icon: '⏳', color: totals.todaysBillBalance > 0 ? 'amber' : 'green' },
                     { label: 'Shops', value: String(collections.length), icon: '🏪', color: 'purple' },
                 ].map((card) => (
@@ -141,32 +142,33 @@ const AdminCollections = ({ theme, orderLines }: Props) => {
                                     <tr className={`text-[10px] font-black uppercase tracking-widest ${isDark ? 'bg-slate-800/50 text-slate-400' : 'bg-slate-50 text-slate-500'}`}>
                                         <th className="text-left px-5 py-3">#</th>
                                         <th className="text-left px-5 py-3">Shop Name</th>
-                                        <th className="text-right px-5 py-3">Collected</th>
-                                        <th className="text-left px-5 py-3">Mode</th>
-                                        <th className="text-right px-5 py-3">Adjust</th>
+                                        <th className="text-right px-5 py-3">Prev Bal</th>
                                         <th className="text-right px-5 py-3">Today's Bill</th>
-                                        <th className="text-right px-5 py-3">Bill Bal</th>
+                                        <th className="text-right px-5 py-3">Collected</th>
+                                        <th className="text-right px-5 py-3">Manual Adjust</th>
+                                        <th className="text-right px-5 py-3">Upcoming Bill</th>
                                         <th className="text-right px-5 py-3">Total Bal</th>
                                     </tr>
                                 </thead>
                                 <tbody>
                                     {collections.map((row, idx) => {
                                         const collected = row.cash_collected + row.upi_collected + row.cheque_collected;
-                                        const billBalance = Math.max(0, row.todays_bill_amount - collected);
+                                        const upcoming = row.future_bills + row.past_bills;
                                         return (
                                             <tr key={row.id} className={`border-t transition-colors ${isDark ? 'border-white/5 hover:bg-slate-800/30' : 'border-slate-50 hover:bg-slate-50/50'}`}>
                                                 <td className={`px-5 py-3.5 font-bold ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>{idx + 1}</td>
                                                 <td className={`px-5 py-3.5 font-bold ${isDark ? 'text-white' : 'text-slate-900'}`}>{row.shop_name}</td>
-                                                <td className={`px-5 py-3.5 text-right font-black ${collected > 0 ? 'text-green-500' : isDark ? 'text-slate-500' : 'text-slate-400'}`}>
-                                                    ₹{fmt(collected)}
-                                                </td>
-                                                <td className="px-5 py-3.5">{renderModeBadges(row.cash_collected, row.upi_collected, row.cheque_collected)}</td>
-                                                <td className={`px-5 py-3.5 text-right font-bold ${row.adjustments !== 0 ? (row.adjustments > 0 ? 'text-blue-500' : 'text-amber-500') : isDark ? 'text-slate-600' : 'text-slate-300'}`}>
-                                                    {row.adjustments !== 0 ? `₹${fmt(row.adjustments)}` : '—'}
-                                                </td>
+                                                <td className={`px-5 py-3.5 text-right font-bold ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>₹{fmt(row.old_balance)}</td>
                                                 <td className={`px-5 py-3.5 text-right font-bold ${isDark ? 'text-white' : 'text-slate-900'}`}>₹{fmt(row.todays_bill_amount)}</td>
-                                                <td className={`px-5 py-3.5 text-right font-bold ${billBalance > 0 ? 'text-amber-500' : billBalance < 0 ? 'text-green-500' : isDark ? 'text-slate-400' : 'text-slate-500'}`}>
-                                                    ₹{fmt(billBalance)}
+                                                <td className="px-5 py-3.5 text-right">
+                                                    <div className={`font-black ${collected > 0 ? 'text-green-500' : isDark ? 'text-slate-500' : 'text-slate-400'}`}>₹{fmt(collected)}</div>
+                                                    <div className="flex justify-end mt-1">{renderModeBadges(row.cash_collected, row.upi_collected, row.cheque_collected)}</div>
+                                                </td>
+                                                <td className={`px-5 py-3.5 text-right font-bold ${row.manual_adjustments !== 0 ? (row.manual_adjustments > 0 ? 'text-blue-500' : 'text-amber-500') : isDark ? 'text-slate-600' : 'text-slate-300'}`}>
+                                                    {row.manual_adjustments !== 0 ? `₹${fmt(row.manual_adjustments)}` : '—'}
+                                                </td>
+                                                <td className={`px-5 py-3.5 text-right font-bold ${upcoming !== 0 ? 'text-purple-500' : isDark ? 'text-slate-600' : 'text-slate-300'}`}>
+                                                    {upcoming !== 0 ? `₹${fmt(upcoming)}` : '—'}
                                                 </td>
                                                 <td className={`px-5 py-3.5 text-right font-black ${row.total_balance > 0 ? 'text-red-500' : 'text-green-500'}`}>
                                                     ₹{fmt(row.total_balance)}
@@ -178,15 +180,11 @@ const AdminCollections = ({ theme, orderLines }: Props) => {
                                     <tr className={`border-t-2 font-black ${isDark ? 'border-blue-500/30 bg-blue-950/20' : 'border-blue-200 bg-blue-50/50'}`}>
                                         <td className="px-5 py-4"></td>
                                         <td className={`px-5 py-4 text-base uppercase tracking-wider ${isDark ? 'text-blue-400' : 'text-blue-700'}`}>Total</td>
-                                        <td className={`px-5 py-4 text-right text-base ${totals.amountCollected > 0 ? 'text-green-500' : isDark ? 'text-slate-400' : 'text-slate-500'}`}>
-                                            ₹{fmt(totals.amountCollected)}
-                                        </td>
                                         <td className="px-5 py-4"></td>
-                                        <td className={`px-5 py-4 text-right text-base ${totals.totalAdjustments !== 0 ? 'text-blue-400' : isDark ? 'text-slate-600' : 'text-slate-400'}`}>
-                                            ₹{fmt(totals.totalAdjustments)}
-                                        </td>
                                         <td className={`px-5 py-4 text-right text-base ${isDark ? 'text-white' : 'text-slate-900'}`}>₹{fmt(totals.todaysBillAmount)}</td>
-                                        <td className={`px-5 py-4 text-right text-base ${totals.todaysBillBalance > 0 ? 'text-amber-500' : 'text-green-500'}`}>₹{fmt(totals.todaysBillBalance)}</td>
+                                        <td className={`px-5 py-4 text-right text-base ${totals.amountCollected > 0 ? 'text-green-500' : isDark ? 'text-slate-400' : 'text-slate-500'}`}>₹{fmt(totals.amountCollected)}</td>
+                                        <td className={`px-5 py-4 text-right text-base ${totals.totalManualAdjust !== 0 ? 'text-blue-400' : isDark ? 'text-slate-600' : 'text-slate-400'}`}>₹{fmt(totals.totalManualAdjust)}</td>
+                                        <td className={`px-5 py-4 text-right text-base ${ (totals.totalFutureBills + totals.totalPastBills) !== 0 ? 'text-purple-500' : isDark ? 'text-slate-600' : 'text-slate-400'}`}>₹{fmt(totals.totalFutureBills + totals.totalPastBills)}</td>
                                         <td className={`px-5 py-4 text-right text-base ${totals.totalBalance > 0 ? 'text-red-500' : 'text-green-500'}`}>₹{fmt(totals.totalBalance)}</td>
                                     </tr>
                                 </tbody>
@@ -197,7 +195,7 @@ const AdminCollections = ({ theme, orderLines }: Props) => {
                         <div className="sm:hidden divide-y divide-slate-100 dark:divide-white/5">
                             {collections.map((row, idx) => {
                                 let collected = row.cash_collected + row.upi_collected + row.cheque_collected;
-                                let billBalance = Math.max(0, row.todays_bill_amount - collected);
+                                let upcoming = row.future_bills + row.past_bills;
                                 return (
                                     <div key={row.id} className="p-4 space-y-2">
                                         <div className="flex items-center justify-between">
@@ -205,23 +203,13 @@ const AdminCollections = ({ theme, orderLines }: Props) => {
                                                 {idx + 1}. {row.shop_name}
                                             </span>
                                         </div>
-                                        <div className="grid grid-cols-2 gap-2 text-xs">
-                                            <div>
-                                                <span className={`font-bold ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>Bill: </span>
-                                                <span className={`font-black ${isDark ? 'text-white' : 'text-slate-900'}`}>₹{fmt(row.todays_bill_amount)}</span>
-                                            </div>
-                                            <div className="text-right">
-                                                <span className={`font-bold ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>Collected: </span>
-                                                <span className={`font-black ${collected > 0 ? 'text-green-500' : isDark ? 'text-slate-500' : 'text-slate-400'}`}>₹{fmt(collected)}</span>
-                                            </div>
-                                            <div>
-                                                <span className={`font-bold ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>Bill Bal: </span>
-                                                <span className={`font-black ${billBalance > 0 ? 'text-amber-500' : 'text-green-500'}`}>₹{fmt(billBalance)}</span>
-                                            </div>
-                                            <div className="text-right">
-                                                <span className={`font-bold ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>Total: </span>
-                                                <span className={`font-black ${row.total_balance > 0 ? 'text-red-500' : 'text-green-500'}`}>₹{fmt(row.total_balance)}</span>
-                                            </div>
+                                        <div className="grid grid-cols-2 gap-2 text-[11px]">
+                                            <div><span className="text-slate-400">Prev Bal:</span> <span className="font-bold">₹{fmt(row.old_balance)}</span></div>
+                                            <div className="text-right"><span className="text-slate-400">Today Bill:</span> <span className="font-bold">₹{fmt(row.todays_bill_amount)}</span></div>
+                                            <div><span className="text-slate-400">Collected:</span> <span className="font-bold text-green-500">₹{fmt(collected)}</span></div>
+                                            <div className="text-right"><span className="text-slate-400">Adjust:</span> <span className="font-bold">₹{fmt(row.manual_adjustments)}</span></div>
+                                            <div><span className="text-slate-400">Upcoming:</span> <span className="font-bold text-purple-500">₹{fmt(upcoming)}</span></div>
+                                            <div className="text-right"><span className="text-slate-400 text-xs font-black uppercase">Total:</span> <span className="font-black text-red-500 text-sm">₹{fmt(row.total_balance)}</span></div>
                                         </div>
                                         <div>{renderModeBadges(row.cash_collected, row.upi_collected, row.cheque_collected)}</div>
                                     </div>
@@ -229,23 +217,15 @@ const AdminCollections = ({ theme, orderLines }: Props) => {
                             })}
                             {/* Mobile TOTAL Card */}
                             <div className={`p-4 space-y-1 ${isDark ? 'bg-blue-950/20' : 'bg-blue-50/80'}`}>
-                                <p className={`text-xs font-black uppercase tracking-widest ${isDark ? 'text-blue-400' : 'text-blue-700'}`}>Total</p>
+                                <p className={`text-xs font-black uppercase tracking-widest ${isDark ? 'text-blue-400' : 'text-blue-700'}`}>Total Summary</p>
                                 <div className="grid grid-cols-2 gap-2 text-xs">
-                                    <div>
-                                        <span className={`font-bold ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>Bill: </span>
-                                        <span className="font-black">₹{fmt(totals.todaysBillAmount)}</span>
-                                    </div>
-                                    <div className="text-right">
-                                        <span className={`font-bold ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>Collected: </span>
-                                        <span className={`font-black ${totals.amountCollected > 0 ? 'text-green-500' : ''}`}>₹{fmt(totals.amountCollected)}</span>
-                                    </div>
-                                    <div>
-                                        <span className={`font-bold ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>Bill Bal: </span>
-                                        <span className={`font-black ${totals.todaysBillBalance > 0 ? 'text-amber-500' : 'text-green-500'}`}>₹{fmt(totals.todaysBillBalance)}</span>
-                                    </div>
-                                    <div className="text-right">
-                                        <span className={`font-bold ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>Total: </span>
-                                        <span className={`font-black ${totals.totalBalance > 0 ? 'text-red-500' : 'text-green-500'}`}>₹{fmt(totals.totalBalance)}</span>
+                                    <div><span className="text-slate-500">Bill:</span> <span className="font-black">₹{fmt(totals.todaysBillAmount)}</span></div>
+                                    <div className="text-right"><span className="text-slate-500">Collected:</span> <span className="font-black">₹{fmt(totals.amountCollected)}</span></div>
+                                    <div><span className="text-slate-500">Adjust:</span> <span className="font-black">₹{fmt(totals.totalManualAdjust)}</span></div>
+                                    <div className="text-right"><span className="text-slate-500">Upcoming:</span> <span className="font-black">₹{fmt(totals.totalFutureBills + totals.totalPastBills)}</span></div>
+                                    <div className="col-span-2 text-center mt-2 border-t border-blue-200/50 pt-2">
+                                        <span className="text-slate-500 font-black uppercase tracking-tighter">Total Balance:</span> 
+                                        <span className="font-black text-lg ml-2 text-red-500">₹{fmt(totals.totalBalance)}</span>
                                     </div>
                                 </div>
                             </div>
