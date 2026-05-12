@@ -182,10 +182,25 @@ const ShopManager = ({ orderLineId, villageName, theme, onBack, type, handleRefr
         try {
             const storedUser = JSON.parse(localStorage.getItem('user') || '{}');
             const userName = storedUser.first_name ? `${storedUser.first_name} ${storedUser.last_name || ''}`.trim() : 'Admin';
+            
+            let amount = parseFloat(paymentData.amount);
+            if (paymentData.method === 'Dual Mode') {
+                amount = (parseFloat(paymentData.dualCashAmount) || 0) + (parseFloat(paymentData.dualUpiAmount) || 0);
+            }
+
+            if (isNaN(amount) || amount <= 0) {
+                showToast('Please enter a valid amount', 'error');
+                return;
+            }
+
+            const currentBalance = Number(selectedShop.balance) || 0;
+            if (amount > currentBalance) {
+                showToast(`Total balance is ₹${currentBalance.toLocaleString('en-IN')}, invalid to collect`, 'error');
+                return;
+            }
+
             let method = paymentData.method;
             let description = paymentData.description;
-            let amount = parseFloat(paymentData.amount);
-
             if (paymentData.method === 'UPI') {
                 method = paymentData.upiApp;
             } else if (paymentData.method === 'Dual Mode') {
