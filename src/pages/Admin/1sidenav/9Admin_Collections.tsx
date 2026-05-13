@@ -28,8 +28,7 @@ const AdminCollections = ({ theme, orderLines }: Props) => {
         selectedShop, setSelectedShop,
         showLedger, setShowLedger, ledgerData, loadingLedger, ledgerHasMore, fetchLedger, loadMoreLedger,
         showAdjustModal, setShowAdjustModal, adjData, setAdjData, submittingAdj, handleAdjustment,
-        showPaymentModal, setShowPaymentModal, paymentData, setPaymentData, submittingPayment, handleCollectPayment,
-        handleVerify
+        showPaymentModal, setShowPaymentModal, paymentData, setPaymentData, submittingPayment, handleCollectPayment
     } = useShopActions(showToast, () => refresh());
 
     // Expense Modal State
@@ -109,7 +108,7 @@ const AdminCollections = ({ theme, orderLines }: Props) => {
         );
         if (cheque > 0) badges.push(
             <span key="cheque" className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20">
-                🏦 Cheque ₹{fmt(cheque)}
+                📝 Cheque ₹{fmt(cheque)}
             </span>
         );
         if (pos > 0) badges.push(
@@ -117,39 +116,8 @@ const AdminCollections = ({ theme, orderLines }: Props) => {
                 ➕ Addition ₹{fmt(pos)}
             </span>
         );
-        return badges;
-    };
-
-    // Render pending verification badges
-    const renderPendingVerifications = (pending: any[]) => {
-        if (!pending || pending.length === 0) return null;
-        return (
-            <div className="flex flex-wrap gap-2 mt-2">
-                {pending.map((tx: any) => (
-                    <div 
-                        key={tx.id} 
-                        className={`group/tx flex items-center gap-2 px-2 py-1 rounded-lg border border-dashed transition-all
-                            ${isDark ? 'bg-orange-500/5 border-orange-500/30' : 'bg-orange-50 border-orange-200'}`}
-                    >
-                        <div className="flex flex-col">
-                            <span className="text-[10px] font-black text-orange-600 uppercase tracking-tighter leading-tight">
-                                {tx.method} Pending
-                            </span>
-                            <span className={`text-[11px] font-bold ${isDark ? 'text-white' : 'text-slate-900'}`}>
-                                ₹{fmt(tx.amount)}
-                            </span>
-                        </div>
-                        <button 
-                            onClick={() => handleVerify(tx.id)}
-                            className="w-5 h-5 rounded-md bg-orange-500 text-white flex items-center justify-center hover:bg-orange-600 transition-colors shadow-sm"
-                            title="Verify and Deduct Balance"
-                        >
-                            <span className="text-[10px]">✓</span>
-                        </button>
-                    </div>
-                ))}
-            </div>
-        );
+        if (badges.length === 0) return <span className="text-slate-400 text-xs">—</span>;
+        return <div className="flex flex-wrap gap-1">{badges}</div>;
     };
 
     return (
@@ -357,10 +325,7 @@ const AdminCollections = ({ theme, orderLines }: Props) => {
                                                 <td className={`px-5 py-3.5 text-right font-bold ${isDark ? 'text-white' : 'text-slate-900'}`}>₹{fmt(row.todays_bill_amount)}</td>
                                                 <td className="px-5 py-3.5 text-right">
                                                     <div className={`font-black ${collected > 0 ? 'text-green-500' : isDark ? 'text-slate-500' : 'text-slate-400'}`}>₹{fmt(collected)}</div>
-                                                    <div className="flex flex-col items-end gap-1 mt-1">
-                                                        <div className="flex justify-end gap-1">{renderModeBadges(row.cash_collected, row.upi_collected, row.cheque_collected)}</div>
-                                                        {renderPendingVerifications(row.pending_transactions as any[])}
-                                                    </div>
+                                                    <div className="flex justify-end mt-1">{renderModeBadges(row.cash_collected, row.upi_collected, row.cheque_collected)}</div>
                                                 </td>
                                                 <td className={`px-5 py-3.5 text-right`}>
                                                     <div className={`font-bold ${row.manual_adjustments !== 0 ? (row.manual_adjustments > 0 ? 'text-blue-500' : 'text-amber-500') : isDark ? 'text-slate-600' : 'text-slate-300'}`}>
