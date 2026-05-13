@@ -1,6 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useCollections } from './useCollections';
 import type { OrderLine } from '../../../types/DashboardTypes';
+import { getAuthAxios } from '../../../utils/apiClient';
+import { useToast } from '../../../components/Toast';
 
 interface Props {
     theme: string;
@@ -25,6 +27,35 @@ const AdminCollections = ({ theme, orderLines }: Props) => {
     const [expAmount, setExpAmount] = useState('');
     const [expDesc, setExpDesc] = useState('');
     const [savingExp, setSavingExp] = useState(false);
+
+    // Inline Action States
+    const { showToast } = useToast();
+    const [selectedShop, setSelectedShop] = useState<any | null>(null);
+    const [showPaymentModal, setShowPaymentModal] = useState(false);
+    const [showLedgerModal, setShowLedgerModal] = useState(false);
+    
+    // Payment Form
+    const [paymentAmount, setPaymentAmount] = useState('');
+    const [paymentMethod, setPaymentMethod] = useState<'Cash' | 'UPI' | 'Cheque'>('Cash');
+    const [paymentDesc, setPaymentDesc] = useState('');
+    const [submittingPayment, setSubmittingPayment] = useState(false);
+
+    // Ledger Data
+    const [ledgerData, setLedgerData] = useState<any[]>([]);
+    const [loadingLedger, setLoadingLedger] = useState(false);
+    const [ledgerSkip, setLedgerSkip] = useState(0);
+    const [ledgerHasMore, setLedgerHasMore] = useState(true);
+
+    // Safety timeout for expense saving (unstick buttons)
+    useEffect(() => {
+        if (savingExp) {
+            const timer = setTimeout(() => {
+                setSavingExp(false);
+                alert('Expense save request timed out. Please try again.');
+            }, 15000);
+            return () => clearTimeout(timer);
+        }
+    }, [savingExp]);
 
     const handleOpenAdd = () => {
         setEditingExpId(null);
@@ -70,6 +101,76 @@ const AdminCollections = ({ theme, orderLines }: Props) => {
         }
     };
 
+    // --- Inline Action Handlers ---
+    const openPaymentModal = (row: any) => {
+        setSelectedShop({ id: row.shop_id, shop_name: row.shop_name });
+        setPaymentAmount('');
+        setPaymentMethod('Cash');
+        setPaymentDesc('');
+        setShowPaymentModal(true);
+    };
+
+    const openLedgerModal = (row: any) => {
+        setSelectedShop({ id: row.shop_id, shop_name: row.shop_name });
+        setLedgerData([]);
+        setLedgerSkip(0);
+        setLedgerHasMore(true);
+        setShowLedgerModal(true);
+        fetchLedger(row.shop_id, 0);
+    };
+
+    const fetchLedger = async (shopId: number, skip: number) => {
+        setLoadingLedger(true);
+        try {
+            const res = await getAuthAxios().get(`/api/shops/ledger/${shopId}?skip=${skip}&limit=20`);
+            if (skip === 0) {
+                setLedgerData(res.data);
+            } else {
+                setLedgerData(prev => [...prev, ...res.data]);
+            }
+            setLedgerHasMore(res.data.length === 20);
+        } catch (err) {
+            showToast('Failed to fetch ledger', 'error');
+        } finally {
+            setLoadingLedger(false);
+        }
+    };
+
+    const handleCollectPayment = async (e: React.FormEvent) => {
+        e.preventDefault();
+        if (!selectedShop || submittingPayment) return;
+        const amt = parseFloat(paymentAmount);
+        if (isNaN(amt) || amt <= 0) return showToast('Enter valid amount', 'error');
+
+        setSubmittingPayment(true);
+        try {
+            await getAuthAxios().post('/api/shops/collect-payment', {
+                shop_id: selectedShop.id,
+                amount: amt,
+                method: paymentMethod,
+                description: paymentDesc || `Admin Collection - ${selectedDate}`
+            });
+            showToast('Payment recorded successfully', 'success');
+            setShowPaymentModal(false);
+            refresh(); // Refresh table data
+        } catch (err: any) {
+            showToast(err.response?.data?.error || 'Failed to collect payment', 'error');
+        } finally {
+            setSubmittingPayment(false);
+        }
+    };
+
+    // Safety timeout for inline payment
+    useEffect(() => {
+        if (submittingPayment) {
+            const timer = setTimeout(() => {
+                setSubmittingPayment(false);
+                showToast('Payment request timed out', 'error');
+            }, 15000);
+            return () => clearTimeout(timer);
+        }
+    }, [submittingPayment]);
+
     // Mode badge renderer for a single row
     const renderModeBadges = (cash: number, upi: number, cheque: number, pos: number = 0) => {
         const badges: React.ReactNode[] = [];
@@ -110,8 +211,12 @@ const AdminCollections = ({ theme, orderLines }: Props) => {
                     </p>
                 </div>
                 <div className="flex items-center gap-3">
-                    <button onClick={refresh} className={`p-2.5 rounded-xl border transition-all hover:scale-105 active:scale-95 ${isDark ? 'bg-slate-800 border-white/10 text-white hover:bg-slate-700' : 'bg-white border-slate-200 text-slate-700 hover:bg-slate-50 shadow-sm'}`}>
-                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <button 
+                        onClick={refresh} 
+                        disabled={loading}
+                        className={`p-2.5 rounded-xl border transition-all hover:scale-105 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed ${isDark ? 'bg-slate-800 border-white/10 text-white hover:bg-slate-700' : 'bg-white border-slate-200 text-slate-700 hover:bg-slate-50 shadow-sm'}`}
+                    >
+                        <svg className={`w-5 h-5 ${loading ? 'animate-spin text-blue-500' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
                         </svg>
                     </button>
@@ -132,7 +237,8 @@ const AdminCollections = ({ theme, orderLines }: Props) => {
                         <button
                             key={ol.id}
                             onClick={() => setSelectedOlId(ol.id)}
-                            className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs sm:text-sm font-bold whitespace-nowrap transition-all duration-200 shrink-0 border ${isActive
+                            disabled={loading}
+                            className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs sm:text-sm font-bold whitespace-nowrap transition-all duration-200 shrink-0 border disabled:opacity-60 disabled:cursor-not-allowed ${isActive
                                 ? 'bg-blue-600 text-white border-blue-600 shadow-lg shadow-blue-600/30 scale-105'
                                 : isDark
                                     ? 'bg-slate-800 text-slate-300 border-white/10 hover:border-blue-400 hover:text-blue-400'
@@ -266,7 +372,31 @@ const AdminCollections = ({ theme, orderLines }: Props) => {
                                         return (
                                             <tr key={row.id} className={`border-t transition-colors ${isDark ? 'border-white/5 hover:bg-slate-800/30' : 'border-slate-50 hover:bg-slate-50/50'}`}>
                                                 <td className={`px-5 py-3.5 font-bold ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>{idx + 1}</td>
-                                                <td className={`px-5 py-3.5 font-bold ${isDark ? 'text-white' : 'text-slate-900'}`}>{row.shop_name}</td>
+                                                <td className={`px-5 py-3.5 font-bold ${isDark ? 'text-white' : 'text-slate-900'}`}>
+                                                    <div className="flex items-center justify-between group">
+                                                        <span>{row.shop_name}</span>
+                                                        <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                                                            <button 
+                                                                onClick={() => openPaymentModal(row)}
+                                                                title="Collect Payment"
+                                                                className="p-1.5 rounded-lg bg-emerald-500 text-white hover:bg-emerald-600 transition-all shadow-sm"
+                                                            >
+                                                                <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                                                </svg>
+                                                            </button>
+                                                            <button 
+                                                                onClick={() => openLedgerModal(row)}
+                                                                title="View Ledger"
+                                                                className="p-1.5 rounded-lg bg-indigo-500 text-white hover:bg-indigo-600 transition-all shadow-sm"
+                                                            >
+                                                                <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                                                                </svg>
+                                                            </button>
+                                                        </div>
+                                                    </div>
+                                                </td>
                                                 <td className={`px-5 py-3.5 text-right font-bold ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>₹{fmt(row.old_balance)}</td>
                                                 <td className={`px-5 py-3.5 text-right font-bold ${isDark ? 'text-white' : 'text-slate-900'}`}>₹{fmt(row.todays_bill_amount)}</td>
                                                 <td className="px-5 py-3.5 text-right">
@@ -313,6 +443,24 @@ const AdminCollections = ({ theme, orderLines }: Props) => {
                                             <span className={`font-black text-sm ${isDark ? 'text-white' : 'text-slate-900'}`}>
                                                 {idx + 1}. {row.shop_name}
                                             </span>
+                                            <div className="flex items-center gap-2">
+                                                <button 
+                                                    onClick={() => openPaymentModal(row)}
+                                                    className="p-2 rounded-xl bg-emerald-500 text-white shadow-lg shadow-emerald-500/20 active:scale-95"
+                                                >
+                                                    <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                                    </svg>
+                                                </button>
+                                                <button 
+                                                    onClick={() => openLedgerModal(row)}
+                                                    className="p-2 rounded-xl bg-indigo-500 text-white shadow-lg shadow-indigo-500/20 active:scale-95"
+                                                >
+                                                    <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                                                    </svg>
+                                                </button>
+                                            </div>
                                         </div>
                                         <div className="grid grid-cols-2 gap-2 text-[11px]">
                                             <div><span className="text-slate-400">Prev Bal:</span> <span className="font-bold">₹{fmt(row.old_balance)}</span></div>
@@ -466,6 +614,121 @@ const AdminCollections = ({ theme, orderLines }: Props) => {
                         </div>
                     )}
                 </>
+            )}
+            {/* ══════════ PAYEMENT COLLECTION MODAL ══════════ */}
+            {showPaymentModal && (
+                <div className="fixed inset-0 z-[60] flex items-center justify-center p-4">
+                    <div className="fixed inset-0 bg-slate-950/80 backdrop-blur-sm" onClick={() => setShowPaymentModal(false)} />
+                    <div className={`relative w-full max-w-md rounded-[32px] shadow-2xl border p-8 animate-in zoom-in-95 duration-200 ${isDark ? 'bg-slate-900 border-white/10' : 'bg-white border-slate-100'}`}>
+                        <div className="flex items-center justify-between mb-8">
+                            <div>
+                                <h3 className={`text-2xl font-black italic tracking-tight ${isDark ? 'text-white' : 'text-slate-900'}`}>Collect Payment</h3>
+                                <p className="text-xs font-black text-emerald-500 uppercase tracking-widest mt-1">{selectedShop?.shop_name}</p>
+                            </div>
+                            <button onClick={() => setShowPaymentModal(false)} className="text-slate-400 hover:text-red-400 transition-colors">
+                                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M6 18L18 6M6 6l12 12" />
+                                </svg>
+                            </button>
+                        </div>
+                        
+                        <form onSubmit={handleCollectPayment} className="space-y-6">
+                            <div>
+                                <label className={`text-[10px] font-black uppercase tracking-widest ml-2 mb-2 block ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>Amount to Collect (₹)</label>
+                                <input 
+                                    type="number" step="0.01" required autoFocus
+                                    value={paymentAmount} onChange={(e) => setPaymentAmount(e.target.value)}
+                                    placeholder="Enter amount..."
+                                    className={`w-full p-4 rounded-2xl font-black text-lg ${isDark ? 'bg-slate-800 border-white/10 text-white' : 'bg-slate-50 border-slate-100 text-slate-900'}`}
+                                />
+                            </div>
+
+                            <div className="grid grid-cols-3 gap-2">
+                                {(['Cash', 'UPI', 'Cheque'] as const).map(m => (
+                                    <button 
+                                        key={m} type="button" onClick={() => setPaymentMethod(m)}
+                                        className={`py-3 rounded-xl border font-black uppercase tracking-widest text-[9px] transition-all ${paymentMethod === m ? 'bg-emerald-600 border-emerald-600 text-white shadow-lg shadow-emerald-600/20' : isDark ? 'bg-slate-800 border-white/10 text-slate-500' : 'bg-white border-slate-100 text-slate-400'}`}
+                                    >
+                                        {m}
+                                    </button>
+                                ))}
+                            </div>
+
+                            <button 
+                                type="submit" disabled={submittingPayment}
+                                className={`w-full py-4 bg-emerald-600 hover:bg-emerald-700 text-white font-black rounded-2xl text-xs uppercase tracking-widest transition-all shadow-lg shadow-emerald-600/20 disabled:opacity-50`}
+                            >
+                                {submittingPayment ? 'Recording...' : 'Confirm Collection'}
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            )}
+
+            {/* ══════════ LEDGER VIEW MODAL ══════════ */}
+            {showLedgerModal && (
+                <div className="fixed inset-0 z-[60] flex items-center justify-center p-4">
+                    <div className="fixed inset-0 bg-slate-950/80 backdrop-blur-sm" onClick={() => setShowLedgerModal(false)} />
+                    <div className={`relative w-full max-w-2xl max-h-[85vh] rounded-[40px] shadow-2xl border flex flex-col overflow-hidden animate-in slide-in-from-bottom-5 duration-300 ${isDark ? 'bg-slate-900 border-white/10' : 'bg-white border-slate-100'}`}>
+                        <div className={`p-8 border-b flex items-center justify-between ${isDark ? 'border-white/5 bg-slate-800/20' : 'border-slate-50 bg-slate-50/50'}`}>
+                            <div>
+                                <h3 className={`text-2xl font-black italic tracking-tight ${isDark ? 'text-white' : 'text-slate-900'}`}>Shop Ledger</h3>
+                                <p className="text-xs font-black text-blue-500 uppercase tracking-widest mt-1">{selectedShop?.shop_name}</p>
+                            </div>
+                            <button onClick={() => setShowLedgerModal(false)} className="text-slate-400 hover:text-red-400 transition-colors">
+                                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M6 18L18 6M6 6l12 12" />
+                                </svg>
+                            </button>
+                        </div>
+
+                        <div className="flex-1 overflow-y-auto p-6 space-y-4 no-scrollbar">
+                            {loadingLedger && ledgerData.length === 0 ? (
+                                <div className="py-20 text-center">
+                                    <div className="animate-spin text-blue-500 inline-block mb-4">
+                                        <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                        </svg>
+                                    </div>
+                                    <p className="font-bold text-slate-400 uppercase tracking-widest text-xs">Loading history...</p>
+                                </div>
+                            ) : ledgerData.length === 0 ? (
+                                <div className="py-20 text-center">
+                                    <span className="text-5xl mb-4 block">📄</span>
+                                    <p className="font-bold text-slate-400">No transactions found</p>
+                                </div>
+                            ) : (
+                                ledgerData.map((item, i) => {
+                                    const isAddition = item.type === 'Bill' || (item.type === 'Adjustment' && item.amount > 0);
+                                    return (
+                                        <div key={i} className={`p-5 rounded-[24px] border transition-all flex items-center justify-between ${isDark ? 'bg-slate-800/40 border-white/5 hover:border-white/10' : 'bg-white border-slate-50 hover:border-slate-100 shadow-sm'}`}>
+                                            <div className="flex items-center gap-4">
+                                                <div className={`w-12 h-12 rounded-2xl flex items-center justify-center font-black text-lg ${isAddition ? 'bg-red-500/10 text-red-500' : 'bg-emerald-500/10 text-emerald-500'}`}>
+                                                    {item.type[0]}
+                                                </div>
+                                                <div>
+                                                    <p className={`font-black text-sm uppercase tracking-tight ${isDark ? 'text-slate-200' : 'text-slate-700'}`}>{item.description}</p>
+                                                    <p className="text-[10px] font-bold text-slate-500 mt-1 uppercase tracking-widest">{new Date(item.created_at).toLocaleDateString('en-IN')}</p>
+                                                </div>
+                                            </div>
+                                            <div className="text-right">
+                                                <p className={`text-lg font-black ${isAddition ? 'text-red-500' : 'text-emerald-500'}`}>
+                                                    {isAddition ? '+' : '-'} ₹{fmt(Math.abs(item.amount))}
+                                                </p>
+                                                <p className="text-[10px] font-black text-slate-400 mt-1 uppercase tracking-widest">Balance: ₹{fmt(item.balance_after)}</p>
+                                            </div>
+                                        </div>
+                                    );
+                                })
+                            )}
+                            {ledgerHasMore && !loadingLedger && (
+                                <button onClick={() => fetchLedger(selectedShop.id, ledgerSkip + 20)} className="w-full py-4 rounded-2xl border-2 border-dashed border-slate-200 text-slate-400 font-bold hover:border-blue-400 hover:text-blue-500 transition-all">
+                                    Load More History
+                                </button>
+                            )}
+                        </div>
+                    </div>
+                </div>
             )}
         </div>
     );

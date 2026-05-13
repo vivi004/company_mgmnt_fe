@@ -83,6 +83,28 @@ const ShopManager = ({ orderLineId, villageName, theme, onBack, type, handleRefr
     const [filterStatus, setFilterStatus] = useState<'all' | 'pending' | 'completed'>('all');
     const [sortBy, setSortBy] = useState<'name' | 'balance' | 'status'>('status');
 
+    // --- SAFETY TIMEOUTS (Prevent stuck buttons) ---
+    useEffect(() => {
+        const checkTimeout = (state: boolean, setter: (v: boolean) => void, name: string) => {
+            if (state) {
+                const timer = setTimeout(() => {
+                    setter(false);
+                    showToast(`${name} request timed out. Please try again.`, 'error');
+                }, 15000); // 15s safety net
+                return () => clearTimeout(timer);
+            }
+        };
+
+        const t1 = checkTimeout(submittingAdj, setSubmittingAdj, 'Adjustment');
+        const t2 = checkTimeout(submittingPayment, setSubmittingPayment, 'Payment');
+        const t3 = checkTimeout(submittingOrder, setSubmittingOrder, 'Order');
+        const t4 = checkTimeout(submittingShop, setSubmittingShop, 'Shop Save');
+
+        return () => {
+            if (t1) t1(); if (t2) t2(); if (t3) t3(); if (t4) t4();
+        };
+    }, [submittingAdj, submittingPayment, submittingOrder, submittingShop]);
+
     const api = () => getAuthAxios();
 
     useEffect(() => {
