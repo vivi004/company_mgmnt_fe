@@ -156,25 +156,33 @@ export const useShopActions = (showToast: (msg: string, type: any) => void, onSu
             const cash_amount = paymentData.method === 'Dual Mode' ? parseFloat(paymentData.dualCashAmount) || 0 : (paymentData.method === 'Cash' ? amount : 0);
             const upi_amount = paymentData.method === 'Dual Mode' ? parseFloat(paymentData.dualUpiAmount) || 0 : (paymentData.method === 'UPI' ? amount : 0);
             const cheque_amount = paymentData.method === 'Cheque' ? amount : 0;
-
+            
             await api().post(`/api/shops/${selectedShop.id}/collect-payment`, {
-                amount: amount,
+                amount,
                 payment_method: method,
+                description: description || `${method} payment collected by ${userName}`,
+                created_by: userName,
                 cash_amount,
                 upi_amount,
-                cheque_amount,
-                description: description || `${method} payment collected by ${userName}`,
-                created_by: userName
+                cheque_amount
             });
-            showToast('Payment recorded!', 'success');
+            showToast('Payment recorded successfully', 'success');
             setShowPaymentModal(false);
-            setSelectedShop(null);
-            setPaymentData({ amount: '', dualCashAmount: '', dualUpiAmount: '', method: 'Cash', upiApp: 'PhonePe', description: '' });
             if (onSuccess) onSuccess();
         } catch (err: any) {
-            showToast(err.response?.data?.error || 'Failed to record payment', 'error');
+            showToast(err.response?.data?.message || 'Failed to record payment', 'error');
         } finally {
             setSubmittingPayment(false);
+        }
+    };
+
+    const handleVerify = async (transactionId: number) => {
+        try {
+            await api().post(`/api/shops/transactions/${transactionId}/verify`);
+            showToast('Transaction verified successfully', 'success');
+            if (onSuccess) onSuccess();
+        } catch (err: any) {
+            showToast(err.response?.data?.message || 'Failed to verify transaction', 'error');
         }
     };
 
@@ -182,6 +190,7 @@ export const useShopActions = (showToast: (msg: string, type: any) => void, onSu
         selectedShop, setSelectedShop,
         showLedger, setShowLedger, ledgerData, loadingLedger, ledgerHasMore, fetchLedger, loadMoreLedger,
         showAdjustModal, setShowAdjustModal, adjData, setAdjData, submittingAdj, handleAdjustment,
-        showPaymentModal, setShowPaymentModal, paymentData, setPaymentData, submittingPayment, handleCollectPayment
+        showPaymentModal, setShowPaymentModal, paymentData, setPaymentData, submittingPayment, handleCollectPayment,
+        handleVerify
     };
 };

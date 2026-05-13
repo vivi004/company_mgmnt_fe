@@ -23,6 +23,7 @@ export interface DailyCollection {
     manual_upi: number;
     manual_cheque: number;
     manual_pos: number;
+    pending_transactions: any[] | string;
 }
 
 export interface Expense {
@@ -86,6 +87,7 @@ export const useCollections = (orderLines: OrderLine[]) => {
                 past_bills: parseFloat(row.past_bills) || 0,
                 old_balance: parseFloat(row.old_balance) || 0,
                 total_balance: parseFloat(row.total_balance) || 0,
+                pending_transactions: typeof row.pending_transactions === 'string' ? JSON.parse(row.pending_transactions) : (row.pending_transactions || []),
             }));
 
             const parsedExpenses: Expense[] = rawExpenses.map((ex: any) => ({
