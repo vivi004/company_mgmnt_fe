@@ -152,7 +152,7 @@ const ShopManager = ({ orderLineId, villageName, theme, onBack, type, handleRefr
 
     const handleAdjustment = async (e: React.FormEvent) => {
         e.preventDefault();
-        if (!selectedShop) return;
+        if (!selectedShop || submittingAdj) return;
         setSubmittingAdj(true);
         try {
             const storedUser = JSON.parse(localStorage.getItem('user') || '{}');
@@ -178,7 +178,7 @@ const ShopManager = ({ orderLineId, villageName, theme, onBack, type, handleRefr
 
     const handleCollectPayment = async (e: React.FormEvent) => {
         e.preventDefault();
-        if (!selectedShop) return;
+        if (!selectedShop || submittingPayment) return;
         setSubmittingPayment(true);
         try {
             const storedUser = JSON.parse(localStorage.getItem('user') || '{}');
@@ -933,7 +933,8 @@ const ShopManager = ({ orderLineId, villageName, theme, onBack, type, handleRefr
                             <button
                                 type="submit"
                                 disabled={submittingAdj}
-                                className="w-full py-4 bg-indigo-600 hover:bg-indigo-700 text-white font-black rounded-2xl text-xs uppercase tracking-widest transition-all shadow-lg shadow-indigo-600/20 mt-4"
+                                className={`w-full py-4 bg-indigo-600 hover:bg-indigo-700 text-white font-black rounded-2xl text-xs uppercase tracking-widest transition-all shadow-lg shadow-indigo-600/20 mt-4
+                                    ${submittingAdj ? 'opacity-50 cursor-not-allowed' : 'hover:-translate-y-0.5 active:scale-95'}`}
                             >
                                 {submittingAdj ? 'Processing...' : 'Apply Adjustment'}
                             </button>
