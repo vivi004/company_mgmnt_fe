@@ -2,7 +2,11 @@ import React, { useState, useEffect } from 'react';
 import { useCollections } from './useCollections';
 import type { OrderLine } from '../../../types/DashboardTypes';
 import { getAuthAxios } from '../../../utils/apiClient';
-import { useToast } from '../../../components/Toast';
+
+// Icon Imports
+import CloseIcon from '@mui/icons-material/Close';
+import ReceiptLongIcon from '@mui/icons-material/ReceiptLong';
+import AccountBalanceWalletIcon from '@mui/icons-material/AccountBalanceWallet';
 
 interface Props {
     theme: string;
@@ -21,30 +25,163 @@ const AdminCollections = ({ theme, orderLines }: Props) => {
         refresh, addExpense, updateExpense, deleteExpense, expenses
     } = useCollections(orderLines);
 
-    // Expense Modal State
+    // --- Action Modals State ---
+    const [selectedShop, setSelectedShop] = useState<any | null>(null);
+    
+    // Ledger
+    const [showLedger, setShowLedger] = useState(false);
+    const [ledgerData, setLedgerData] = useState<any[]>([]);
+    const [loadingLedger, setLoadingLedger] = useState(false);
+    const [ledgerSkip, setLedgerSkip] = useState(0);
+    const [ledgerHasMore, setLedgerHasMore] = useState(true);
+
+    // Payment
+    const [showPaymentModal, setShowPaymentModal] = useState(false);
+    const [paymentData, setPaymentData] = useState({
+        amount: '', dualCashAmount: '', dualUpiAmount: '',
+        method: 'Cash', upiApp: 'PhonePe', description: ''
+    });
+    const [submittingPayment, setSubmittingPayment] = useState(false);
+
+    // Adjustment
+    const [showAdjustModal, setShowAdjustModal] = useState(false);
+    const [adjData, setAdjData] = useState({ amount: '', description: '', method: 'Cash' });
+    const [submittingAdj, setSubmittingAdj] = useState(false);
+
+    const api = () => getAuthAxios();
+
+    // Safety timeout for action buttons
+    useEffect(() => {
+        const checkTimeout = (state: boolean, setter: (v: boolean) => void, name: string) => {
+            if (state) {
+                const timer = setTimeout(() => {
+                    setter(false);
+                    alert(`${name} request timed out. Please try again.`);
+                }, 15000);
+                return () => clearTimeout(timer);
+            }
+        };
+        const t1 = checkTimeout(submittingAdj, setSubmittingAdj, 'Adjustment');
+        const t2 = checkTimeout(submittingPayment, setSubmittingPayment, 'Payment');
+        return () => { if (t1) t1(); if (t2) t2(); };
+    }, [submittingAdj, submittingPayment]);
+
+    // Helpers to fetch full shop details
+    const loadShopDetails = async (shopId: number) => {
+        try {
+            const res = await api().get(`/api/shops/${shopId}`);
+            return res.data;
+        } catch (err) {
+            alert('Failed to load shop details');
+            return null;
+        }
+    };
+
+    // --- Action Handlers ---
+    const handleOpenPayment = async (row: any) => {
+        const shop = await loadShopDetails(row.shop_id);
+        if (shop) {
+            setSelectedShop(shop);
+            setPaymentData({ amount: '', dualCashAmount: '', dualUpiAmount: '', method: 'Cash', upiApp: 'PhonePe', description: '' });
+            setShowPaymentModal(true);
+        }
+    };
+
+    const handleOpenLedger = async (row: any) => {
+        const shop = await loadShopDetails(row.shop_id);
+        if (shop) {
+            setSelectedShop(shop);
+            fetchLedger(shop);
+        }
+    };
+
+    const fetchLedger = async (shop: any, skip = 0) => {
+        setLoadingLedger(true);
+        if (skip === 0) {
+            setLedgerData([]);
+            setLedgerSkip(0);
+            setLedgerHasMore(true);
+        }
+        try {
+            const res = await api().get(`/api/shops/${shop.id}/ledger?limit=20&skip=${skip}`);
+            const data = res.data || [];
+            if (skip === 0) setLedgerData(data);
+            else setLedgerData(prev => [...prev, ...data]);
+            if (data.length < 20) setLedgerHasMore(false);
+            setShowLedger(true);
+        } catch (err) {
+            alert('Failed to fetch ledger');
+        } finally {
+            setLoadingLedger(false);
+        }
+    };
+
+    const handleCollectPayment = async (e: React.FormEvent) => {
+        e.preventDefault();
+        if (!selectedShop || submittingPayment) return;
+        setSubmittingPayment(true);
+        try {
+            let amount = parseFloat(paymentData.amount);
+            if (paymentData.method === 'Dual Mode') {
+                amount = (parseFloat(paymentData.dualCashAmount) || 0) + (parseFloat(paymentData.dualUpiAmount) || 0);
+            }
+            if (isNaN(amount) || amount <= 0) return alert('Enter valid amount');
+
+            const user = JSON.parse(localStorage.getItem('user') || '{}');
+            const userName = user.first_name ? `${user.first_name} ${user.last_name || ''}`.trim() : (user.username || 'Admin');
+
+            await api().post(`/api/shops/${selectedShop.id}/collect-payment`, {
+                amount,
+                method: paymentData.method,
+                upiApp: paymentData.method === 'UPI' ? paymentData.upiApp : undefined,
+                dual_cash_amount: paymentData.method === 'Dual Mode' ? parseFloat(paymentData.dualCashAmount) : undefined,
+                dual_upi_amount: paymentData.method === 'Dual Mode' ? parseFloat(paymentData.dualUpiAmount) : undefined,
+                description: paymentData.description,
+                recorded_by: userName
+            });
+
+            setShowPaymentModal(false);
+            setSelectedShop(null);
+            refresh();
+        } catch (err) {
+            alert('Failed to collect payment');
+        } finally {
+            setSubmittingPayment(false);
+        }
+    };
+
+    const handleAdjustment = async (e: React.FormEvent) => {
+        e.preventDefault();
+        if (!selectedShop || submittingAdj) return;
+        setSubmittingAdj(true);
+        try {
+            const user = JSON.parse(localStorage.getItem('user') || '{}');
+            const userName = user.first_name ? `${user.first_name} ${user.last_name || ''}`.trim() : (user.username || 'Admin');
+
+            await api().post(`/api/shops/${selectedShop.id}/adjust-balance`, {
+                amount: parseFloat(adjData.amount),
+                description: adjData.description,
+                method: parseFloat(adjData.amount) < 0 ? adjData.method : undefined,
+                recorded_by: userName
+            });
+
+            setShowAdjustModal(false);
+            if (showLedger) fetchLedger(selectedShop);
+            else setSelectedShop(null);
+            refresh();
+        } catch (err) {
+            alert('Failed to adjust balance');
+        } finally {
+            setSubmittingAdj(false);
+        }
+    };
+
+    // --- Existing Expense States ---
     const [showExpModal, setShowExpModal] = useState(false);
     const [editingExpId, setEditingExpId] = useState<number | null>(null);
     const [expAmount, setExpAmount] = useState('');
     const [expDesc, setExpDesc] = useState('');
     const [savingExp, setSavingExp] = useState(false);
-
-    // Inline Action States
-    const { showToast } = useToast();
-    const [selectedShop, setSelectedShop] = useState<any | null>(null);
-    const [showPaymentModal, setShowPaymentModal] = useState(false);
-    const [showLedgerModal, setShowLedgerModal] = useState(false);
-    
-    // Payment Form
-    const [paymentAmount, setPaymentAmount] = useState('');
-    const [paymentMethod, setPaymentMethod] = useState<'Cash' | 'UPI' | 'Cheque'>('Cash');
-    const [paymentDesc, setPaymentDesc] = useState('');
-    const [submittingPayment, setSubmittingPayment] = useState(false);
-
-    // Ledger Data
-    const [ledgerData, setLedgerData] = useState<any[]>([]);
-    const [loadingLedger, setLoadingLedger] = useState(false);
-    const [ledgerSkip, setLedgerSkip] = useState(0);
-    const [ledgerHasMore, setLedgerHasMore] = useState(true);
 
     // Safety timeout for expense saving (unstick buttons)
     useEffect(() => {
@@ -100,76 +237,6 @@ const AdminCollections = ({ theme, orderLines }: Props) => {
             alert('Failed to delete expense');
         }
     };
-
-    // --- Inline Action Handlers ---
-    const openPaymentModal = (row: any) => {
-        setSelectedShop({ id: row.shop_id, shop_name: row.shop_name });
-        setPaymentAmount('');
-        setPaymentMethod('Cash');
-        setPaymentDesc('');
-        setShowPaymentModal(true);
-    };
-
-    const openLedgerModal = (row: any) => {
-        setSelectedShop({ id: row.shop_id, shop_name: row.shop_name });
-        setLedgerData([]);
-        setLedgerSkip(0);
-        setLedgerHasMore(true);
-        setShowLedgerModal(true);
-        fetchLedger(row.shop_id, 0);
-    };
-
-    const fetchLedger = async (shopId: number, skip: number) => {
-        setLoadingLedger(true);
-        try {
-            const res = await getAuthAxios().get(`/api/shops/ledger/${shopId}?skip=${skip}&limit=20`);
-            if (skip === 0) {
-                setLedgerData(res.data);
-            } else {
-                setLedgerData(prev => [...prev, ...res.data]);
-            }
-            setLedgerHasMore(res.data.length === 20);
-        } catch (err) {
-            showToast('Failed to fetch ledger', 'error');
-        } finally {
-            setLoadingLedger(false);
-        }
-    };
-
-    const handleCollectPayment = async (e: React.FormEvent) => {
-        e.preventDefault();
-        if (!selectedShop || submittingPayment) return;
-        const amt = parseFloat(paymentAmount);
-        if (isNaN(amt) || amt <= 0) return showToast('Enter valid amount', 'error');
-
-        setSubmittingPayment(true);
-        try {
-            await getAuthAxios().post('/api/shops/collect-payment', {
-                shop_id: selectedShop.id,
-                amount: amt,
-                method: paymentMethod,
-                description: paymentDesc || `Admin Collection - ${selectedDate}`
-            });
-            showToast('Payment recorded successfully', 'success');
-            setShowPaymentModal(false);
-            refresh(); // Refresh table data
-        } catch (err: any) {
-            showToast(err.response?.data?.error || 'Failed to collect payment', 'error');
-        } finally {
-            setSubmittingPayment(false);
-        }
-    };
-
-    // Safety timeout for inline payment
-    useEffect(() => {
-        if (submittingPayment) {
-            const timer = setTimeout(() => {
-                setSubmittingPayment(false);
-                showToast('Payment request timed out', 'error');
-            }, 15000);
-            return () => clearTimeout(timer);
-        }
-    }, [submittingPayment]);
 
     // Mode badge renderer for a single row
     const renderModeBadges = (cash: number, upi: number, cheque: number, pos: number = 0) => {
@@ -374,25 +441,21 @@ const AdminCollections = ({ theme, orderLines }: Props) => {
                                                 <td className={`px-5 py-3.5 font-bold ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>{idx + 1}</td>
                                                 <td className={`px-5 py-3.5 font-bold ${isDark ? 'text-white' : 'text-slate-900'}`}>
                                                     <div className="flex items-center justify-between group">
-                                                        <span>{row.shop_name}</span>
-                                                        <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                                                        <span className="truncate max-w-[150px]">{row.shop_name}</span>
+                                                        <div className="flex items-center gap-1.5 opacity-0 group-hover:opacity-100 transition-all">
                                                             <button 
-                                                                onClick={() => openPaymentModal(row)}
+                                                                onClick={() => handleOpenPayment(row)}
+                                                                className={`p-1.5 rounded-lg border transition-all hover:scale-110 active:scale-95 ${isDark ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400' : 'bg-emerald-50 border-emerald-100 text-emerald-600 shadow-sm'}`}
                                                                 title="Collect Payment"
-                                                                className="p-1.5 rounded-lg bg-emerald-500 text-white hover:bg-emerald-600 transition-all shadow-sm"
                                                             >
-                                                                <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                                                </svg>
+                                                                <AccountBalanceWalletIcon style={{ fontSize: 16 }} />
                                                             </button>
                                                             <button 
-                                                                onClick={() => openLedgerModal(row)}
+                                                                onClick={() => handleOpenLedger(row)}
+                                                                className={`p-1.5 rounded-lg border transition-all hover:scale-110 active:scale-95 ${isDark ? 'bg-slate-500/10 border-slate-500/20 text-slate-400' : 'bg-slate-100 border-slate-200 text-slate-600 shadow-sm'}`}
                                                                 title="View Ledger"
-                                                                className="p-1.5 rounded-lg bg-indigo-500 text-white hover:bg-indigo-600 transition-all shadow-sm"
                                                             >
-                                                                <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                                                                </svg>
+                                                                <ReceiptLongIcon style={{ fontSize: 16 }} />
                                                             </button>
                                                         </div>
                                                     </div>
@@ -444,22 +507,8 @@ const AdminCollections = ({ theme, orderLines }: Props) => {
                                                 {idx + 1}. {row.shop_name}
                                             </span>
                                             <div className="flex items-center gap-2">
-                                                <button 
-                                                    onClick={() => openPaymentModal(row)}
-                                                    className="p-2 rounded-xl bg-emerald-500 text-white shadow-lg shadow-emerald-500/20 active:scale-95"
-                                                >
-                                                    <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                                    </svg>
-                                                </button>
-                                                <button 
-                                                    onClick={() => openLedgerModal(row)}
-                                                    className="p-2 rounded-xl bg-indigo-500 text-white shadow-lg shadow-indigo-500/20 active:scale-95"
-                                                >
-                                                    <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                                                    </svg>
-                                                </button>
+                                                <button onClick={() => handleOpenPayment(row)} className="p-2 rounded-xl bg-emerald-500/10 text-emerald-500"><AccountBalanceWalletIcon style={{ fontSize: 16 }} /></button>
+                                                <button onClick={() => handleOpenLedger(row)} className="p-2 rounded-xl bg-slate-500/10 text-slate-500"><ReceiptLongIcon style={{ fontSize: 16 }} /></button>
                                             </div>
                                         </div>
                                         <div className="grid grid-cols-2 gap-2 text-[11px]">
@@ -615,48 +664,107 @@ const AdminCollections = ({ theme, orderLines }: Props) => {
                     )}
                 </>
             )}
-            {/* ══════════ PAYEMENT COLLECTION MODAL ══════════ */}
-            {showPaymentModal && (
-                <div className="fixed inset-0 z-[60] flex items-center justify-center p-4">
-                    <div className="fixed inset-0 bg-slate-950/80 backdrop-blur-sm" onClick={() => setShowPaymentModal(false)} />
-                    <div className={`relative w-full max-w-md rounded-[32px] shadow-2xl border p-8 animate-in zoom-in-95 duration-200 ${isDark ? 'bg-slate-900 border-white/10' : 'bg-white border-slate-100'}`}>
+
+            {/* ── ACTION MODALS ── */}
+            {/* Collect Payment Modal */}
+            {showPaymentModal && selectedShop && (
+                <div className="fixed inset-0 z-[70] flex items-center justify-center p-4 animate-in fade-in duration-300">
+                    <div className="absolute inset-0 bg-slate-950/80 backdrop-blur-sm" onClick={() => { setShowPaymentModal(false); setSelectedShop(null); }} />
+                    <div className={`relative w-full max-w-md rounded-[40px] border shadow-2xl p-8 animate-in zoom-in-95 duration-300 ${isDark ? 'bg-slate-900 border-white/10 text-white' : 'bg-white border-slate-100 text-slate-900'}`}>
                         <div className="flex items-center justify-between mb-8">
                             <div>
-                                <h3 className={`text-2xl font-black italic tracking-tight ${isDark ? 'text-white' : 'text-slate-900'}`}>Collect Payment</h3>
-                                <p className="text-xs font-black text-emerald-500 uppercase tracking-widest mt-1">{selectedShop?.shop_name}</p>
+                                <h3 className="text-2xl font-black italic tracking-tighter">Collect Payment</h3>
+                                <p className="text-xs font-black text-emerald-500 uppercase tracking-widest mt-1">{selectedShop.shop_name}</p>
                             </div>
-                            <button onClick={() => setShowPaymentModal(false)} className="text-slate-400 hover:text-red-400 transition-colors">
-                                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M6 18L18 6M6 6l12 12" />
-                                </svg>
+                            <button onClick={() => { setShowPaymentModal(false); setSelectedShop(null); }} className="text-slate-400 hover:text-red-400 transition-colors">
+                                <CloseIcon />
                             </button>
                         </div>
-                        
                         <form onSubmit={handleCollectPayment} className="space-y-6">
+                            {paymentData.method !== 'Dual Mode' ? (
+                                <div>
+                                    <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-2 mb-2 block">Amount to Collect (₹)</label>
+                                    <input
+                                        required
+                                        type="number"
+                                        value={paymentData.amount}
+                                        onChange={(e) => setPaymentData({ ...paymentData, amount: e.target.value })}
+                                        className={`w-full px-6 py-4 rounded-2xl border font-black text-2xl outline-none transition-all ${isDark ? 'bg-slate-800 border-white/5 text-white focus:ring-2 focus:ring-emerald-500/50' : 'bg-slate-50 border-slate-200 text-slate-900 focus:ring-2 focus:ring-emerald-500/20'}`}
+                                        placeholder="0.00"
+                                    />
+                                </div>
+                            ) : (
+                                <div className="grid grid-cols-2 gap-4">
+                                    <div>
+                                        <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-2 mb-2 block text-green-500">Cash Part (₹)</label>
+                                        <input
+                                            required
+                                            type="number"
+                                            value={paymentData.dualCashAmount}
+                                            onChange={(e) => setPaymentData({ ...paymentData, dualCashAmount: e.target.value })}
+                                            className={`w-full px-4 py-3 rounded-2xl border font-black text-lg outline-none transition-all ${isDark ? 'bg-slate-800 border-white/5 text-white focus:ring-2 focus:ring-green-500/50' : 'bg-slate-50 border-slate-200 text-slate-900 focus:ring-2 focus:ring-green-500/20'}`}
+                                            placeholder="Cash"
+                                        />
+                                    </div>
+                                    <div>
+                                        <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-2 mb-2 block text-blue-500">UPI Part (₹)</label>
+                                        <input
+                                            required
+                                            type="number"
+                                            value={paymentData.dualUpiAmount}
+                                            onChange={(e) => setPaymentData({ ...paymentData, dualUpiAmount: e.target.value })}
+                                            className={`w-full px-4 py-3 rounded-2xl border font-black text-lg outline-none transition-all ${isDark ? 'bg-slate-800 border-white/5 text-white focus:ring-2 focus:ring-blue-500/50' : 'bg-slate-50 border-slate-200 text-slate-900 focus:ring-2 focus:ring-blue-500/20'}`}
+                                            placeholder="UPI"
+                                        />
+                                    </div>
+                                </div>
+                            )}
+
                             <div>
-                                <label className={`text-[10px] font-black uppercase tracking-widest ml-2 mb-2 block ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>Amount to Collect (₹)</label>
-                                <input 
-                                    type="number" step="0.01" required autoFocus
-                                    value={paymentAmount} onChange={(e) => setPaymentAmount(e.target.value)}
-                                    placeholder="Enter amount..."
-                                    className={`w-full p-4 rounded-2xl font-black text-lg ${isDark ? 'bg-slate-800 border-white/10 text-white' : 'bg-slate-50 border-slate-100 text-slate-900'}`}
-                                />
+                                <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-2 mb-3 block">Payment Mode</label>
+                                <div className="grid grid-cols-3 gap-2">
+                                    {['Cash', 'UPI', 'Dual Mode'].map((m) => (
+                                        <button
+                                            key={m}
+                                            type="button"
+                                            onClick={() => setPaymentData({ ...paymentData, method: m as any })}
+                                            className={`py-3 rounded-2xl border font-black uppercase tracking-widest text-[9px] transition-all
+                                                ${paymentData.method === m 
+                                                    ? 'bg-emerald-600 border-emerald-600 text-white shadow-lg shadow-emerald-600/20 scale-105' 
+                                                    : isDark ? 'bg-slate-800 border-white/5 text-slate-500 hover:bg-slate-700' : 'bg-slate-50 border-slate-100 text-slate-400 hover:bg-slate-100'}`}
+                                        >
+                                            {m}
+                                        </button>
+                                    ))}
+                                </div>
                             </div>
 
-                            <div className="grid grid-cols-3 gap-2">
-                                {(['Cash', 'UPI', 'Cheque'] as const).map(m => (
-                                    <button 
-                                        key={m} type="button" onClick={() => setPaymentMethod(m)}
-                                        className={`py-3 rounded-xl border font-black uppercase tracking-widest text-[9px] transition-all ${paymentMethod === m ? 'bg-emerald-600 border-emerald-600 text-white shadow-lg shadow-emerald-600/20' : isDark ? 'bg-slate-800 border-white/10 text-slate-500' : 'bg-white border-slate-100 text-slate-400'}`}
-                                    >
-                                        {m}
-                                    </button>
-                                ))}
-                            </div>
+                            {paymentData.method === 'UPI' && (
+                                <div className="animate-in slide-in-from-top-2 duration-300">
+                                    <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-2 mb-3 block">UPI App Used</label>
+                                    <div className="grid grid-cols-4 gap-2">
+                                        {['PhonePe', 'GPay', 'Paytm', 'Other'].map((app) => (
+                                            <button
+                                                key={app}
+                                                type="button"
+                                                onClick={() => setPaymentData({ ...paymentData, upiApp: app as any })}
+                                                className={`py-3 rounded-xl border font-black text-[8px] uppercase tracking-tighter transition-all
+                                                    ${paymentData.upiApp === app 
+                                                        ? 'bg-indigo-600 border-indigo-600 text-white shadow-md' 
+                                                        : isDark ? 'bg-slate-800 border-white/5 text-slate-500' : 'bg-slate-50 border-slate-100 text-slate-400'}`}
+                                            >
+                                                {app}
+                                            </button>
+                                        ))}
+                                    </div>
+                                </div>
+                            )}
 
-                            <button 
-                                type="submit" disabled={submittingPayment}
-                                className={`w-full py-4 bg-emerald-600 hover:bg-emerald-700 text-white font-black rounded-2xl text-xs uppercase tracking-widest transition-all shadow-lg shadow-emerald-600/20 disabled:opacity-50`}
+                            <button
+                                type="submit"
+                                disabled={submittingPayment}
+                                className={`w-full py-4 bg-emerald-600 hover:bg-emerald-700 text-white font-black rounded-2xl text-xs uppercase tracking-widest transition-all shadow-lg shadow-emerald-600/20 mt-4
+                                    ${submittingPayment ? 'opacity-50 cursor-not-allowed' : 'hover:-translate-y-0.5 active:scale-95'}`}
                             >
                                 {submittingPayment ? 'Recording...' : 'Confirm Collection'}
                             </button>
@@ -665,68 +773,170 @@ const AdminCollections = ({ theme, orderLines }: Props) => {
                 </div>
             )}
 
-            {/* ══════════ LEDGER VIEW MODAL ══════════ */}
-            {showLedgerModal && (
-                <div className="fixed inset-0 z-[60] flex items-center justify-center p-4">
-                    <div className="fixed inset-0 bg-slate-950/80 backdrop-blur-sm" onClick={() => setShowLedgerModal(false)} />
-                    <div className={`relative w-full max-w-2xl max-h-[85vh] rounded-[40px] shadow-2xl border flex flex-col overflow-hidden animate-in slide-in-from-bottom-5 duration-300 ${isDark ? 'bg-slate-900 border-white/10' : 'bg-white border-slate-100'}`}>
-                        <div className={`p-8 border-b flex items-center justify-between ${isDark ? 'border-white/5 bg-slate-800/20' : 'border-slate-50 bg-slate-50/50'}`}>
-                            <div>
-                                <h3 className={`text-2xl font-black italic tracking-tight ${isDark ? 'text-white' : 'text-slate-900'}`}>Shop Ledger</h3>
-                                <p className="text-xs font-black text-blue-500 uppercase tracking-widest mt-1">{selectedShop?.shop_name}</p>
+            {/* Ledger Modal */}
+            {showLedger && selectedShop && (
+                <div className="fixed inset-0 z-[80] flex items-center justify-center p-0 sm:p-4 animate-in fade-in duration-300">
+                    <div className="absolute inset-0 bg-slate-950/90 backdrop-blur-md" onClick={() => { setShowLedger(false); setSelectedShop(null); }} />
+                    <div className={`relative w-full max-w-4xl h-full sm:h-[90vh] sm:rounded-[40px] shadow-2xl border flex flex-col overflow-hidden animate-in slide-in-from-bottom-5 duration-500 ${isDark ? 'bg-slate-900 border-white/10' : 'bg-slate-50 border-slate-200'}`}>
+                        {/* Header */}
+                        <div className={`px-8 py-8 border-b flex flex-col sm:flex-row sm:items-center justify-between gap-4 ${isDark ? 'bg-slate-800/50 border-white/5' : 'bg-white border-slate-200'}`}>
+                            <div className="flex items-center gap-4">
+                                <div className="w-14 h-14 rounded-2xl bg-indigo-500/10 flex items-center justify-center text-indigo-500 text-2xl">📜</div>
+                                <div>
+                                    <h3 className={`text-2xl font-black italic tracking-tighter ${isDark ? 'text-white' : 'text-slate-900'}`}>
+                                        Shop Ledger
+                                    </h3>
+                                    <p className="text-xs font-black text-indigo-500 uppercase tracking-widest mt-1">{selectedShop.shop_name}</p>
+                                </div>
                             </div>
-                            <button onClick={() => setShowLedgerModal(false)} className="text-slate-400 hover:text-red-400 transition-colors">
-                                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M6 18L18 6M6 6l12 12" />
-                                </svg>
-                            </button>
+                            <div className="flex items-center gap-3">
+                                <button
+                                    onClick={() => {
+                                        setAdjData({ amount: '', description: '', method: 'Cash' });
+                                        setShowAdjustModal(true);
+                                    }}
+                                    className={`px-6 py-3 rounded-xl bg-amber-600 text-white font-black text-[10px] uppercase tracking-widest transition-all hover:bg-amber-500 shadow-lg shadow-amber-900/20`}
+                                >
+                                    ⚙️ Apply Adjustment
+                                </button>
+                                <button onClick={() => { setShowLedger(false); setSelectedShop(null); }} className="p-3 hover:bg-red-500/10 rounded-2xl text-slate-400 hover:text-red-500 transition-all">
+                                    <CloseIcon />
+                                </button>
+                            </div>
                         </div>
 
-                        <div className="flex-1 overflow-y-auto p-6 space-y-4 no-scrollbar">
+                        {/* Content */}
+                        <div className="flex-1 overflow-y-auto p-4 sm:p-8 no-scrollbar">
                             {loadingLedger && ledgerData.length === 0 ? (
-                                <div className="py-20 text-center">
-                                    <div className="animate-spin text-blue-500 inline-block mb-4">
-                                        <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                        </svg>
-                                    </div>
-                                    <p className="font-bold text-slate-400 uppercase tracking-widest text-xs">Loading history...</p>
-                                </div>
-                            ) : ledgerData.length === 0 ? (
-                                <div className="py-20 text-center">
-                                    <span className="text-5xl mb-4 block">📄</span>
-                                    <p className="font-bold text-slate-400">No transactions found</p>
-                                </div>
+                                <div className="flex items-center justify-center h-40"><div className="w-8 h-8 border-4 border-indigo-500 border-t-transparent rounded-full animate-spin" /></div>
                             ) : (
-                                ledgerData.map((item, i) => {
-                                    const isAddition = item.type === 'Bill' || (item.type === 'Adjustment' && item.amount > 0);
-                                    return (
-                                        <div key={i} className={`p-5 rounded-[24px] border transition-all flex items-center justify-between ${isDark ? 'bg-slate-800/40 border-white/5 hover:border-white/10' : 'bg-white border-slate-50 hover:border-slate-100 shadow-sm'}`}>
-                                            <div className="flex items-center gap-4">
-                                                <div className={`w-12 h-12 rounded-2xl flex items-center justify-center font-black text-lg ${isAddition ? 'bg-red-500/10 text-red-500' : 'bg-emerald-500/10 text-emerald-500'}`}>
-                                                    {item.type[0]}
-                                                </div>
-                                                <div>
-                                                    <p className={`font-black text-sm uppercase tracking-tight ${isDark ? 'text-slate-200' : 'text-slate-700'}`}>{item.description}</p>
-                                                    <p className="text-[10px] font-bold text-slate-500 mt-1 uppercase tracking-widest">{new Date(item.created_at).toLocaleDateString('en-IN')}</p>
-                                                </div>
-                                            </div>
-                                            <div className="text-right">
-                                                <p className={`text-lg font-black ${isAddition ? 'text-red-500' : 'text-emerald-500'}`}>
-                                                    {isAddition ? '+' : '-'} ₹{fmt(Math.abs(item.amount))}
-                                                </p>
-                                                <p className="text-[10px] font-black text-slate-400 mt-1 uppercase tracking-widest">Balance: ₹{fmt(item.balance_after)}</p>
-                                            </div>
-                                        </div>
-                                    );
-                                })
+                                <table className="w-full text-sm">
+                                    <thead>
+                                        <tr className={`text-[10px] font-black uppercase tracking-widest ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>
+                                            <th className="text-left px-4 py-4">Date & Type</th>
+                                            <th className="text-left px-4 py-4">Description</th>
+                                            <th className="text-right px-4 py-4">Amount</th>
+                                            <th className="text-right px-4 py-4">Balance</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody className="divide-y divide-slate-100 dark:divide-white/5">
+                                        {ledgerData.map((item, i) => {
+                                            const isBill = item.type === 'BILL';
+                                            const isPayment = item.type === 'PAYMENT';
+                                            return (
+                                                <tr key={i} className={`hover:bg-slate-500/5 transition-colors`}>
+                                                    <td className="px-4 py-5">
+                                                        <div className="flex flex-col">
+                                                            <span className={`text-[10px] font-black uppercase tracking-tighter ${isBill ? 'text-blue-500' : isPayment ? 'text-emerald-500' : 'text-amber-500'}`}>
+                                                                {item.type}
+                                                            </span>
+                                                            <span className={`text-xs font-bold ${isDark ? 'text-slate-300' : 'text-slate-600'}`}>{item.transaction_date ? new Date(item.transaction_date).toLocaleDateString('en-GB') : '—'}</span>
+                                                        </div>
+                                                    </td>
+                                                    <td className="px-4 py-5">
+                                                        <p className={`text-xs font-medium leading-relaxed max-w-[250px] ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
+                                                            {item.description}
+                                                        </p>
+                                                    </td>
+                                                    <td className="px-4 py-5 text-right font-black">
+                                                        <span className={item.amount > 0 ? 'text-red-500' : 'text-emerald-500'}>
+                                                            {item.amount > 0 ? '+' : ''}₹{Math.abs(item.amount).toLocaleString('en-IN', { minimumFractionDigits: 2 })}
+                                                        </span>
+                                                    </td>
+                                                    <td className={`px-4 py-5 text-right font-black ${isDark ? 'text-white' : 'text-slate-900'}`}>
+                                                        ₹{item.running_balance.toLocaleString('en-IN', { minimumFractionDigits: 2 })}
+                                                    </td>
+                                                </tr>
+                                            );
+                                        })}
+                                    </tbody>
+                                </table>
                             )}
                             {ledgerHasMore && !loadingLedger && (
-                                <button onClick={() => fetchLedger(selectedShop.id, ledgerSkip + 20)} className="w-full py-4 rounded-2xl border-2 border-dashed border-slate-200 text-slate-400 font-bold hover:border-blue-400 hover:text-blue-500 transition-all">
-                                    Load More History
+                                <button 
+                                    onClick={() => fetchLedger(selectedShop!, ledgerSkip + 20)}
+                                    className="w-full py-4 text-[10px] font-black uppercase tracking-widest text-slate-400 hover:text-indigo-500 transition-colors mt-4"
+                                >
+                                    Load More Records...
                                 </button>
                             )}
                         </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Manual Adjustment Modal */}
+            {showAdjustModal && selectedShop && (
+                <div className="fixed inset-0 z-[90] flex items-center justify-center p-4 animate-in fade-in duration-300">
+                    <div className="absolute inset-0 bg-slate-950/80 backdrop-blur-sm" onClick={() => setShowAdjustModal(false)} />
+                    <div className={`relative w-full max-w-md rounded-[40px] border shadow-2xl p-8 animate-in zoom-in-95 duration-300 ${isDark ? 'bg-slate-900 border-white/10 text-white' : 'bg-white border-slate-100 text-slate-900'}`}>
+                        <div className="flex items-center justify-between mb-8">
+                            <div>
+                                <h3 className="text-2xl font-black italic tracking-tighter text-amber-500">Manual Adjustment</h3>
+                                <p className="text-xs font-black text-slate-500 uppercase tracking-widest mt-1">{selectedShop.shop_name}</p>
+                            </div>
+                            <button onClick={() => setShowAdjustModal(false)} className="text-slate-400 hover:text-red-400 transition-colors">
+                                <CloseIcon />
+                            </button>
+                        </div>
+                        <form onSubmit={handleAdjustment} className="space-y-6">
+                            <div>
+                                <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-2 mb-2 block">Adjustment Amount (₹)</label>
+                                <p className="text-[9px] text-slate-500 italic mb-2 ml-2 tracking-tighter">Use negative (-) for payments/collections, positive for debt</p>
+                                <input
+                                    required
+                                    type="number"
+                                    value={adjData.amount}
+                                    onChange={(e) => setAdjData({ ...adjData, amount: e.target.value })}
+                                    className={`w-full px-6 py-4 rounded-2xl border font-black text-2xl outline-none transition-all ${isDark ? 'bg-slate-800 border-white/5 text-white focus:ring-2 focus:ring-amber-500/50' : 'bg-slate-50 border-slate-200 text-slate-900 focus:ring-2 focus:ring-amber-500/20'}`}
+                                    placeholder="0.00"
+                                />
+                            </div>
+                            <div>
+                                <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-2 mb-2 block">Reason / Description</label>
+                                <input
+                                    required
+                                    type="text"
+                                    value={adjData.description}
+                                    onChange={(e) => setAdjData({ ...adjData, description: e.target.value })}
+                                    className={`w-full px-5 py-4 rounded-2xl border font-bold text-sm outline-none transition-all ${isDark ? 'bg-slate-800 border-white/5 text-white focus:ring-2 focus:ring-blue-500/50' : 'bg-slate-50 border-slate-200 text-slate-900 focus:ring-2 focus:ring-blue-500/20'}`}
+                                    placeholder="Reason for adjustment..."
+                                />
+                            </div>
+
+                            {parseFloat(adjData.amount) < 0 && (
+                                <div className="animate-in slide-in-from-top-2 duration-300">
+                                    <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-2 mb-3 block text-center">Set as Collection Mode</label>
+                                    <div className="grid grid-cols-3 gap-2">
+                                        {(['Cash', 'UPI', 'Cheque'] as const).map((m) => (
+                                            <button
+                                                key={m}
+                                                type="button"
+                                                onClick={() => setAdjData({ ...adjData, method: m })}
+                                                className={`py-3 rounded-xl border font-black uppercase tracking-widest text-[9px] transition-all
+                                                    ${adjData.method === m
+                                                        ? 'bg-emerald-600 border-emerald-600 text-white shadow-lg shadow-emerald-600/20 scale-105'
+                                                        : 'bg-slate-50 border-slate-100 text-slate-400 hover:bg-slate-100'}`}
+                                            >
+                                                {m}
+                                            </button>
+                                        ))}
+                                    </div>
+                                    <p className="text-[9px] font-bold text-emerald-500 mt-2 text-center uppercase tracking-tighter italic">
+                                        This will update the {adjData.method} column in reports
+                                    </p>
+                                </div>
+                            )}
+
+                            <button
+                                type="submit"
+                                disabled={submittingAdj}
+                                className={`w-full py-4 bg-amber-600 hover:bg-amber-700 text-white font-black rounded-2xl text-xs uppercase tracking-widest transition-all shadow-lg shadow-amber-600/20 mt-4
+                                    ${submittingAdj ? 'opacity-50 cursor-not-allowed' : 'hover:-translate-y-0.5 active:scale-95'}`}
+                            >
+                                {submittingAdj ? 'Processing...' : 'Apply Adjustment'}
+                            </button>
+                        </form>
                     </div>
                 </div>
             )}
