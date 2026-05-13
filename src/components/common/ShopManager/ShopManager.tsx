@@ -69,6 +69,8 @@ const ShopManager = ({ orderLineId, villageName, theme, onBack, type, handleRefr
         description: '' 
     });
     const [submittingPayment, setSubmittingPayment] = useState(false);
+    const [submittingOrder, setSubmittingOrder] = useState(false);
+    const [submittingShop, setSubmittingShop] = useState(false);
 
     // Delivery Date (default = tomorrow)
     const [deliveryDate, setDeliveryDate] = useState(() => {
@@ -269,6 +271,8 @@ const ShopManager = ({ orderLineId, villageName, theme, onBack, type, handleRefr
     };
 
     const handlePlaceOrder = async () => {
+        if (submittingOrder) return;
+        setSubmittingOrder(true);
         const storedUser = JSON.parse(localStorage.getItem('user') || '{}');
         const createdBy = storedUser.first_name ? `${storedUser.first_name} ${storedUser.last_name || ''}`.trim() : (isAdmin ? 'Admin' : 'Staff');
 
@@ -323,6 +327,8 @@ const ShopManager = ({ orderLineId, villageName, theme, onBack, type, handleRefr
             fetchShops(); // Refresh the list so the progress bar updates immediately
         } catch (err: any) {
             showToast(err.response?.data?.error || 'Failed to place order', 'error');
+        } finally {
+            setSubmittingOrder(false);
         }
     };
 
@@ -347,6 +353,8 @@ const ShopManager = ({ orderLineId, villageName, theme, onBack, type, handleRefr
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
+        if (submittingShop) return;
+        setSubmittingShop(true);
         const payload = {
             order_line_id: orderLineId,
             shop_name: formData.shop_name,
@@ -373,6 +381,8 @@ const ShopManager = ({ orderLineId, villageName, theme, onBack, type, handleRefr
             fetchShops();
         } catch (err: any) {
             showToast(err.response?.data?.error || err.response?.data?.errors?.[0]?.msg || 'Failed to save', 'error');
+        } finally {
+            setSubmittingShop(false);
         }
     };
 
@@ -443,6 +453,7 @@ const ShopManager = ({ orderLineId, villageName, theme, onBack, type, handleRefr
                     deliveryDate={deliveryDate}
                     onDeliveryDateChange={setDeliveryDate}
                     customRates={currentRates}
+                    isSubmitting={submittingOrder}
                 />
             </>
         );
@@ -760,9 +771,11 @@ const ShopManager = ({ orderLineId, villageName, theme, onBack, type, handleRefr
                             ))}
                             <button
                                 type="submit"
-                                className={`w-full py-4 bg-${primaryColor}-600 hover:bg-${primaryColor}-700 text-white font-black rounded-2xl text-sm uppercase tracking-widest shadow-lg shadow-${primaryColor}-600/20 transition-all hover:-translate-y-0.5 active:scale-95 mt-4`}
+                                disabled={submittingShop}
+                                className={`w-full py-4 bg-${primaryColor}-600 hover:bg-${primaryColor}-700 text-white font-black rounded-2xl text-sm uppercase tracking-widest shadow-lg shadow-${primaryColor}-600/20 transition-all mt-4
+                                    ${submittingShop ? 'opacity-50 cursor-not-allowed' : 'hover:-translate-y-0.5 active:scale-95'}`}
                             >
-                                {isAdmin && editingShop ? 'Save Changes' : 'Add Shop'}
+                                {submittingShop ? 'Saving...' : (isAdmin && editingShop ? 'Save Changes' : 'Add Shop')}
                             </button>
                         </form>
                     </div>
