@@ -1,22 +1,16 @@
 import React, { useState, useEffect } from 'react';
 import { useCollections } from './useCollections';
+import { useShopActions } from '../../../hooks/useShopActions';
+import ShopActionModals from '../../../components/common/ShopModals/ShopActionModals';
 import type { OrderLine } from '../../../types/DashboardTypes';
-import { getAuthAxios } from '../../../utils/apiClient';
-
-// Icon Imports
-import CloseIcon from '@mui/icons-material/Close';
-import ReceiptLongIcon from '@mui/icons-material/ReceiptLong';
-import AccountBalanceWalletIcon from '@mui/icons-material/AccountBalanceWallet';
+import { useToast, ToastContainer } from '../../../components/Toast';
 
 interface Props {
     theme: string;
     orderLines: OrderLine[];
 }
 
-const fmt = (n: any) => {
-    const num = parseFloat(n) || 0;
-    return num.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-};
+const fmt = (n: number) => n.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
 const AdminCollections = ({ theme, orderLines }: Props) => {
     const isDark = theme === 'dark';
@@ -28,199 +22,16 @@ const AdminCollections = ({ theme, orderLines }: Props) => {
         refresh, addExpense, updateExpense, deleteExpense, expenses
     } = useCollections(orderLines);
 
-    // --- Action Modals State ---
-    const [selectedShop, setSelectedShop] = useState<any | null>(null);
-    
-    // Ledger
-    const [showLedger, setShowLedger] = useState(false);
-    const [ledgerData, setLedgerData] = useState<any[]>([]);
-    const [loadingLedger, setLoadingLedger] = useState(false);
-    const [ledgerSkip, setLedgerSkip] = useState(0);
-    const [ledgerHasMore, setLedgerHasMore] = useState(true);
+    const { toasts, showToast, removeToast } = useToast();
 
-    // Payment
-    const [showPaymentModal, setShowPaymentModal] = useState(false);
-    const [paymentData, setPaymentData] = useState({
-        amount: '', dualCashAmount: '', dualUpiAmount: '',
-        method: 'Cash', upiApp: 'PhonePe', description: ''
-    });
-    const [submittingPayment, setSubmittingPayment] = useState(false);
+    const {
+        selectedShop, setSelectedShop,
+        showLedger, setShowLedger, ledgerData, loadingLedger, ledgerHasMore, fetchLedger, loadMoreLedger,
+        showAdjustModal, setShowAdjustModal, adjData, setAdjData, submittingAdj, handleAdjustment,
+        showPaymentModal, setShowPaymentModal, paymentData, setPaymentData, submittingPayment, handleCollectPayment
+    } = useShopActions(showToast, () => refresh());
 
-    // Adjustment
-    const [showAdjustModal, setShowAdjustModal] = useState(false);
-    const [adjData, setAdjData] = useState({ amount: '', description: '', method: 'Cash' });
-    const [submittingAdj, setSubmittingAdj] = useState(false);
-
-    const api = () => getAuthAxios();
-
-    // Safety timeout for action buttons
-    useEffect(() => {
-        const checkTimeout = (state: boolean, setter: (v: boolean) => void, name: string) => {
-            if (state) {
-                const timer = setTimeout(() => {
-                    setter(false);
-                    alert(`${name} request timed out. Please try again.`);
-                }, 15000);
-                return () => clearTimeout(timer);
-            }
-        };
-        const t1 = checkTimeout(submittingAdj, setSubmittingAdj, 'Adjustment');
-        const t2 = checkTimeout(submittingPayment, setSubmittingPayment, 'Payment');
-        return () => { if (t1) t1(); if (t2) t2(); };
-    }, [submittingAdj, submittingPayment]);
-
-    // Helpers to fetch full shop details
-    const loadShopDetails = async (shopId: number, silent = false) => {
-        try {
-            const res = await api().get(`/api/shops/${shopId}`);
-            return res.data;
-        } catch (err) {
-            if (!silent) {
-                console.error('Failed to load shop details:', err);
-                alert('Failed to load shop details. Please check connection.');
-            }
-            return null;
-        }
-    };
-
-    // --- Action Handlers ---
-    const handleOpenPayment = async (row: any) => {
-        // Optimization: Use row data immediately for zero-lag interaction
-        setSelectedShop({
-            id: row.shop_id,
-            shop_name: row.shop_name,
-            village_name: row.village_name,
-            balance: row.total_balance // Use current total balance
-        });
-        setPaymentData({ amount: '', dualCashAmount: '', dualUpiAmount: '', method: 'Cash', upiApp: 'PhonePe', description: '' });
-        setShowPaymentModal(true);
-        
-        // Silently refresh shop details in background to ensure balance is 100% synced
-        loadShopDetails(row.shop_id, true).then(fullShop => {
-            if (fullShop) {
-                setSelectedShop((prev: any) => (prev && prev.id === row.shop_id) ? { ...fullShop, balance: row.total_balance } : prev);
-            }
-        });
-    };
-
-    const handleOpenLedger = async (row: any) => {
-        // Set basic info immediately so modal shows name while loading
-        const initialShop = {
-            id: row.shop_id,
-            shop_name: row.shop_name,
-            village_name: row.village_name,
-            balance: row.total_balance
-        };
-        setSelectedShop(initialShop);
-        setShowLedger(true); 
-
-        // Fetch ledger immediately using initial info
-        fetchLedger(initialShop);
-
-        // Try to fetch full metadata in background (silent)
-        const shop = await loadShopDetails(row.shop_id, true);
-        if (shop) {
-            setSelectedShop(shop);
-        }
-    };
-
-    const fetchLedger = async (shop: any, skip = 0) => {
-        setLoadingLedger(true);
-        if (skip === 0) {
-            setLedgerData([]);
-            setLedgerSkip(0);
-            setLedgerHasMore(true);
-        }
-        try {
-            const res = await api().get(`/api/shops/${shop.id}/ledger?limit=20&skip=${skip}`);
-            const data = res.data || [];
-            if (skip === 0) setLedgerData(data);
-            else setLedgerData(prev => [...prev, ...data]);
-            if (data.length < 20) setLedgerHasMore(false);
-            setShowLedger(true);
-        } catch (err) {
-            alert('Failed to fetch ledger');
-        } finally {
-            setLoadingLedger(false);
-        }
-    };
-
-    const handleCollectPayment = async (e: React.FormEvent) => {
-        e.preventDefault();
-        if (!selectedShop || submittingPayment) return;
-        setSubmittingPayment(true);
-        try {
-            let amount = parseFloat(paymentData.amount);
-            if (paymentData.method === 'Dual Mode') {
-                amount = (parseFloat(paymentData.dualCashAmount) || 0) + (parseFloat(paymentData.dualUpiAmount) || 0);
-            }
-            if (isNaN(amount) || amount <= 0) return alert('Enter valid amount');
-
-            const user = JSON.parse(localStorage.getItem('user') || '{}');
-            const userName = user.first_name ? `${user.first_name} ${user.last_name || ''}`.trim() : (user.username || 'Admin');
-
-            await api().post(`/api/shops/${selectedShop.id}/collect-payment`, {
-                amount,
-                method: paymentData.method,
-                upiApp: paymentData.method === 'UPI' ? paymentData.upiApp : undefined,
-                dual_cash_amount: paymentData.method === 'Dual Mode' ? parseFloat(paymentData.dualCashAmount) : undefined,
-                dual_upi_amount: paymentData.method === 'Dual Mode' ? parseFloat(paymentData.dualUpiAmount) : undefined,
-                description: paymentData.description,
-                recorded_by: userName
-            });
-
-            setShowPaymentModal(false);
-            
-            // TOGETHERLY SYNC: If ledger is open, refresh it. Otherwise clear shop context.
-            if (showLedger) {
-                fetchLedger(selectedShop);
-                // Also refresh full shop metadata to get latest balance for header
-                loadShopDetails(selectedShop.id, true).then(full => full && setSelectedShop(full));
-            } else {
-                setSelectedShop(null);
-            }
-            refresh();
-        } catch (err) {
-            alert('Failed to collect payment');
-        } finally {
-            setSubmittingPayment(false);
-        }
-    };
-
-    const handleAdjustment = async (e: React.FormEvent) => {
-        e.preventDefault();
-        if (!selectedShop || submittingAdj) return;
-        setSubmittingAdj(true);
-        try {
-            const user = JSON.parse(localStorage.getItem('user') || '{}');
-            const userName = user.first_name ? `${user.first_name} ${user.last_name || ''}`.trim() : (user.username || 'Admin');
-
-            await api().post(`/api/shops/${selectedShop.id}/adjust-balance`, {
-                amount: parseFloat(adjData.amount),
-                description: adjData.description,
-                method: parseFloat(adjData.amount) < 0 ? adjData.method : undefined,
-                recorded_by: userName
-            });
-
-            setShowAdjustModal(false);
-            
-            // TOGETHERLY SYNC: Always refresh ledger if it's open, otherwise clear context
-            if (showLedger) {
-                fetchLedger(selectedShop);
-                // Sync header balance
-                loadShopDetails(selectedShop.id, true).then(full => full && setSelectedShop(full));
-            } else {
-                setSelectedShop(null);
-            }
-            refresh();
-        } catch (err) {
-            alert('Failed to adjust balance');
-        } finally {
-            setSubmittingAdj(false);
-        }
-    };
-
-    // --- Existing Expense States ---
+    // Expense Modal State
     const [showExpModal, setShowExpModal] = useState(false);
     const [editingExpId, setEditingExpId] = useState<number | null>(null);
     const [expAmount, setExpAmount] = useState('');
@@ -473,33 +284,39 @@ const AdminCollections = ({ theme, orderLines }: Props) => {
                                         <th className="text-right px-5 py-3">Today's Bill</th>
                                         <th className="text-right px-5 py-3">Collected</th>
                                         <th className="text-right px-5 py-3">Manual Adjust</th>
-                                        <th className="text-right px-5 py-3">Upcoming Bill</th>
+                                        <th className="text-right px-5 py-3">Upcoming</th>
                                         <th className="text-right px-5 py-3">Total Bal</th>
                                     </tr>
                                 </thead>
-                                <tbody>
+                                <tbody className={`divide-y ${isDark ? 'divide-white/5' : 'divide-slate-100'}`}>
                                     {collections.map((row, idx) => {
                                         const collected = row.cash_collected + row.upi_collected + row.cheque_collected;
+                                        const actionShop = { id: row.shop_id, shop_name: row.shop_name, balance: row.total_balance, village_name: row.village_name };
+
                                         return (
-                                            <tr key={row.id} className={`border-t transition-colors ${isDark ? 'border-white/5 hover:bg-slate-800/30' : 'border-slate-50 hover:bg-slate-50/50'}`}>
+                                            <tr key={row.id} className={`transition-all duration-200 group ${isDark ? 'hover:bg-white/5' : 'hover:bg-slate-50'}`}>
                                                 <td className={`px-5 py-3.5 font-bold ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>{idx + 1}</td>
-                                                <td className={`px-5 py-3.5 font-bold ${isDark ? 'text-white' : 'text-slate-900'}`}>
-                                                    <div className="flex items-center justify-between group">
-                                                        <span className="truncate max-w-[150px]">{row.shop_name}</span>
-                                                        <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-all">
+                                                <td className="px-5 py-3.5">
+                                                    <div className="flex flex-col">
+                                                        <span className={`font-black ${isDark ? 'text-white' : 'text-slate-900'}`}>{row.shop_name}</span>
+                                                        <div className="flex items-center gap-2 mt-1.5 opacity-0 group-hover:opacity-100 transition-opacity">
                                                             <button 
-                                                                onClick={() => handleOpenPayment(row)}
-                                                                className={`w-8 h-8 flex items-center justify-center rounded-full border transition-all hover:scale-110 active:scale-95 ${isDark ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400' : 'bg-emerald-50 border-emerald-200 text-emerald-600 shadow-sm'}`}
-                                                                title="Collect Payment"
+                                                                onClick={() => { setSelectedShop(actionShop); setShowPaymentModal(true); }}
+                                                                className="px-2 py-0.5 rounded-md bg-emerald-500/10 text-emerald-600 text-[10px] font-black uppercase tracking-tighter hover:bg-emerald-500 hover:text-white transition-all"
                                                             >
-                                                                <AccountBalanceWalletIcon style={{ fontSize: 15 }} />
+                                                                Collect ₹
                                                             </button>
                                                             <button 
-                                                                onClick={() => handleOpenLedger(row)}
-                                                                className={`w-8 h-8 flex items-center justify-center rounded-full border transition-all hover:scale-110 active:scale-95 ${isDark ? 'bg-indigo-500/10 border-indigo-500/20 text-indigo-400' : 'bg-indigo-50 border-indigo-200 text-indigo-600 shadow-sm'}`}
-                                                                title="View Ledger"
+                                                                onClick={() => { setSelectedShop(actionShop); setShowAdjustModal(true); }}
+                                                                className="px-2 py-0.5 rounded-md bg-blue-500/10 text-blue-600 text-[10px] font-black uppercase tracking-tighter hover:bg-blue-500 hover:text-white transition-all"
                                                             >
-                                                                <ReceiptLongIcon style={{ fontSize: 15 }} />
+                                                                Adjust ±
+                                                            </button>
+                                                            <button 
+                                                                onClick={() => fetchLedger(actionShop)}
+                                                                className="px-2 py-0.5 rounded-md bg-slate-500/10 text-slate-600 text-[10px] font-black uppercase tracking-tighter hover:bg-slate-500 hover:text-white transition-all"
+                                                            >
+                                                                Ledger 👁
                                                             </button>
                                                         </div>
                                                     </div>
@@ -552,16 +369,31 @@ const AdminCollections = ({ theme, orderLines }: Props) => {
                                             </span>
                                             <div className="flex items-center gap-2">
                                                 <button 
-                                                    onClick={() => handleOpenPayment(row)} 
-                                                    className={`w-9 h-9 flex items-center justify-center rounded-full transition-all active:scale-90 ${isDark ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20' : 'bg-emerald-50 text-emerald-600 border border-emerald-100 shadow-sm'}`}
+                                                    onClick={() => {
+                                                        const s = { id: row.shop_id, shop_name: row.shop_name, balance: row.total_balance, village_name: row.village_name };
+                                                        setSelectedShop(s); setShowPaymentModal(true);
+                                                    }}
+                                                    className="w-7 h-7 rounded-lg bg-emerald-500 text-white flex items-center justify-center text-xs font-black"
                                                 >
-                                                    <AccountBalanceWalletIcon style={{ fontSize: 18 }} />
+                                                    ₹
                                                 </button>
                                                 <button 
-                                                    onClick={() => handleOpenLedger(row)} 
-                                                    className={`w-9 h-9 flex items-center justify-center rounded-full transition-all active:scale-90 ${isDark ? 'bg-indigo-500/10 text-indigo-400 border border-indigo-500/20' : 'bg-indigo-50 text-indigo-600 border border-indigo-100 shadow-sm'}`}
+                                                    onClick={() => {
+                                                        const s = { id: row.shop_id, shop_name: row.shop_name, balance: row.total_balance, village_name: row.village_name };
+                                                        setSelectedShop(s); setShowAdjustModal(true);
+                                                    }}
+                                                    className="w-7 h-7 rounded-lg bg-blue-500 text-white flex items-center justify-center text-xs font-black"
                                                 >
-                                                    <ReceiptLongIcon style={{ fontSize: 18 }} />
+                                                    ±
+                                                </button>
+                                                <button 
+                                                    onClick={() => {
+                                                        const s = { id: row.shop_id, shop_name: row.shop_name, balance: row.total_balance, village_name: row.village_name };
+                                                        fetchLedger(s);
+                                                    }}
+                                                    className="w-7 h-7 rounded-lg bg-slate-500 text-white flex items-center justify-center text-xs font-black"
+                                                >
+                                                    👁
                                                 </button>
                                             </div>
                                         </div>
@@ -719,290 +551,30 @@ const AdminCollections = ({ theme, orderLines }: Props) => {
                 </>
             )}
 
-            {/* ── ACTION MODALS ── */}
-            {/* Collect Payment Modal */}
-            {showPaymentModal && selectedShop && (
-                <div className="fixed inset-0 z-[70] flex items-center justify-center p-4 animate-in fade-in duration-300">
-                    <div className="absolute inset-0 bg-slate-950/80 backdrop-blur-sm" onClick={() => { setShowPaymentModal(false); setSelectedShop(null); }} />
-                    <div className={`relative w-full max-w-md rounded-[40px] border shadow-2xl p-8 animate-in zoom-in-95 duration-300 ${isDark ? 'bg-slate-900 border-white/10 text-white' : 'bg-white border-slate-100 text-slate-900'}`}>
-                        <div className="flex items-center justify-between mb-8">
-                            <div>
-                                <h3 className="text-2xl font-black italic tracking-tighter">Collect Payment</h3>
-                                <p className="text-xs font-black text-emerald-500 uppercase tracking-widest mt-1">{selectedShop.shop_name}</p>
-                            </div>
-                            <button onClick={() => { setShowPaymentModal(false); setSelectedShop(null); }} className="text-slate-400 hover:text-red-400 transition-colors">
-                                <CloseIcon />
-                            </button>
-                        </div>
-                        <form onSubmit={handleCollectPayment} className="space-y-6">
-                            {paymentData.method !== 'Dual Mode' ? (
-                                <div>
-                                    <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-2 mb-2 block">Amount to Collect (₹)</label>
-                                    <input
-                                        required
-                                        type="number"
-                                        value={paymentData.amount}
-                                        onChange={(e) => setPaymentData({ ...paymentData, amount: e.target.value })}
-                                        className={`w-full px-6 py-4 rounded-2xl border font-black text-2xl outline-none transition-all ${isDark ? 'bg-slate-800 border-white/5 text-white focus:ring-2 focus:ring-emerald-500/50' : 'bg-slate-50 border-slate-200 text-slate-900 focus:ring-2 focus:ring-emerald-500/20'}`}
-                                        placeholder="0.00"
-                                    />
-                                </div>
-                            ) : (
-                                <div className="grid grid-cols-2 gap-4">
-                                    <div>
-                                        <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-2 mb-2 block text-green-500">Cash Part (₹)</label>
-                                        <input
-                                            required
-                                            type="number"
-                                            value={paymentData.dualCashAmount}
-                                            onChange={(e) => setPaymentData({ ...paymentData, dualCashAmount: e.target.value })}
-                                            className={`w-full px-4 py-3 rounded-2xl border font-black text-lg outline-none transition-all ${isDark ? 'bg-slate-800 border-white/5 text-white focus:ring-2 focus:ring-green-500/50' : 'bg-slate-50 border-slate-200 text-slate-900 focus:ring-2 focus:ring-green-500/20'}`}
-                                            placeholder="Cash"
-                                        />
-                                    </div>
-                                    <div>
-                                        <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-2 mb-2 block text-blue-500">UPI Part (₹)</label>
-                                        <input
-                                            required
-                                            type="number"
-                                            value={paymentData.dualUpiAmount}
-                                            onChange={(e) => setPaymentData({ ...paymentData, dualUpiAmount: e.target.value })}
-                                            className={`w-full px-4 py-3 rounded-2xl border font-black text-lg outline-none transition-all ${isDark ? 'bg-slate-800 border-white/5 text-white focus:ring-2 focus:ring-blue-500/50' : 'bg-slate-50 border-slate-200 text-slate-900 focus:ring-2 focus:ring-blue-500/20'}`}
-                                            placeholder="UPI"
-                                        />
-                                    </div>
-                                </div>
-                            )}
-
-                            <div>
-                                <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-2 mb-3 block">Payment Mode</label>
-                                <div className="grid grid-cols-3 gap-2">
-                                    {['Cash', 'UPI', 'Dual Mode'].map((m) => (
-                                        <button
-                                            key={m}
-                                            type="button"
-                                            onClick={() => setPaymentData({ ...paymentData, method: m as any })}
-                                            className={`py-3 rounded-2xl border font-black uppercase tracking-widest text-[9px] transition-all
-                                                ${paymentData.method === m 
-                                                    ? 'bg-emerald-600 border-emerald-600 text-white shadow-lg shadow-emerald-600/20 scale-105' 
-                                                    : isDark ? 'bg-slate-800 border-white/5 text-slate-500 hover:bg-slate-700' : 'bg-slate-50 border-slate-100 text-slate-400 hover:bg-slate-100'}`}
-                                        >
-                                            {m}
-                                        </button>
-                                    ))}
-                                </div>
-                            </div>
-
-                            {paymentData.method === 'UPI' && (
-                                <div className="animate-in slide-in-from-top-2 duration-300">
-                                    <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-2 mb-3 block">UPI App Used</label>
-                                    <div className="grid grid-cols-4 gap-2">
-                                        {['PhonePe', 'GPay', 'Paytm', 'Other'].map((app) => (
-                                            <button
-                                                key={app}
-                                                type="button"
-                                                onClick={() => setPaymentData({ ...paymentData, upiApp: app as any })}
-                                                className={`py-3 rounded-xl border font-black text-[8px] uppercase tracking-tighter transition-all
-                                                    ${paymentData.upiApp === app 
-                                                        ? 'bg-indigo-600 border-indigo-600 text-white shadow-md' 
-                                                        : isDark ? 'bg-slate-800 border-white/5 text-slate-500' : 'bg-slate-50 border-slate-100 text-slate-400'}`}
-                                            >
-                                                {app}
-                                            </button>
-                                        ))}
-                                    </div>
-                                </div>
-                            )}
-
-                            <button
-                                type="submit"
-                                disabled={submittingPayment}
-                                className={`w-full py-4 bg-emerald-600 hover:bg-emerald-700 text-white font-black rounded-2xl text-xs uppercase tracking-widest transition-all shadow-lg shadow-emerald-600/20 mt-4
-                                    ${submittingPayment ? 'opacity-50 cursor-not-allowed' : 'hover:-translate-y-0.5 active:scale-95'}`}
-                            >
-                                {submittingPayment ? 'Recording...' : 'Confirm Collection'}
-                            </button>
-                        </form>
-                    </div>
-                </div>
-            )}
-
-            {/* Ledger Modal */}
-            {showLedger && selectedShop && (
-                <div className="fixed inset-0 z-[80] flex items-center justify-center p-0 sm:p-4 animate-in fade-in duration-300">
-                    <div className="absolute inset-0 bg-slate-950/90 backdrop-blur-md" onClick={() => { setShowLedger(false); setSelectedShop(null); }} />
-                    <div className={`relative w-full max-w-4xl h-full sm:h-[90vh] sm:rounded-[40px] shadow-2xl border flex flex-col overflow-hidden animate-in slide-in-from-bottom-5 duration-500 ${isDark ? 'bg-slate-900 border-white/10' : 'bg-slate-50 border-slate-200'}`}>
-                        {/* Header */}
-                        <div className={`px-8 py-8 border-b flex flex-col sm:flex-row sm:items-center justify-between gap-4 ${isDark ? 'bg-slate-800/50 border-white/5' : 'bg-white border-slate-200'}`}>
-                            <div className="flex items-center gap-4">
-                                <div className="w-14 h-14 rounded-2xl bg-indigo-500/10 flex items-center justify-center text-indigo-500 text-2xl">📜</div>
-                                <div>
-                                    <h3 className={`text-2xl font-black italic tracking-tighter ${isDark ? 'text-white' : 'text-slate-900'}`}>
-                                        Shop Ledger
-                                    </h3>
-                                    <p className="text-xs font-black text-indigo-500 uppercase tracking-widest mt-1">{selectedShop.shop_name}</p>
-                                </div>
-                            </div>
-                            <div className="flex items-center gap-3">
-                                <button
-                                    onClick={() => {
-                                        setPaymentData({ amount: '', dualCashAmount: '', dualUpiAmount: '', method: 'Cash', upiApp: 'PhonePe', description: '' });
-                                        setShowPaymentModal(true);
-                                    }}
-                                    className={`px-6 py-3 rounded-xl bg-emerald-600 text-white font-black text-[10px] uppercase tracking-widest transition-all hover:bg-emerald-500 shadow-lg shadow-emerald-900/20`}
-                                >
-                                    💰 Collect Payment
-                                </button>
-                                <button
-                                    onClick={() => {
-                                        setAdjData({ amount: '', description: '', method: 'Cash' });
-                                        setShowAdjustModal(true);
-                                    }}
-                                    className={`px-6 py-3 rounded-xl bg-indigo-600 text-white font-black text-[10px] uppercase tracking-widest transition-all hover:bg-indigo-500 shadow-lg shadow-indigo-900/20`}
-                                >
-                                    ADJUST BALANCE
-                                </button>
-                                <button onClick={() => { setShowLedger(false); setSelectedShop(null); }} className="p-3 hover:bg-red-500/10 rounded-2xl text-slate-400 hover:text-red-500 transition-all">
-                                    <CloseIcon />
-                                </button>
-                            </div>
-                        </div>
-
-                        {/* Content */}
-                        <div className="flex-1 overflow-y-auto p-4 sm:p-8 no-scrollbar">
-                            {loadingLedger && ledgerData.length === 0 ? (
-                                <div className="flex items-center justify-center h-40"><div className="w-8 h-8 border-4 border-indigo-500 border-t-transparent rounded-full animate-spin" /></div>
-                            ) : (
-                                <table className="w-full text-sm">
-                                    <thead>
-                                        <tr className={`text-[10px] font-black uppercase tracking-widest ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>
-                                            <th className="text-left px-4 py-4">Date & Type</th>
-                                            <th className="text-left px-4 py-4">Description</th>
-                                            <th className="text-right px-4 py-4">Amount</th>
-                                            <th className="text-right px-4 py-4">Balance</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody className="divide-y divide-slate-100 dark:divide-white/5">
-                                        {ledgerData.map((item, i) => {
-                                            const isBill = item.type === 'BILL';
-                                            const isPayment = item.type === 'PAYMENT';
-                                            return (
-                                                <tr key={i} className={`hover:bg-slate-500/5 transition-colors`}>
-                                                    <td className="px-4 py-5">
-                                                        <div className="flex flex-col">
-                                                            <span className={`text-[10px] font-black uppercase tracking-tighter ${isBill ? 'text-blue-500' : isPayment ? 'text-emerald-500' : 'text-amber-500'}`}>
-                                                                {item.type}
-                                                            </span>
-                                                            <span className={`text-xs font-bold ${isDark ? 'text-slate-300' : 'text-slate-600'}`}>{item.transaction_date ? new Date(item.transaction_date).toLocaleDateString('en-GB') : '—'}</span>
-                                                        </div>
-                                                    </td>
-                                                    <td className="px-4 py-5">
-                                                        <p className={`text-xs font-medium leading-relaxed max-w-[250px] ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
-                                                            {item.description}
-                                                        </p>
-                                                    </td>
-                                                    <td className="px-4 py-5 text-right font-black">
-                                                        <span className={item.amount > 0 ? 'text-red-500' : 'text-emerald-500'}>
-                                                            {item.amount > 0 ? '+' : ''}₹{Math.abs(parseFloat(item.amount) || 0).toLocaleString('en-IN', { minimumFractionDigits: 2 })}
-                                                        </span>
-                                                    </td>
-                                                    <td className={`px-4 py-5 text-right font-black ${isDark ? 'text-white' : 'text-slate-900'}`}>
-                                                        ₹{(parseFloat(item.running_balance) || 0).toLocaleString('en-IN', { minimumFractionDigits: 2 })}
-                                                    </td>
-                                                </tr>
-                                            );
-                                        })}
-                                    </tbody>
-                                </table>
-                            )}
-                            {ledgerHasMore && !loadingLedger && (
-                                <button 
-                                    onClick={() => fetchLedger(selectedShop!, ledgerSkip + 20)}
-                                    className="w-full py-4 text-[10px] font-black uppercase tracking-widest text-slate-400 hover:text-indigo-500 transition-colors mt-4"
-                                >
-                                    Load More Records...
-                                </button>
-                            )}
-                        </div>
-                    </div>
-                </div>
-            )}
-
-            {/* Manual Adjustment Modal */}
-            {showAdjustModal && selectedShop && (
-                <div className="fixed inset-0 z-[90] flex items-center justify-center p-4 animate-in fade-in duration-300">
-                    <div className="absolute inset-0 bg-slate-950/80 backdrop-blur-sm" onClick={() => setShowAdjustModal(false)} />
-                    <div className={`relative w-full max-w-md rounded-[40px] border shadow-2xl p-8 animate-in zoom-in-95 duration-300 ${isDark ? 'bg-slate-900 border-white/10 text-white' : 'bg-white border-slate-100 text-slate-900'}`}>
-                        <div className="flex items-center justify-between mb-8">
-                            <div>
-                                <h3 className="text-2xl font-black italic tracking-tighter text-amber-500">Manual Adjustment</h3>
-                                <p className="text-xs font-black text-slate-500 uppercase tracking-widest mt-1">{selectedShop.shop_name}</p>
-                            </div>
-                            <button onClick={() => setShowAdjustModal(false)} className="text-slate-400 hover:text-red-400 transition-colors">
-                                <CloseIcon />
-                            </button>
-                        </div>
-                        <form onSubmit={handleAdjustment} className="space-y-6">
-                            <div>
-                                <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-2 mb-2 block">Adjustment Amount (₹)</label>
-                                <p className="text-[9px] text-slate-500 italic mb-2 ml-2 tracking-tighter">Use negative (-) for payments/collections, positive for debt</p>
-                                <input
-                                    required
-                                    type="number"
-                                    value={adjData.amount}
-                                    onChange={(e) => setAdjData({ ...adjData, amount: e.target.value })}
-                                    className={`w-full px-6 py-4 rounded-2xl border font-black text-2xl outline-none transition-all ${isDark ? 'bg-slate-800 border-white/5 text-white focus:ring-2 focus:ring-amber-500/50' : 'bg-slate-50 border-slate-200 text-slate-900 focus:ring-2 focus:ring-amber-500/20'}`}
-                                    placeholder="0.00"
-                                />
-                            </div>
-                            <div>
-                                <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-2 mb-2 block">Reason / Description</label>
-                                <input
-                                    required
-                                    type="text"
-                                    value={adjData.description}
-                                    onChange={(e) => setAdjData({ ...adjData, description: e.target.value })}
-                                    className={`w-full px-5 py-4 rounded-2xl border font-bold text-sm outline-none transition-all ${isDark ? 'bg-slate-800 border-white/5 text-white focus:ring-2 focus:ring-blue-500/50' : 'bg-slate-50 border-slate-200 text-slate-900 focus:ring-2 focus:ring-blue-500/20'}`}
-                                    placeholder="Reason for adjustment..."
-                                />
-                            </div>
-
-                            {parseFloat(adjData.amount) < 0 && (
-                                <div className="animate-in slide-in-from-top-2 duration-300">
-                                    <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-2 mb-3 block text-center">Set as Collection Mode</label>
-                                    <div className="grid grid-cols-3 gap-2">
-                                        {(['Cash', 'UPI', 'Cheque'] as const).map((m) => (
-                                            <button
-                                                key={m}
-                                                type="button"
-                                                onClick={() => setAdjData({ ...adjData, method: m })}
-                                                className={`py-3 rounded-xl border font-black uppercase tracking-widest text-[9px] transition-all
-                                                    ${adjData.method === m
-                                                        ? 'bg-emerald-600 border-emerald-600 text-white shadow-lg shadow-emerald-600/20 scale-105'
-                                                        : 'bg-slate-50 border-slate-100 text-slate-400 hover:bg-slate-100'}`}
-                                            >
-                                                {m}
-                                            </button>
-                                        ))}
-                                    </div>
-                                    <p className="text-[9px] font-bold text-emerald-500 mt-2 text-center uppercase tracking-tighter italic">
-                                        This will update the {adjData.method} column in reports
-                                    </p>
-                                </div>
-                            )}
-
-                            <button
-                                type="submit"
-                                disabled={submittingAdj}
-                                className={`w-full py-4 bg-amber-600 hover:bg-amber-700 text-white font-black rounded-2xl text-xs uppercase tracking-widest transition-all shadow-lg shadow-amber-600/20 mt-4
-                                    ${submittingAdj ? 'opacity-50 cursor-not-allowed' : 'hover:-translate-y-0.5 active:scale-95'}`}
-                            >
-                                {submittingAdj ? 'Processing...' : 'Apply Adjustment'}
-                            </button>
-                        </form>
-                    </div>
-                </div>
-            )}
+            <ShopActionModals
+                theme={theme}
+                selectedShop={selectedShop}
+                setSelectedShop={setSelectedShop}
+                showLedger={showLedger}
+                setShowLedger={setShowLedger}
+                ledgerData={ledgerData}
+                loadingLedger={loadingLedger}
+                ledgerHasMore={ledgerHasMore}
+                loadMoreLedger={loadMoreLedger}
+                showAdjustModal={showAdjustModal}
+                setShowAdjustModal={setShowAdjustModal}
+                adjData={adjData}
+                setAdjData={setAdjData}
+                submittingAdj={submittingAdj}
+                handleAdjustment={handleAdjustment}
+                showPaymentModal={showPaymentModal}
+                setShowPaymentModal={setShowPaymentModal}
+                paymentData={paymentData}
+                setPaymentData={setPaymentData}
+                submittingPayment={submittingPayment}
+                handleCollectPayment={handleCollectPayment}
+            />
+            <ToastContainer toasts={toasts} removeToast={removeToast} />
         </div>
     );
 };
