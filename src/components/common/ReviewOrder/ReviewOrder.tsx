@@ -13,11 +13,13 @@ interface Props {
     deliveryDate: string;
     onDeliveryDateChange: (date: string) => void;
     customRates?: Record<string, number>;
+    isSubmitting?: boolean;
 }
 
-const ReviewOrder = ({ shopName, villageName, theme, cart, updateQuantity, onBack, onPlaceOrder, type = 'admin', deliveryDate, onDeliveryDateChange, customRates = {} }: Props) => {
+const ReviewOrder = ({ shopName, villageName, theme, cart, updateQuantity, onBack, onPlaceOrder, type = 'admin', deliveryDate, onDeliveryDateChange, customRates = {}, isSubmitting }: Props) => {
     const isDark = theme === 'dark';
-    const [placing, setPlacing] = useState(false);
+    const [internalPlacing, setInternalPlacing] = useState(false);
+    const placing = isSubmitting ?? internalPlacing;
 
     const cartItems = getCartItems(cart, customRates);
 
@@ -202,11 +204,11 @@ const ReviewOrder = ({ shopName, villageName, theme, cart, updateQuantity, onBac
                     </button>
                     <button
                         onClick={async () => {
-                            setPlacing(true);
+                            setInternalPlacing(true);
                             try {
                                 await onPlaceOrder();
                             } finally {
-                                setPlacing(false);
+                                setInternalPlacing(false);
                             }
                         }}
                         disabled={placing}
