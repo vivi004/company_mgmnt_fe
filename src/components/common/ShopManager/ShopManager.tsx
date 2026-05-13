@@ -57,7 +57,7 @@ const ShopManager = ({ orderLineId, villageName, theme, onBack, type, handleRefr
     const [ledgerSkip, setLedgerSkip] = useState(0);
     const [ledgerHasMore, setLedgerHasMore] = useState(true);
     const [showAdjustModal, setShowAdjustModal] = useState(false);
-    const [adjData, setAdjData] = useState({ amount: '', description: '' });
+    const [adjData, setAdjData] = useState({ amount: '', description: '', method: 'Cash' });
     const [submittingAdj, setSubmittingAdj] = useState(false);
     const [showPaymentModal, setShowPaymentModal] = useState(false);
     const [paymentData, setPaymentData] = useState({ 
@@ -161,12 +161,13 @@ const ShopManager = ({ orderLineId, villageName, theme, onBack, type, handleRefr
             await api().post(`/api/shops/${selectedShop.id}/adjust-balance`, {
                 amount: parseFloat(adjData.amount),
                 description: adjData.description,
+                payment_method: parseFloat(adjData.amount) < 0 ? adjData.method : null,
                 created_by: adminName
             });
             showToast('Balance adjusted!', 'success');
             setShowAdjustModal(false);
             setSelectedShop(null);
-            setAdjData({ amount: '', description: '' });
+            setAdjData({ amount: '', description: '', method: 'Cash' });
             fetchShops();
         } catch (err: any) {
             showToast(err.response?.data?.error || 'Failed to adjust balance', 'error');
@@ -904,6 +905,31 @@ const ShopManager = ({ orderLineId, villageName, theme, onBack, type, handleRefr
                                     placeholder="Reason for adjustment..."
                                 />
                             </div>
+
+                            {parseFloat(adjData.amount) < 0 && (
+                                <div className="animate-in slide-in-from-top-2 duration-300">
+                                    <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-2 mb-3 block text-center">Set as Collection Mode</label>
+                                    <div className="grid grid-cols-3 gap-2">
+                                        {(['Cash', 'UPI', 'Cheque'] as const).map((m) => (
+                                            <button
+                                                key={m}
+                                                type="button"
+                                                onClick={() => setAdjData({ ...adjData, method: m })}
+                                                className={`py-3 rounded-xl border font-black uppercase tracking-widest text-[9px] transition-all
+                                                    ${adjData.method === m
+                                                        ? 'bg-emerald-600 border-emerald-600 text-white shadow-lg shadow-emerald-600/20 scale-105'
+                                                        : 'bg-slate-50 border-slate-100 text-slate-400 hover:bg-slate-100'}`}
+                                            >
+                                                {m}
+                                            </button>
+                                        ))}
+                                    </div>
+                                    <p className="text-[9px] font-bold text-emerald-500 mt-2 text-center uppercase tracking-tighter italic">
+                                        This will update the {adjData.method} column in reports
+                                    </p>
+                                </div>
+                            )}
+
                             <button
                                 type="submit"
                                 disabled={submittingAdj}
