@@ -178,10 +178,41 @@ export const useShopActions = (showToast: (msg: string, type: any) => void, onSu
         }
     };
 
+    const handleApprove = async (txId: number) => {
+        try {
+            await api().post(`/api/shops/transactions/${txId}/approve`);
+            showToast('Transaction approved!', 'success');
+            // Refresh ledger
+            if (selectedShop) {
+                const res = await api().get(`/api/shops/${selectedShop.id}/ledger?limit=20&skip=0`);
+                setLedgerData(res.data);
+            }
+            if (onSuccess) onSuccess();
+        } catch (err: any) {
+            showToast(err.response?.data?.error || 'Approval failed', 'error');
+        }
+    };
+
+    const handleReject = async (txId: number, reason: string) => {
+        try {
+            await api().post(`/api/shops/transactions/${txId}/reject`, { reason });
+            showToast('Transaction rejected', 'info');
+            // Refresh ledger
+            if (selectedShop) {
+                const res = await api().get(`/api/shops/${selectedShop.id}/ledger?limit=20&skip=0`);
+                setLedgerData(res.data);
+            }
+            if (onSuccess) onSuccess();
+        } catch (err: any) {
+            showToast(err.response?.data?.error || 'Rejection failed', 'error');
+        }
+    };
+
     return {
         selectedShop, setSelectedShop,
         showLedger, setShowLedger, ledgerData, loadingLedger, ledgerHasMore, fetchLedger, loadMoreLedger,
         showAdjustModal, setShowAdjustModal, adjData, setAdjData, submittingAdj, handleAdjustment,
-        showPaymentModal, setShowPaymentModal, paymentData, setPaymentData, submittingPayment, handleCollectPayment
+        showPaymentModal, setShowPaymentModal, paymentData, setPaymentData, submittingPayment, handleCollectPayment,
+        handleApprove, handleReject
     };
 };

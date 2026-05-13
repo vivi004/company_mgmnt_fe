@@ -29,6 +29,10 @@ interface Props {
     setPaymentData: (data: any) => void;
     submittingPayment: boolean;
     handleCollectPayment: (e: React.FormEvent) => void;
+
+    // Approval Actions
+    handleApprove: (txId: number) => void;
+    handleReject: (txId: number, reason: string) => void;
 }
 
 const ShopActionModals: React.FC<Props> = (props) => {
@@ -36,7 +40,8 @@ const ShopActionModals: React.FC<Props> = (props) => {
         theme, selectedShop, setSelectedShop,
         showLedger, setShowLedger, ledgerData, loadingLedger, ledgerHasMore, loadMoreLedger,
         showAdjustModal, setShowAdjustModal, adjData, setAdjData, submittingAdj, handleAdjustment,
-        showPaymentModal, setShowPaymentModal, paymentData, setPaymentData, submittingPayment, handleCollectPayment
+        showPaymentModal, setShowPaymentModal, paymentData, setPaymentData, submittingPayment, handleCollectPayment,
+        handleApprove, handleReject
     } = props;
 
     const isDark = theme === 'dark';
@@ -102,9 +107,30 @@ const ShopActionModals: React.FC<Props> = (props) => {
                                                             }).toUpperCase();
                                                         })()} • BY {tx.created_by}
                                                     </p>
+                                                    
+                                                    {/* Status Badge */}
+                                                    <div className="flex items-center gap-2 mt-2">
+                                                        <span className={`px-2 py-0.5 rounded-md text-[8px] font-black uppercase tracking-widest border
+                                                            ${tx.approval_status === 'APPROVED' ? 'bg-emerald-500/10 text-emerald-500 border-emerald-500/20' : 
+                                                              tx.approval_status === 'PENDING' ? 'bg-amber-500/10 text-amber-500 border-amber-500/20 animate-pulse' : 
+                                                              'bg-red-500/10 text-red-500 border-red-500/20'}`}>
+                                                            {tx.approval_status}
+                                                        </span>
+                                                        {tx.payment_mode && (
+                                                            <span className="text-[8px] font-black text-slate-500 uppercase tracking-widest">
+                                                                MODE: {tx.payment_mode}
+                                                            </span>
+                                                        )}
+                                                    </div>
+                                                    {tx.rejected_reason && (
+                                                        <p className="text-[9px] font-bold text-red-400 mt-1 italic tracking-tight">
+                                                            Reason: {tx.rejected_reason}
+                                                        </p>
+                                                    )}
                                                 </div>
                                             </div>
-                                            <div className="text-right">
+                                            <div className="flex flex-col items-end">
+                                                <div className="text-right">
                                                 {(() => {
                                                     const isBill = tx.type === 'Bill';
                                                     const isPayment = tx.type === 'Payment';
@@ -119,7 +145,37 @@ const ShopActionModals: React.FC<Props> = (props) => {
                                                         </p>
                                                     );
                                                 })()}
-                                                <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mt-1">Balance After: ₹{Number(tx.balance_after).toLocaleString('en-IN', { minimumFractionDigits: 2 })}</p>
+                                                <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mt-1">
+                                                    Balance After: ₹{Number(tx.balance_after).toLocaleString('en-IN', { minimumFractionDigits: 2 })}
+                                                </p>
+
+                                                {/* Admin Approval Actions */}
+                                                {tx.approval_status === 'PENDING' && (() => {
+                                                    const storedUser = JSON.parse(localStorage.getItem('user') || '{}');
+                                                    const isAdmin = storedUser.role === 'admin';
+                                                    if (!isAdmin) return <p className="text-[8px] font-black text-amber-500 uppercase tracking-widest mt-2 animate-pulse italic">Waiting for Admin Approval</p>;
+                                                    
+                                                    return (
+                                                        <div className="flex items-center gap-2 mt-2">
+                                                            <button 
+                                                                onClick={() => handleApprove(tx.id)}
+                                                                className="px-2 py-1 bg-emerald-500 text-white text-[8px] font-black uppercase tracking-widest rounded-md hover:bg-emerald-600 transition-all shadow-md shadow-emerald-500/20"
+                                                            >
+                                                                Approve
+                                                            </button>
+                                                            <button 
+                                                                onClick={() => {
+                                                                    const reason = window.prompt('Enter rejection reason (optional):');
+                                                                    if (reason !== null) handleReject(tx.id, reason);
+                                                                }}
+                                                                className="px-2 py-1 bg-red-500 text-white text-[8px] font-black uppercase tracking-widest rounded-md hover:bg-red-600 transition-all shadow-md shadow-red-500/20"
+                                                            >
+                                                                Reject
+                                                            </button>
+                                                        </div>
+                                                    );
+                                                })()}
+                                                </div>
                                             </div>
                                         </div>
                                     ))}

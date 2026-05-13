@@ -28,7 +28,8 @@ const AdminCollections = ({ theme, orderLines }: Props) => {
         selectedShop, setSelectedShop,
         showLedger, setShowLedger, ledgerData, loadingLedger, ledgerHasMore, fetchLedger, loadMoreLedger,
         showAdjustModal, setShowAdjustModal, adjData, setAdjData, submittingAdj, handleAdjustment,
-        showPaymentModal, setShowPaymentModal, paymentData, setPaymentData, submittingPayment, handleCollectPayment
+        showPaymentModal, setShowPaymentModal, paymentData, setPaymentData, submittingPayment, handleCollectPayment,
+        handleApprove, handleReject
     } = useShopActions(showToast, () => refresh());
 
     // Expense Modal State
@@ -94,8 +95,10 @@ const AdminCollections = ({ theme, orderLines }: Props) => {
     };
 
     // Mode badge renderer for a single row
-    const renderModeBadges = (cash: number, upi: number, cheque: number, pos: number = 0) => {
+    const renderModeBadges = (cash: number, upi: number, cheque: number, pos: number = 0, pendingTxs: any[] = []) => {
         const badges: React.ReactNode[] = [];
+        
+        // 1. APPROVED Badges
         if (cash > 0) badges.push(
             <span key="cash" className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-green-500/10 text-green-600 dark:text-green-400 border border-green-500/20">
                 💵 Cash ₹{fmt(cash)}
@@ -116,8 +119,54 @@ const AdminCollections = ({ theme, orderLines }: Props) => {
                 ➕ Addition ₹{fmt(pos)}
             </span>
         );
+
+        // 2. PENDING Badges (with Approval Controls for Admin)
+        const storedUser = JSON.parse(localStorage.getItem('user') || '{}');
+        const isAdmin = storedUser.role === 'admin';
+
+        pendingTxs.forEach((tx) => {
+            const icon = tx.mode === 'UPI' ? '📱' : (tx.mode === 'CHEQUE' ? '📝' : '⏳');
+            const color = tx.mode === 'UPI' ? 'blue' : 'amber';
+            
+            badges.push(
+                <div key={`pending-${tx.id}`} className={`flex items-center gap-2 p-1.5 pl-2.5 rounded-xl border border-dashed animate-pulse transition-all
+                    ${tx.mode === 'UPI' ? 'bg-blue-500/5 border-blue-500/20' : 'bg-amber-500/5 border-amber-500/20'}`}>
+                    <span className={`text-[10px] font-black uppercase tracking-tighter text-${color}-600 dark:text-${color}-400`}>
+                        {icon} PENDING ₹{fmt(tx.amount)}
+                    </span>
+                    
+                    {isAdmin && (
+                        <div className="flex items-center gap-1.5 ml-1 border-l border-white/10 pl-1.5">
+                            <button 
+                                onClick={(e) => { e.stopPropagation(); if(window.confirm(`Approve this ${tx.mode} amount of ₹${fmt(tx.amount)}?`)) handleApprove(tx.id); }}
+                                className="w-6 h-6 flex items-center justify-center bg-emerald-500 text-white rounded-lg hover:bg-emerald-600 transition-all shadow-lg shadow-emerald-500/20 group/btn"
+                                title="Click to Approve and Reduce Balance"
+                            >
+                                <svg className="w-4 h-4 group-hover/btn:scale-110 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={4} d="M5 13l4 4L19 7" />
+                                </svg>
+                            </button>
+                            <button 
+                                onClick={(e) => { 
+                                    e.stopPropagation(); 
+                                    const reason = window.prompt('Enter rejection reason (optional):');
+                                    if (reason !== null) handleReject(tx.id, reason);
+                                }}
+                                className="w-6 h-6 flex items-center justify-center bg-red-500/10 text-red-500 rounded-lg hover:bg-red-500 hover:text-white transition-all group/btn"
+                                title="Reject"
+                            >
+                                <svg className="w-4 h-4 group-hover/btn:scale-110 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={4} d="M6 18L18 6M6 6l12 12" />
+                                </svg>
+                            </button>
+                        </div>
+                    )}
+                </div>
+            );
+        });
+
         if (badges.length === 0) return <span className="text-slate-400 text-xs">—</span>;
-        return <div className="flex flex-wrap gap-1">{badges}</div>;
+        return <div className="flex flex-wrap gap-1 items-center">{badges}</div>;
     };
 
     return (
@@ -298,7 +347,14 @@ const AdminCollections = ({ theme, orderLines }: Props) => {
                                                 <td className={`px-5 py-3.5 font-bold ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>{idx + 1}</td>
                                                 <td className="px-5 py-3.5">
                                                     <div className="flex flex-col">
-                                                        <span className={`font-black ${isDark ? 'text-white' : 'text-slate-900'}`}>{row.shop_name}</span>
+                                                        <div className="flex items-center gap-2">
+                                                            <span className={`font-black ${isDark ? 'text-white' : 'text-slate-900'}`}>{row.shop_name}</span>
+                                                            {row.pending_transactions.length > 0 && (
+                                                                <span className="px-1.5 py-0.5 rounded-md bg-amber-500 text-white text-[8px] font-black uppercase tracking-widest animate-bounce shadow-lg shadow-amber-500/40">
+                                                                    Needs Approval
+                                                                </span>
+                                                            )}
+                                                        </div>
                                                         <div className="flex items-center gap-2 mt-1.5 opacity-0 group-hover:opacity-100 transition-opacity">
                                                             <button 
                                                                 onClick={() => { setSelectedShop(actionShop); setShowPaymentModal(true); }}
@@ -325,13 +381,13 @@ const AdminCollections = ({ theme, orderLines }: Props) => {
                                                 <td className={`px-5 py-3.5 text-right font-bold ${isDark ? 'text-white' : 'text-slate-900'}`}>₹{fmt(row.todays_bill_amount)}</td>
                                                 <td className="px-5 py-3.5 text-right">
                                                     <div className={`font-black ${collected > 0 ? 'text-green-500' : isDark ? 'text-slate-500' : 'text-slate-400'}`}>₹{fmt(collected)}</div>
-                                                    <div className="flex justify-end mt-1">{renderModeBadges(row.cash_collected, row.upi_collected, row.cheque_collected)}</div>
+                                                    <div className="flex justify-end mt-1">{renderModeBadges(row.cash_collected, row.upi_collected, row.cheque_collected, 0, row.pending_transactions.filter(t => t.category === 'PAYMENT'))}</div>
                                                 </td>
                                                 <td className={`px-5 py-3.5 text-right`}>
                                                     <div className={`font-bold ${row.manual_adjustments !== 0 ? (row.manual_adjustments > 0 ? 'text-blue-500' : 'text-amber-500') : isDark ? 'text-slate-600' : 'text-slate-300'}`}>
                                                         {row.manual_adjustments !== 0 ? `₹${fmt(row.manual_adjustments)}` : '—'}
                                                     </div>
-                                                    <div className="flex justify-end mt-1">{renderModeBadges(row.manual_cash, row.manual_upi, row.manual_cheque, row.manual_pos)}</div>
+                                                    <div className="flex justify-end mt-1">{renderModeBadges(row.manual_cash, row.manual_upi, row.manual_cheque, row.manual_pos, row.pending_transactions.filter(t => t.category === 'MANUAL_ADJUST'))}</div>
                                                 </td>
                                                 <td className={`px-5 py-3.5 text-right font-bold ${row.future_bills !== 0 ? 'text-purple-500' : isDark ? 'text-slate-600' : 'text-slate-300'}`}>
                                                     {row.future_bills !== 0 ? `₹${fmt(row.future_bills)}` : '—'}
@@ -573,6 +629,8 @@ const AdminCollections = ({ theme, orderLines }: Props) => {
                 setPaymentData={setPaymentData}
                 submittingPayment={submittingPayment}
                 handleCollectPayment={handleCollectPayment}
+                handleApprove={handleApprove}
+                handleReject={handleReject}
             />
             <ToastContainer toasts={toasts} removeToast={removeToast} />
         </div>
