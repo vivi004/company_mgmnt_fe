@@ -137,12 +137,16 @@ export const useCollections = (orderLines: OrderLine[]) => {
         return collections.reduce(
             (acc, row) => {
                 const rowCollected = row.cash_collected + row.upi_collected + row.cheque_collected;
+                // total_balance from backend is already: old_balance + todays_bill - collected + manual_adjustments
+                // future_bills is informational only and NOT included in total_balance
                 return {
                     amountCollected: acc.amountCollected + rowCollected,
                     todaysBillAmount: acc.todaysBillAmount + row.todays_bill_amount,
-                    todaysBillBalance: row.todays_bill_amount > 0 ? (acc.todaysBillBalance + Math.max(0, row.todays_bill_amount - rowCollected)) : acc.todaysBillBalance,
-                    totalManualAdjust: acc.totalManualAdjust + row.manual_adjustments,
-                    totalFutureBills: acc.totalFutureBills + row.future_bills,
+                    todaysBillBalance: row.todays_bill_amount > 0
+                        ? acc.todaysBillBalance + Math.max(0, row.todays_bill_amount - rowCollected)
+                        : acc.todaysBillBalance,
+                    totalManualAdjust: acc.totalManualAdjust + (row.manual_adjustments || 0),
+                    totalFutureBills: acc.totalFutureBills + (row.future_bills || 0),
                     totalBalance: acc.totalBalance + row.total_balance,
                 };
             },
