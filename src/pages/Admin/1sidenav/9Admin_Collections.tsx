@@ -13,7 +13,10 @@ interface Props {
     orderLines: OrderLine[];
 }
 
-const fmt = (n: number) => n.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+const fmt = (n: any) => {
+    const num = parseFloat(n) || 0;
+    return num.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+};
 
 const AdminCollections = ({ theme, orderLines }: Props) => {
     const isDark = theme === 'dark';
@@ -67,31 +70,57 @@ const AdminCollections = ({ theme, orderLines }: Props) => {
     }, [submittingAdj, submittingPayment]);
 
     // Helpers to fetch full shop details
-    const loadShopDetails = async (shopId: number) => {
+    const loadShopDetails = async (shopId: number, silent = false) => {
         try {
             const res = await api().get(`/api/shops/${shopId}`);
             return res.data;
         } catch (err) {
-            alert('Failed to load shop details');
+            if (!silent) {
+                console.error('Failed to load shop details:', err);
+                alert('Failed to load shop details. Please check connection.');
+            }
             return null;
         }
     };
 
     // --- Action Handlers ---
     const handleOpenPayment = async (row: any) => {
-        const shop = await loadShopDetails(row.shop_id);
-        if (shop) {
-            setSelectedShop(shop);
-            setPaymentData({ amount: '', dualCashAmount: '', dualUpiAmount: '', method: 'Cash', upiApp: 'PhonePe', description: '' });
-            setShowPaymentModal(true);
-        }
+        // Optimization: Use row data immediately for zero-lag interaction
+        setSelectedShop({
+            id: row.shop_id,
+            shop_name: row.shop_name,
+            village_name: row.village_name,
+            balance: row.total_balance // Use current total balance
+        });
+        setPaymentData({ amount: '', dualCashAmount: '', dualUpiAmount: '', method: 'Cash', upiApp: 'PhonePe', description: '' });
+        setShowPaymentModal(true);
+        
+        // Silently refresh shop details in background to ensure balance is 100% synced
+        loadShopDetails(row.shop_id, true).then(fullShop => {
+            if (fullShop) {
+                setSelectedShop((prev: any) => (prev && prev.id === row.shop_id) ? { ...fullShop, balance: row.total_balance } : prev);
+            }
+        });
     };
 
     const handleOpenLedger = async (row: any) => {
-        const shop = await loadShopDetails(row.shop_id);
+        // Set basic info immediately so modal shows name while loading
+        const initialShop = {
+            id: row.shop_id,
+            shop_name: row.shop_name,
+            village_name: row.village_name,
+            balance: row.total_balance
+        };
+        setSelectedShop(initialShop);
+        setShowLedger(true); 
+
+        // Fetch ledger immediately using initial info
+        fetchLedger(initialShop);
+
+        // Try to fetch full metadata in background (silent)
+        const shop = await loadShopDetails(row.shop_id, true);
         if (shop) {
             setSelectedShop(shop);
-            fetchLedger(shop);
         }
     };
 
@@ -141,7 +170,15 @@ const AdminCollections = ({ theme, orderLines }: Props) => {
             });
 
             setShowPaymentModal(false);
-            setSelectedShop(null);
+            
+            // TOGETHERLY SYNC: If ledger is open, refresh it. Otherwise clear shop context.
+            if (showLedger) {
+                fetchLedger(selectedShop);
+                // Also refresh full shop metadata to get latest balance for header
+                loadShopDetails(selectedShop.id, true).then(full => full && setSelectedShop(full));
+            } else {
+                setSelectedShop(null);
+            }
             refresh();
         } catch (err) {
             alert('Failed to collect payment');
@@ -166,8 +203,15 @@ const AdminCollections = ({ theme, orderLines }: Props) => {
             });
 
             setShowAdjustModal(false);
-            if (showLedger) fetchLedger(selectedShop);
-            else setSelectedShop(null);
+            
+            // TOGETHERLY SYNC: Always refresh ledger if it's open, otherwise clear context
+            if (showLedger) {
+                fetchLedger(selectedShop);
+                // Sync header balance
+                loadShopDetails(selectedShop.id, true).then(full => full && setSelectedShop(full));
+            } else {
+                setSelectedShop(null);
+            }
             refresh();
         } catch (err) {
             alert('Failed to adjust balance');
@@ -442,20 +486,20 @@ const AdminCollections = ({ theme, orderLines }: Props) => {
                                                 <td className={`px-5 py-3.5 font-bold ${isDark ? 'text-white' : 'text-slate-900'}`}>
                                                     <div className="flex items-center justify-between group">
                                                         <span className="truncate max-w-[150px]">{row.shop_name}</span>
-                                                        <div className="flex items-center gap-1.5 opacity-0 group-hover:opacity-100 transition-all">
+                                                        <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-all">
                                                             <button 
                                                                 onClick={() => handleOpenPayment(row)}
-                                                                className={`p-1.5 rounded-lg border transition-all hover:scale-110 active:scale-95 ${isDark ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400' : 'bg-emerald-50 border-emerald-100 text-emerald-600 shadow-sm'}`}
+                                                                className={`w-8 h-8 flex items-center justify-center rounded-full border transition-all hover:scale-110 active:scale-95 ${isDark ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400' : 'bg-emerald-50 border-emerald-200 text-emerald-600 shadow-sm'}`}
                                                                 title="Collect Payment"
                                                             >
-                                                                <AccountBalanceWalletIcon style={{ fontSize: 16 }} />
+                                                                <AccountBalanceWalletIcon style={{ fontSize: 15 }} />
                                                             </button>
                                                             <button 
                                                                 onClick={() => handleOpenLedger(row)}
-                                                                className={`p-1.5 rounded-lg border transition-all hover:scale-110 active:scale-95 ${isDark ? 'bg-slate-500/10 border-slate-500/20 text-slate-400' : 'bg-slate-100 border-slate-200 text-slate-600 shadow-sm'}`}
+                                                                className={`w-8 h-8 flex items-center justify-center rounded-full border transition-all hover:scale-110 active:scale-95 ${isDark ? 'bg-indigo-500/10 border-indigo-500/20 text-indigo-400' : 'bg-indigo-50 border-indigo-200 text-indigo-600 shadow-sm'}`}
                                                                 title="View Ledger"
                                                             >
-                                                                <ReceiptLongIcon style={{ fontSize: 16 }} />
+                                                                <ReceiptLongIcon style={{ fontSize: 15 }} />
                                                             </button>
                                                         </div>
                                                     </div>
@@ -507,8 +551,18 @@ const AdminCollections = ({ theme, orderLines }: Props) => {
                                                 {idx + 1}. {row.shop_name}
                                             </span>
                                             <div className="flex items-center gap-2">
-                                                <button onClick={() => handleOpenPayment(row)} className="p-2 rounded-xl bg-emerald-500/10 text-emerald-500"><AccountBalanceWalletIcon style={{ fontSize: 16 }} /></button>
-                                                <button onClick={() => handleOpenLedger(row)} className="p-2 rounded-xl bg-slate-500/10 text-slate-500"><ReceiptLongIcon style={{ fontSize: 16 }} /></button>
+                                                <button 
+                                                    onClick={() => handleOpenPayment(row)} 
+                                                    className={`w-9 h-9 flex items-center justify-center rounded-full transition-all active:scale-90 ${isDark ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20' : 'bg-emerald-50 text-emerald-600 border border-emerald-100 shadow-sm'}`}
+                                                >
+                                                    <AccountBalanceWalletIcon style={{ fontSize: 18 }} />
+                                                </button>
+                                                <button 
+                                                    onClick={() => handleOpenLedger(row)} 
+                                                    className={`w-9 h-9 flex items-center justify-center rounded-full transition-all active:scale-90 ${isDark ? 'bg-indigo-500/10 text-indigo-400 border border-indigo-500/20' : 'bg-indigo-50 text-indigo-600 border border-indigo-100 shadow-sm'}`}
+                                                >
+                                                    <ReceiptLongIcon style={{ fontSize: 18 }} />
+                                                </button>
                                             </div>
                                         </div>
                                         <div className="grid grid-cols-2 gap-2 text-[11px]">
@@ -792,12 +846,21 @@ const AdminCollections = ({ theme, orderLines }: Props) => {
                             <div className="flex items-center gap-3">
                                 <button
                                     onClick={() => {
+                                        setPaymentData({ amount: '', dualCashAmount: '', dualUpiAmount: '', method: 'Cash', upiApp: 'PhonePe', description: '' });
+                                        setShowPaymentModal(true);
+                                    }}
+                                    className={`px-6 py-3 rounded-xl bg-emerald-600 text-white font-black text-[10px] uppercase tracking-widest transition-all hover:bg-emerald-500 shadow-lg shadow-emerald-900/20`}
+                                >
+                                    💰 Collect Payment
+                                </button>
+                                <button
+                                    onClick={() => {
                                         setAdjData({ amount: '', description: '', method: 'Cash' });
                                         setShowAdjustModal(true);
                                     }}
-                                    className={`px-6 py-3 rounded-xl bg-amber-600 text-white font-black text-[10px] uppercase tracking-widest transition-all hover:bg-amber-500 shadow-lg shadow-amber-900/20`}
+                                    className={`px-6 py-3 rounded-xl bg-indigo-600 text-white font-black text-[10px] uppercase tracking-widest transition-all hover:bg-indigo-500 shadow-lg shadow-indigo-900/20`}
                                 >
-                                    ⚙️ Apply Adjustment
+                                    ADJUST BALANCE
                                 </button>
                                 <button onClick={() => { setShowLedger(false); setSelectedShop(null); }} className="p-3 hover:bg-red-500/10 rounded-2xl text-slate-400 hover:text-red-500 transition-all">
                                     <CloseIcon />
@@ -840,11 +903,11 @@ const AdminCollections = ({ theme, orderLines }: Props) => {
                                                     </td>
                                                     <td className="px-4 py-5 text-right font-black">
                                                         <span className={item.amount > 0 ? 'text-red-500' : 'text-emerald-500'}>
-                                                            {item.amount > 0 ? '+' : ''}₹{Math.abs(item.amount).toLocaleString('en-IN', { minimumFractionDigits: 2 })}
+                                                            {item.amount > 0 ? '+' : ''}₹{Math.abs(parseFloat(item.amount) || 0).toLocaleString('en-IN', { minimumFractionDigits: 2 })}
                                                         </span>
                                                     </td>
                                                     <td className={`px-4 py-5 text-right font-black ${isDark ? 'text-white' : 'text-slate-900'}`}>
-                                                        ₹{item.running_balance.toLocaleString('en-IN', { minimumFractionDigits: 2 })}
+                                                        ₹{(parseFloat(item.running_balance) || 0).toLocaleString('en-IN', { minimumFractionDigits: 2 })}
                                                     </td>
                                                 </tr>
                                             );
