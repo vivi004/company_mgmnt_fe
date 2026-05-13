@@ -71,7 +71,7 @@ const AdminCollections = ({ theme, orderLines }: Props) => {
     };
 
     // Mode badge renderer for a single row
-    const renderModeBadges = (cash: number, upi: number, cheque: number) => {
+    const renderModeBadges = (cash: number, upi: number, cheque: number, pos: number = 0) => {
         const badges: React.ReactNode[] = [];
         if (cash > 0) badges.push(
             <span key="cash" className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-green-500/10 text-green-600 dark:text-green-400 border border-green-500/20">
@@ -86,6 +86,11 @@ const AdminCollections = ({ theme, orderLines }: Props) => {
         if (cheque > 0) badges.push(
             <span key="cheque" className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20">
                 📝 Cheque ₹{fmt(cheque)}
+            </span>
+        );
+        if (pos > 0) badges.push(
+            <span key="pos" className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border border-indigo-500/20">
+                ➕ Addition ₹{fmt(pos)}
             </span>
         );
         if (badges.length === 0) return <span className="text-slate-400 text-xs">—</span>;
@@ -268,8 +273,11 @@ const AdminCollections = ({ theme, orderLines }: Props) => {
                                                     <div className={`font-black ${collected > 0 ? 'text-green-500' : isDark ? 'text-slate-500' : 'text-slate-400'}`}>₹{fmt(collected)}</div>
                                                     <div className="flex justify-end mt-1">{renderModeBadges(row.cash_collected, row.upi_collected, row.cheque_collected)}</div>
                                                 </td>
-                                                <td className={`px-5 py-3.5 text-right font-bold ${row.manual_adjustments !== 0 ? (row.manual_adjustments > 0 ? 'text-blue-500' : 'text-amber-500') : isDark ? 'text-slate-600' : 'text-slate-300'}`}>
-                                                    {row.manual_adjustments !== 0 ? `₹${fmt(row.manual_adjustments)}` : '—'}
+                                                <td className={`px-5 py-3.5 text-right`}>
+                                                    <div className={`font-bold ${row.manual_adjustments !== 0 ? (row.manual_adjustments > 0 ? 'text-blue-500' : 'text-amber-500') : isDark ? 'text-slate-600' : 'text-slate-300'}`}>
+                                                        {row.manual_adjustments !== 0 ? `₹${fmt(row.manual_adjustments)}` : '—'}
+                                                    </div>
+                                                    <div className="flex justify-end mt-1">{renderModeBadges(row.manual_cash, row.manual_upi, row.manual_cheque, row.manual_pos)}</div>
                                                 </td>
                                                 <td className={`px-5 py-3.5 text-right font-bold ${row.future_bills !== 0 ? 'text-purple-500' : isDark ? 'text-slate-600' : 'text-slate-300'}`}>
                                                     {row.future_bills !== 0 ? `₹${fmt(row.future_bills)}` : '—'}
@@ -310,7 +318,11 @@ const AdminCollections = ({ theme, orderLines }: Props) => {
                                             <div><span className="text-slate-400">Prev Bal:</span> <span className="font-bold">₹{fmt(row.old_balance)}</span></div>
                                             <div className="text-right"><span className="text-slate-400">Today Bill:</span> <span className="font-bold">₹{fmt(row.todays_bill_amount)}</span></div>
                                             <div><span className="text-slate-400">Collected:</span> <span className="font-bold text-green-500">₹{fmt(collected)}</span></div>
-                                            <div className="text-right"><span className="text-slate-400">Adjust:</span> <span className="font-bold">₹{fmt(row.manual_adjustments)}</span></div>
+                                            <div className="text-right">
+                                                <span className="text-slate-400">Adjust:</span> 
+                                                <span className={`font-bold ${row.manual_adjustments !== 0 ? (row.manual_adjustments > 0 ? 'text-blue-500' : 'text-amber-500') : ''}`}>₹{fmt(row.manual_adjustments)}</span>
+                                                <div className="flex justify-end mt-1">{renderModeBadges(row.manual_cash, row.manual_upi, row.manual_cheque, row.manual_pos)}</div>
+                                             </div>
                                             <div><span className="text-slate-400">Upcoming:</span> <span className="font-bold text-purple-500">₹{fmt(row.future_bills)}</span></div>
                                             <div className="text-right"><span className="text-slate-400 text-xs font-black uppercase">Total:</span> <span className="font-black text-red-500 text-sm">₹{fmt(row.total_balance)}</span></div>
                                         </div>

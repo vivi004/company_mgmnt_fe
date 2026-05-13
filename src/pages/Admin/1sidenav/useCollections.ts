@@ -19,6 +19,10 @@ export interface DailyCollection {
     past_bills: number;
     old_balance: number;
     total_balance: number;
+    manual_cash: number;
+    manual_upi: number;
+    manual_cheque: number;
+    manual_pos: number;
 }
 
 export interface Expense {
@@ -74,6 +78,10 @@ export const useCollections = (orderLines: OrderLine[]) => {
                 upi_collected: parseFloat(row.upi_collected) || 0,
                 cheque_collected: parseFloat(row.cheque_collected) || 0,
                 manual_adjustments: parseFloat(row.manual_adjustments) || 0,
+                manual_cash: parseFloat(row.manual_cash) || 0,
+                manual_upi: parseFloat(row.manual_upi) || 0,
+                manual_cheque: parseFloat(row.manual_cheque) || 0,
+                manual_pos: parseFloat(row.manual_pos) || 0,
                 future_bills: parseFloat(row.future_bills) || 0,
                 past_bills: parseFloat(row.past_bills) || 0,
                 old_balance: parseFloat(row.old_balance) || 0,
