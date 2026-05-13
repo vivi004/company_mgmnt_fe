@@ -170,7 +170,7 @@ const ShopManager = ({ orderLineId, villageName, theme, onBack, type, handleRefr
             setAdjData({ amount: '', description: '', method: 'Cash' });
             fetchShops();
         } catch (err: any) {
-            showToast(err.response?.data?.error || 'Failed to adjust balance', 'error');
+            showToast(err.response?.data?.message || err.response?.data?.error || 'Failed to adjust balance', 'error');
         } finally {
             setSubmittingAdj(false);
         }
