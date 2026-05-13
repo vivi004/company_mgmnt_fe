@@ -372,15 +372,35 @@ const AdminCollections = ({ theme, orderLines }: Props) => {
                                 <tbody>
                                     {/* ── INCOME MODES ── */}
                                     {[
-                                        { icon: '💵', label: 'Cash (Net)', amount: modeBreakdown.netCash, raw: modeBreakdown.rawCash, percent: modeBreakdown.cashPercent, color: 'green', isNet: true },
-                                        { icon: '📱', label: 'UPI', amount: modeBreakdown.upi, percent: modeBreakdown.upiPercent, color: 'blue' },
-                                        { icon: '📝', label: 'Cheque', amount: modeBreakdown.cheque, percent: modeBreakdown.chequePercent, color: 'amber' },
+                                        { 
+                                            icon: '💵', label: 'Cash (Net)', amount: modeBreakdown.netCash, 
+                                            reg: modeBreakdown.regCash, man: modeBreakdown.manCash,
+                                            raw: modeBreakdown.rawCash, percent: modeBreakdown.cashPercent, color: 'green', isNet: true 
+                                        },
+                                        { 
+                                            icon: '📱', label: 'UPI', amount: modeBreakdown.upi, 
+                                            reg: modeBreakdown.regUpi, man: modeBreakdown.manUpi,
+                                            percent: modeBreakdown.upiPercent, color: 'blue' 
+                                        },
+                                        { 
+                                            icon: '📝', label: 'Cheque', amount: modeBreakdown.cheque, 
+                                            reg: modeBreakdown.regCheque, man: modeBreakdown.manCheque,
+                                            percent: modeBreakdown.chequePercent, color: 'amber' 
+                                        },
                                     ].map(mode => (
                                         <tr key={mode.label} className={`border-t transition-colors ${isDark ? 'border-white/5 hover:bg-slate-800/30' : 'border-slate-50 hover:bg-slate-50/50'}`}>
                                             <td className={`px-5 py-4 font-bold ${isDark ? 'text-white' : 'text-slate-900'}`}>
                                                 <div className="flex items-center gap-3">
                                                     <span className="text-xl">{mode.icon}</span>
-                                                    <span className="uppercase tracking-widest text-[11px]">{mode.label}</span>
+                                                    <div className="flex flex-col">
+                                                        <span className="uppercase tracking-widest text-[11px]">{mode.label}</span>
+                                                        {(mode.reg > 0 || mode.man > 0) && (
+                                                            <div className="flex gap-2 mt-1 text-[9px] font-bold">
+                                                                {mode.reg > 0 && <span className="text-slate-400">REG: ₹{fmt(mode.reg)}</span>}
+                                                                {mode.man > 0 && <span className="text-amber-500/80 uppercase">MAN: ₹{fmt(mode.man)}</span>}
+                                                            </div>
+                                                        )}
+                                                    </div>
                                                 </div>
                                             </td>
                                             <td className="px-5 py-4 text-right font-black">

@@ -164,15 +164,27 @@ export const useCollections = (orderLines: OrderLine[]) => {
 
     // Computed mode breakdown for Table 2
     const modeBreakdown = useMemo(() => {
-        const rawCash = collections.reduce((sum, r) => sum + r.cash_collected, 0);
-        const upi = collections.reduce((sum, r) => sum + r.upi_collected, 0);
-        const cheque = collections.reduce((sum, r) => sum + r.cheque_collected, 0);
+        // Regular Collections
+        const regCash = collections.reduce((sum, r) => sum + r.cash_collected, 0);
+        const regUpi = collections.reduce((sum, r) => sum + r.upi_collected, 0);
+        const regCheque = collections.reduce((sum, r) => sum + r.cheque_collected, 0);
+
+        // Manual Collections (Absolute values since they are stored as negative in ledger)
+        const manCash = collections.reduce((sum, r) => sum + r.manual_cash, 0);
+        const manUpi = collections.reduce((sum, r) => sum + r.manual_upi, 0);
+        const manCheque = collections.reduce((sum, r) => sum + r.manual_cheque, 0);
+
+        const rawCash = regCash + manCash;
+        const upi = regUpi + manUpi;
+        const cheque = regCheque + manCheque;
         const totalExpenses = expenses.reduce((sum, e) => sum + e.amount, 0);
         
         const netCash = rawCash - totalExpenses;
         const total = netCash + upi + cheque;
 
         return {
+            regCash, regUpi, regCheque,
+            manCash, manUpi, manCheque,
             rawCash,
             netCash,
             totalExpenses,
