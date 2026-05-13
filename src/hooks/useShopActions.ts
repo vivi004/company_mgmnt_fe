@@ -9,7 +9,7 @@ export interface Shop {
     [key: string]: any; // Allow other fields like phone, owner, etc.
 }
 
-export const useShopActions = (showToast: (msg: string, type: any) => void, onSuccess?: () => void) => {
+export const useShopActions = (showToast: (msg: string, type: any) => void, onSuccess?: () => void, collectionDate?: string) => {
     const [selectedShop, setSelectedShop] = useState<Shop | null>(null);
     
     // Ledger States
@@ -101,7 +101,8 @@ export const useShopActions = (showToast: (msg: string, type: any) => void, onSu
                 amount: parseFloat(adjData.amount),
                 description: adjData.description,
                 payment_method: parseFloat(adjData.amount) < 0 ? adjData.method : null,
-                created_by: adminName
+                created_by: adminName,
+                collection_date: collectionDate || undefined
             });
             showToast('Balance adjusted!', 'success');
             setShowAdjustModal(false);
@@ -164,7 +165,8 @@ export const useShopActions = (showToast: (msg: string, type: any) => void, onSu
                 upi_amount,
                 cheque_amount,
                 description: description || `${method} payment collected by ${userName}`,
-                created_by: userName
+                created_by: userName,
+                collection_date: collectionDate || undefined
             });
             showToast('Payment recorded!', 'success');
             setShowPaymentModal(false);

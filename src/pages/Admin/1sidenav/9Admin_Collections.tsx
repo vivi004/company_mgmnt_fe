@@ -31,7 +31,7 @@ const AdminCollections = ({ theme, orderLines, isAdmin: propsIsAdmin }: Props) =
         showAdjustModal, setShowAdjustModal, adjData, setAdjData, submittingAdj, handleAdjustment,
         showPaymentModal, setShowPaymentModal, paymentData, setPaymentData, submittingPayment, handleCollectPayment,
         handleApprove, handleReject
-    } = useShopActions(showToast, () => refresh());
+    } = useShopActions(showToast, () => refresh(), selectedDate);
 
     // Expense Modal State
     const [showExpModal, setShowExpModal] = useState(false);
