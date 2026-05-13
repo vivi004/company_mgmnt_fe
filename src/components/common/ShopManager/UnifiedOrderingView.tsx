@@ -111,7 +111,7 @@ const BoxLitreControls = memo(({ boxId, litreId, boxMultiplier, litreStep, litre
   const litreRate = currentBaseRate * litreMultiplier;
 
   return (
-    <div className={`flex flex-col sm:flex-row items-stretch sm:items-center gap-3 sm:gap-4 p-3 rounded-[24px] border ${isDark ? 'bg-slate-950/40 border-white/5' : 'bg-slate-50 border-slate-200 shadow-inner'}`}>
+    <div className={`flex flex-wrap items-center gap-2 sm:gap-4 p-3 rounded-[24px] border ${isDark ? 'bg-slate-950/40 border-white/5' : 'bg-slate-50 border-slate-200 shadow-inner'}`}>
       
       {/* Box Section */}
       <div className="flex items-center justify-between sm:justify-start gap-3 flex-1">
@@ -135,9 +135,8 @@ const BoxLitreControls = memo(({ boxId, litreId, boxMultiplier, litreStep, litre
         </div>
       </div>
 
-      {/* Divider */}
-      <div className={`hidden sm:block w-px h-10 ${isDark ? 'bg-white/10' : 'bg-slate-200'}`}></div>
-      <div className={`sm:hidden w-full h-px ${isDark ? 'bg-white/10' : 'bg-slate-200'}`}></div>
+      {/* Desktop Divider */}
+      <div className={`hidden lg:block w-px h-10 ${isDark ? 'bg-white/10' : 'bg-slate-200'}`}></div>
 
       {/* Litre Section */}
       <div className="flex items-center justify-between sm:justify-start gap-3 flex-1">
@@ -230,12 +229,12 @@ const UnifiedProductCard = memo(({ product, cart, rates, isDark, updateQuantity,
   };
 
   return (
-    <div className={`relative flex flex-col lg:flex-row items-stretch lg:items-center gap-4 rounded-[32px] p-4 lg:p-5 transition-all duration-300 group border ${isDark
+    <div className={`relative flex flex-col lg:flex-row flex-wrap items-stretch lg:items-center gap-4 rounded-[32px] p-4 lg:p-5 transition-all duration-300 group border ${isDark
       ? isInCart ? 'bg-slate-800 border-blue-500/50 shadow-lg shadow-blue-500/10 ring-1 ring-blue-500/40' : 'bg-slate-800 border-white/5 hover:border-white/10'
       : isInCart ? 'bg-white border-blue-400 shadow-xl ring-1 ring-blue-400' : 'bg-white border-slate-100 shadow-sm hover:shadow-md'
     }`}>
       {/* Product info section */}
-      <div className="flex items-center gap-4 flex-1 min-w-0">
+      <div className="flex items-center gap-4 flex-1 min-w-[280px]">
         {/* Icon */}
         <div className={`w-16 h-16 lg:w-20 lg:h-20 shrink-0 rounded-2xl flex items-center justify-center text-3xl lg:text-5xl transition-transform group-hover:scale-110 duration-300 ${isDark ? 'bg-slate-700/60' : 'bg-gradient-to-br from-blue-50 to-indigo-50'}`}>
           {product.icon ?? '🛢️'}
@@ -342,7 +341,7 @@ const UnifiedOrderingView: React.FC<Props> = ({ shopName, theme, cart, rates, up
   const hasEditedPrice = Object.keys(rates).some(id => rates[id] !== undefined);
 
   return (
-    <div className={`flex flex-col h-screen font-sans ${isDark ? 'bg-slate-900 text-white' : 'bg-gray-50 text-slate-900'}`}>
+    <div className={`flex flex-col h-full min-h-[600px] font-sans ${isDark ? 'bg-slate-900 text-white' : 'bg-gray-50 text-slate-900'}`}>
 
       {/* ── Header ── */}
       <header className={`flex items-center justify-between px-4 sm:px-6 h-14 sm:h-16 shrink-0 shadow-sm border-b ${isDark ? 'bg-slate-950 border-white/10' : 'bg-white border-gray-100'}`}>
@@ -410,7 +409,7 @@ const UnifiedOrderingView: React.FC<Props> = ({ shopName, theme, cart, rates, up
                 }`}
             >
               <span className="text-xl sm:text-3xl leading-none">{sub.icon}</span>
-              <span className={`text-[10px] sm:text-[10px] text-center leading-tight font-black uppercase tracking-tighter ${isSel ? 'text-blue-500' : isDark ? 'text-slate-400' : 'text-gray-500'}`}>
+              <span className={`text-[9px] sm:text-[10px] text-center leading-tight font-black uppercase tracking-normal ${isSel ? 'text-blue-500' : isDark ? 'text-slate-400' : 'text-gray-500'}`}>
                 {sub.name}
               </span>
               {isSel && (

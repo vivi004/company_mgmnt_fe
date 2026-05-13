@@ -85,7 +85,7 @@ const AdminDashboard = () => {
                 </div>
 
                 <main className="flex-grow overflow-y-auto px-4 pt-14 pb-6 lg:px-10 lg:pt-8 lg:pb-10 hide-scrollbar scroll-smooth">
-                    <div className="max-w-6xl mx-auto">
+                    <div className="max-w-7xl mx-auto">
                         {state.activeTab === 'manage' && (
                             <AdminManageTeam
                                 employees={state.employees}
