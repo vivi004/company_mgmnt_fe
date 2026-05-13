@@ -55,7 +55,8 @@ const ShopManager = ({ orderLineId, villageName, theme, onBack, type, handleRefr
         selectedShop, setSelectedShop,
         showLedger, setShowLedger, ledgerData, loadingLedger, ledgerHasMore, fetchLedger, loadMoreLedger,
         showAdjustModal, setShowAdjustModal, adjData, setAdjData, submittingAdj, handleAdjustment,
-        showPaymentModal, setShowPaymentModal, paymentData, setPaymentData, submittingPayment, handleCollectPayment
+        showPaymentModal, setShowPaymentModal, paymentData, setPaymentData, submittingPayment, handleCollectPayment,
+        handleApprove, handleReject
     } = useShopActions(showToast, () => fetchShops());
 
     const [submittingOrder, setSubmittingOrder] = useState(false);
@@ -671,6 +672,8 @@ const ShopManager = ({ orderLineId, villageName, theme, onBack, type, handleRefr
                 setPaymentData={setPaymentData}
                 submittingPayment={submittingPayment}
                 handleCollectPayment={handleCollectPayment}
+                handleApprove={handleApprove}
+                handleReject={handleReject}
             />
         </div>
     );
