@@ -8,11 +8,12 @@ import { useToast, ToastContainer } from '../../../components/Toast';
 interface Props {
     theme: string;
     orderLines: OrderLine[];
+    isAdmin?: boolean;
 }
 
 const fmt = (n: number) => n.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
-const AdminCollections = ({ theme, orderLines }: Props) => {
+const AdminCollections = ({ theme, orderLines, isAdmin: propsIsAdmin }: Props) => {
     const isDark = theme === 'dark';
     const {
         selectedDate, setSelectedDate,
@@ -122,23 +123,25 @@ const AdminCollections = ({ theme, orderLines }: Props) => {
 
         // 2. PENDING Badges (with Approval Controls for Admin)
         const storedUser = JSON.parse(localStorage.getItem('user') || '{}');
-        const isAdmin = storedUser.role === 'admin';
+        const isAdmin = propsIsAdmin ?? (storedUser.role === 'admin' || storedUser.role === 'Admin');
 
         pendingTxs.forEach((tx) => {
-            const icon = tx.mode === 'UPI' ? '📱' : (tx.mode === 'CHEQUE' ? '📝' : '⏳');
-            const color = tx.mode === 'UPI' ? 'blue' : 'amber';
+            const mode = (tx.mode || '').toUpperCase();
+            const icon = mode === 'UPI' ? '📱' : (mode === 'CHEQUE' ? '📝' : '⏳');
+            const color = mode === 'UPI' ? 'blue' : 'amber';
+            const amt = typeof tx.amount === 'string' ? parseFloat(tx.amount) : tx.amount;
             
             badges.push(
                 <div key={`pending-${tx.id}`} className={`flex items-center gap-2 p-1.5 pl-2.5 rounded-xl border border-dashed animate-pulse transition-all
-                    ${tx.mode === 'UPI' ? 'bg-blue-500/5 border-blue-500/20' : 'bg-amber-500/5 border-amber-500/20'}`}>
+                    ${mode === 'UPI' ? 'bg-blue-500/5 border-blue-500/20' : 'bg-amber-500/5 border-amber-500/20'}`}>
                     <span className={`text-[10px] font-black uppercase tracking-tighter text-${color}-600 dark:text-${color}-400`}>
-                        {icon} PENDING ₹{fmt(tx.amount)}
+                        {icon} PENDING ₹{fmt(amt || 0)}
                     </span>
                     
                     {isAdmin && (
                         <div className="flex items-center gap-1.5 ml-1 border-l border-white/10 pl-1.5">
                             <button 
-                                onClick={(e) => { e.stopPropagation(); if(window.confirm(`Approve this ${tx.mode} amount of ₹${fmt(tx.amount)}?`)) handleApprove(tx.id); }}
+                                onClick={(e) => { e.stopPropagation(); if(window.confirm(`Approve this ${mode} amount of ₹${fmt(amt || 0)}?`)) handleApprove(tx.id); }}
                                 className="w-6 h-6 flex items-center justify-center bg-emerald-500 text-white rounded-lg hover:bg-emerald-600 transition-all shadow-lg shadow-emerald-500/20 group/btn"
                                 title="Click to Approve and Reduce Balance"
                             >
@@ -381,13 +384,13 @@ const AdminCollections = ({ theme, orderLines }: Props) => {
                                                 <td className={`px-5 py-3.5 text-right font-bold ${isDark ? 'text-white' : 'text-slate-900'}`}>₹{fmt(row.todays_bill_amount)}</td>
                                                 <td className="px-5 py-3.5 text-right">
                                                     <div className={`font-black ${collected > 0 ? 'text-green-500' : isDark ? 'text-slate-500' : 'text-slate-400'}`}>₹{fmt(collected)}</div>
-                                                    <div className="flex justify-end mt-1">{renderModeBadges(row.cash_collected, row.upi_collected, row.cheque_collected, 0, row.pending_transactions.filter(t => t.category === 'PAYMENT'))}</div>
+                                                    <div className="flex justify-end mt-1">{renderModeBadges(row.cash_collected, row.upi_collected, row.cheque_collected, 0, row.pending_transactions.filter(t => (t.category || t.type || '').toUpperCase() === 'PAYMENT'))}</div>
                                                 </td>
                                                 <td className={`px-5 py-3.5 text-right`}>
                                                     <div className={`font-bold ${row.manual_adjustments !== 0 ? (row.manual_adjustments > 0 ? 'text-blue-500' : 'text-amber-500') : isDark ? 'text-slate-600' : 'text-slate-300'}`}>
                                                         {row.manual_adjustments !== 0 ? `₹${fmt(row.manual_adjustments)}` : '—'}
                                                     </div>
-                                                    <div className="flex justify-end mt-1">{renderModeBadges(row.manual_cash, row.manual_upi, row.manual_cheque, row.manual_pos, row.pending_transactions.filter(t => t.category === 'MANUAL_ADJUST'))}</div>
+                                                    <div className="flex justify-end mt-1">{renderModeBadges(row.manual_cash, row.manual_upi, row.manual_cheque, row.manual_pos, row.pending_transactions.filter(t => (t.category || t.type || '').toUpperCase() === 'MANUAL_ADJUST'))}</div>
                                                 </td>
                                                 <td className={`px-5 py-3.5 text-right font-bold ${row.future_bills !== 0 ? 'text-purple-500' : isDark ? 'text-slate-600' : 'text-slate-300'}`}>
                                                     {row.future_bills !== 0 ? `₹${fmt(row.future_bills)}` : '—'}
@@ -465,12 +468,12 @@ const AdminCollections = ({ theme, orderLines }: Props) => {
                                             <div className="text-right">
                                                 <span className="text-slate-400">Adjust:</span> 
                                                 <span className={`font-bold ${row.manual_adjustments !== 0 ? (row.manual_adjustments > 0 ? 'text-blue-500' : 'text-amber-500') : ''}`}>₹{fmt(row.manual_adjustments)}</span>
-                                                <div className="flex justify-end mt-1">{renderModeBadges(row.manual_cash, row.manual_upi, row.manual_cheque, row.manual_pos, row.pending_transactions.filter(t => t.category === 'MANUAL_ADJUST'))}</div>
+                                                <div className="flex justify-end mt-1">{renderModeBadges(row.manual_cash, row.manual_upi, row.manual_cheque, row.manual_pos, row.pending_transactions.filter(t => (t.category || t.type || '').toUpperCase() === 'MANUAL_ADJUST'))}</div>
                                              </div>
                                             <div><span className="text-slate-400">Upcoming:</span> <span className="font-bold text-purple-500">₹{fmt(row.future_bills)}</span></div>
                                             <div className="text-right"><span className="text-slate-400 text-xs font-black uppercase">Total:</span> <span className="font-black text-red-500 text-sm">₹{fmt(row.total_balance)}</span></div>
                                         </div>
-                                        <div>{renderModeBadges(row.cash_collected, row.upi_collected, row.cheque_collected, 0, row.pending_transactions.filter(t => t.category === 'PAYMENT'))}</div>
+                                        <div>{renderModeBadges(row.cash_collected, row.upi_collected, row.cheque_collected, 0, row.pending_transactions.filter(t => (t.category || t.type || '').toUpperCase() === 'PAYMENT'))}</div>
                                     </div>
                                 );
                             })}
@@ -537,11 +540,11 @@ const AdminCollections = ({ theme, orderLines }: Props) => {
                                                 <div className="flex items-center gap-3">
                                                     <span className="text-xl">{mode.icon}</span>
                                                     <div className="flex flex-col">
-                                                        <span className="uppercase tracking-widest text-[11px]">{mode.label}</span>
+                                                        <span className="uppercase tracking-widest text-[11px] font-black">{mode.label}</span>
                                                         {(mode.reg > 0 || mode.man > 0) && (
-                                                            <div className="flex gap-2 mt-1 text-[9px] font-bold">
-                                                                {mode.reg > 0 && <span className="text-slate-400">REG: ₹{fmt(mode.reg)}</span>}
-                                                                {mode.man > 0 && <span className="text-amber-500/80 uppercase">MAN: ₹{fmt(mode.man)}</span>}
+                                                            <div className="flex gap-3 mt-1 text-[9px] font-black italic">
+                                                                {mode.reg > 0 && <span className={isDark ? 'text-slate-500' : 'text-slate-400'}>REG: ₹{fmt(mode.reg)}</span>}
+                                                                {mode.man > 0 && <span className="text-amber-500">MAN: ₹{fmt(mode.man)}</span>}
                                                             </div>
                                                         )}
                                                     </div>

@@ -82,6 +82,7 @@ const StaffDashboard = () => {
                             <AdminCollections
                                 theme={state.theme}
                                 orderLines={state.orderLines}
+                                isAdmin={false}
                             />
                         )}
                         {state.activeTab === 'bill-check' && (

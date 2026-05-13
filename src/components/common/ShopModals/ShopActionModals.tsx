@@ -152,25 +152,31 @@ const ShopActionModals: React.FC<Props> = (props) => {
                                                 {/* Admin Approval Actions */}
                                                 {tx.approval_status === 'PENDING' && (() => {
                                                     const storedUser = JSON.parse(localStorage.getItem('user') || '{}');
-                                                    const isAdmin = storedUser.role === 'admin';
+                                                    const isAdmin = storedUser.role === 'admin' || storedUser.role === 'Admin';
                                                     if (!isAdmin) return <p className="text-[8px] font-black text-amber-500 uppercase tracking-widest mt-2 animate-pulse italic">Waiting for Admin Approval</p>;
                                                     
                                                     return (
                                                         <div className="flex items-center gap-2 mt-2">
                                                             <button 
                                                                 onClick={() => handleApprove(tx.id)}
-                                                                className="px-2 py-1 bg-emerald-500 text-white text-[8px] font-black uppercase tracking-widest rounded-md hover:bg-emerald-600 transition-all shadow-md shadow-emerald-500/20"
+                                                                className="w-7 h-7 flex items-center justify-center bg-emerald-500 text-white rounded-lg hover:bg-emerald-600 transition-all shadow-lg shadow-emerald-500/20 group/btn"
+                                                                title="Approve"
                                                             >
-                                                                Approve
+                                                                <svg className="w-4 h-4 group-hover/btn:scale-110 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={4} d="M5 13l4 4L19 7" />
+                                                                </svg>
                                                             </button>
                                                             <button 
                                                                 onClick={() => {
                                                                     const reason = window.prompt('Enter rejection reason (optional):');
                                                                     if (reason !== null) handleReject(tx.id, reason);
                                                                 }}
-                                                                className="px-2 py-1 bg-red-500 text-white text-[8px] font-black uppercase tracking-widest rounded-md hover:bg-red-600 transition-all shadow-md shadow-red-500/20"
+                                                                className="w-7 h-7 flex items-center justify-center bg-red-500/10 text-red-500 rounded-lg hover:bg-red-500 hover:text-white transition-all group/btn"
+                                                                title="Reject"
                                                             >
-                                                                Reject
+                                                                <svg className="w-4 h-4 group-hover/btn:scale-110 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={4} d="M6 18L18 6M6 6l12 12" />
+                                                                </svg>
                                                             </button>
                                                         </div>
                                                     );
