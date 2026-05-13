@@ -422,6 +422,11 @@ const AdminCollections = ({ theme, orderLines }: Props) => {
                                         <div className="flex items-center justify-between">
                                             <span className={`font-black text-sm ${isDark ? 'text-white' : 'text-slate-900'}`}>
                                                 {idx + 1}. {row.shop_name}
+                                                {row.pending_transactions.length > 0 && (
+                                                    <span className="ml-2 px-1.5 py-0.5 rounded-md bg-amber-500 text-white text-[8px] font-black uppercase tracking-widest animate-pulse shadow-lg shadow-amber-500/40">
+                                                        Needs Approval
+                                                    </span>
+                                                )}
                                             </span>
                                             <div className="flex items-center gap-2">
                                                 <button 
@@ -460,12 +465,12 @@ const AdminCollections = ({ theme, orderLines }: Props) => {
                                             <div className="text-right">
                                                 <span className="text-slate-400">Adjust:</span> 
                                                 <span className={`font-bold ${row.manual_adjustments !== 0 ? (row.manual_adjustments > 0 ? 'text-blue-500' : 'text-amber-500') : ''}`}>₹{fmt(row.manual_adjustments)}</span>
-                                                <div className="flex justify-end mt-1">{renderModeBadges(row.manual_cash, row.manual_upi, row.manual_cheque, row.manual_pos)}</div>
+                                                <div className="flex justify-end mt-1">{renderModeBadges(row.manual_cash, row.manual_upi, row.manual_cheque, row.manual_pos, row.pending_transactions.filter(t => t.category === 'MANUAL_ADJUST'))}</div>
                                              </div>
                                             <div><span className="text-slate-400">Upcoming:</span> <span className="font-bold text-purple-500">₹{fmt(row.future_bills)}</span></div>
                                             <div className="text-right"><span className="text-slate-400 text-xs font-black uppercase">Total:</span> <span className="font-black text-red-500 text-sm">₹{fmt(row.total_balance)}</span></div>
                                         </div>
-                                        <div>{renderModeBadges(row.cash_collected, row.upi_collected, row.cheque_collected)}</div>
+                                        <div>{renderModeBadges(row.cash_collected, row.upi_collected, row.cheque_collected, 0, row.pending_transactions.filter(t => t.category === 'PAYMENT'))}</div>
                                     </div>
                                 );
                             })}
