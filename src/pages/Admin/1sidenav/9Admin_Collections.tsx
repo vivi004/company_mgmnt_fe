@@ -130,14 +130,14 @@ const AdminCollections = ({ theme, orderLines, isAdmin: propsIsAdmin }: Props) =
         const storedUser = JSON.parse(localStorage.getItem('user') || '{}');
         const isAdmin = propsIsAdmin ?? (storedUser.role === 'admin' || storedUser.role === 'Admin');
 
-        pendingTxs.forEach((tx) => {
+        pendingTxs.forEach((tx, pIdx) => {
             const mode = (tx.mode || '').toUpperCase();
             const icon = mode === 'UPI' ? '📱' : (mode === 'CHEQUE' ? '📝' : '⏳');
             const color = mode === 'UPI' ? 'blue' : 'amber';
             const amt = typeof tx.amount === 'string' ? parseFloat(tx.amount) : tx.amount;
             
             badges.push(
-                <div key={`pending-${tx.id}`} className={`flex items-center gap-2 p-1.5 pl-2.5 rounded-xl border border-dashed animate-pulse transition-all
+                <div key={`pending-${tx.id || pIdx}`} className={`flex items-center gap-2 p-1.5 pl-2.5 rounded-xl border border-dashed animate-pulse transition-all
                     ${mode === 'UPI' ? 'bg-blue-500/5 border-blue-500/20' : 'bg-amber-500/5 border-amber-500/20'}`}>
                     <span className={`text-[10px] font-black uppercase tracking-tighter text-${color}-600 dark:text-${color}-400`}>
                         {icon} PENDING ₹{fmt(amt || 0)}
@@ -408,7 +408,7 @@ const AdminCollections = ({ theme, orderLines, isAdmin: propsIsAdmin }: Props) =
                                         );
                                     })}
                                     {/* ── TOTAL ROW ── */}
-                                    <tr className={`border-t-2 font-black ${isDark ? 'border-blue-500/30 bg-blue-950/20' : 'border-blue-200 bg-blue-50/50'}`}>
+                                    <tr key="total-row" className={`border-t-2 font-black ${isDark ? 'border-blue-500/30 bg-blue-950/20' : 'border-blue-200 bg-blue-50/50'}`}>
                                         <td className="px-5 py-4"></td>
                                         <td className={`px-5 py-4 text-base uppercase tracking-wider ${isDark ? 'text-blue-400' : 'text-blue-700'}`}>Total</td>
                                         <td className="px-5 py-4"></td>
@@ -614,7 +614,7 @@ const AdminCollections = ({ theme, orderLines, isAdmin: propsIsAdmin }: Props) =
                                     ))}
 
                                     {/* ── TOTAL Row ── */}
-                                    <tr className={`font-black ${isDark ? 'bg-blue-900/20' : 'bg-blue-50/80'} border-t-2 ${isDark ? 'border-blue-500/30' : 'border-blue-200'}`}>
+                                    <tr key="net-total-row" className={`font-black ${isDark ? 'bg-blue-900/20' : 'bg-blue-50/80'} border-t-2 ${isDark ? 'border-blue-500/30' : 'border-blue-200'}`}>
                                         <td className={`px-5 py-5 text-sm uppercase tracking-widest ${isDark ? 'text-blue-400' : 'text-blue-700'}`}>Net Total Collected</td>
                                         <td className={`px-5 py-5 text-right text-xl ${isDark ? 'text-white' : 'text-slate-900'}`}>₹{fmt(modeBreakdown.total)}</td>
                                         <td className="px-5 py-5 text-right"><span className="text-[10px] text-slate-400 uppercase tracking-tighter">100% Share</span></td>
