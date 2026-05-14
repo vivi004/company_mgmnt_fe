@@ -83,8 +83,11 @@ const ShopActionModals: React.FC<Props> = (props) => {
                                             ${isDark ? 'bg-white/5 border-white/5' : 'bg-slate-50/50 border-slate-100'}`}>
                                             <div className="flex items-center gap-5">
                                                 <div className={`w-12 h-12 rounded-2xl flex items-center justify-center text-lg font-black
-                                                    ${tx.type === 'Bill' ? 'bg-red-500/10 text-red-500' : tx.type === 'Payment' ? 'bg-emerald-500/10 text-emerald-500' : 'bg-indigo-500/10 text-indigo-500'}`}>
-                                                    {tx.type === 'Bill' ? 'B' : tx.type === 'Payment' ? 'P' : 'A'}
+                                                    ${tx.type === 'Bill' ? 'bg-red-500/10 text-red-500' 
+                                                    : (tx.payment_mode || '').toUpperCase() === 'DISCOUNT' ? 'bg-amber-500/10 text-amber-500'
+                                                    : tx.type === 'Payment' ? 'bg-emerald-500/10 text-emerald-500' 
+                                                    : 'bg-indigo-500/10 text-indigo-500'}`}>
+                                                    {tx.type === 'Bill' ? 'B' : (tx.payment_mode || '').toUpperCase() === 'DISCOUNT' ? 'D' : tx.type === 'Payment' ? 'P' : 'A'}
                                                 </div>
                                                 <div>
                                                     <p className="font-black text-sm uppercase tracking-tight">{tx.description}</p>
@@ -94,7 +97,8 @@ const ShopActionModals: React.FC<Props> = (props) => {
                                                             if (!dateStr) return '—';
                                                             let validIso = dateStr;
                                                             if (typeof dateStr === 'string' && !dateStr.includes('Z') && !dateStr.includes('+')) {
-                                                                validIso = dateStr.includes('T') ? dateStr + 'Z' : dateStr.replace(' ', 'T') + 'Z';
+                                                                // Backend stores dates as IST strings — mark them as +05:30, NOT 'Z' (UTC)
+                                                                validIso = dateStr.includes('T') ? dateStr + '+05:30' : dateStr.replace(' ', 'T') + '+05:30';
                                                             }
                                                             return new Date(validIso).toLocaleString('en-IN', {
                                                                 timeZone: 'Asia/Kolkata',
@@ -135,10 +139,11 @@ const ShopActionModals: React.FC<Props> = (props) => {
                                                     const isBill = tx.type === 'Bill';
                                                     const isPayment = tx.type === 'Payment';
                                                     const isAdjustment = tx.type === 'Adjustment';
+                                                    const isDiscountTx = (tx.payment_mode || '').toUpperCase() === 'DISCOUNT';
                                                     const isAddition = isBill || (isAdjustment && tx.amount > 0);
                                                     const isReduction = isPayment || (isAdjustment && tx.amount < 0);
                                                     const sign = isAddition ? '+' : (isReduction ? '-' : '');
-                                                    const colorClass = isAddition ? 'text-red-500' : (isReduction ? 'text-emerald-500' : 'text-indigo-500');
+                                                    const colorClass = isDiscountTx ? 'text-amber-500' : isAddition ? 'text-red-500' : (isReduction ? 'text-emerald-500' : 'text-indigo-500');
                                                     return (
                                                         <p className={`text-lg font-black ${colorClass}`}>
                                                             {sign}₹{Math.abs(tx.amount).toLocaleString('en-IN', { minimumFractionDigits: 2 })}
@@ -239,23 +244,28 @@ const ShopActionModals: React.FC<Props> = (props) => {
                             {parseFloat(adjData.amount) < 0 && (
                                 <div className="animate-in slide-in-from-top-2 duration-300">
                                     <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-2 mb-3 block text-center">Set as Collection Mode</label>
-                                    <div className="grid grid-cols-3 gap-2">
-                                        {(['Cash', 'UPI', 'Cheque'] as const).map((m) => (
+                                    <div className="grid grid-cols-4 gap-2">
+                                        {(['Cash', 'UPI', 'Cheque', 'Discount'] as const).map((m) => (
                                             <button
                                                 key={m}
                                                 type="button"
                                                 onClick={() => setAdjData({ ...adjData, method: m })}
                                                 className={`py-3 rounded-xl border font-black uppercase tracking-widest text-[9px] transition-all
                                                     ${adjData.method === m
-                                                        ? 'bg-emerald-600 border-emerald-600 text-white shadow-lg shadow-emerald-600/20 scale-105'
+                                                        ? m === 'Discount'
+                                                            ? 'bg-amber-500 border-amber-500 text-white shadow-lg shadow-amber-500/20 scale-105'
+                                                            : 'bg-emerald-600 border-emerald-600 text-white shadow-lg shadow-emerald-600/20 scale-105'
                                                         : 'bg-slate-50 border-slate-100 text-slate-400 hover:bg-slate-100'}`}
                                             >
                                                 {m}
                                             </button>
                                         ))}
                                     </div>
-                                    <p className="text-[9px] font-bold text-emerald-500 mt-2 text-center uppercase tracking-tighter italic">
-                                        This will update the {adjData.method} column in reports
+                                    <p className={`text-[9px] font-bold mt-2 text-center uppercase tracking-tighter italic
+                                        ${adjData.method === 'Discount' ? 'text-amber-500' : 'text-emerald-500'}`}>
+                                        {adjData.method === 'Discount' 
+                                            ? 'Discount — no money collected, balance reduced directly'
+                                            : `This will update the ${adjData.method} column in reports`}
                                     </p>
                                 </div>
                             )}
@@ -337,21 +347,28 @@ const ShopActionModals: React.FC<Props> = (props) => {
 
                             <div>
                                 <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-2 mb-3 block">Payment Method</label>
-                                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-                                    {(['Cash', 'UPI', 'Cheque', 'Dual Mode'] as const).map((m) => (
+                                <div className="grid grid-cols-2 sm:grid-cols-5 gap-2">
+                                    {(['Cash', 'UPI', 'Cheque', 'Dual Mode', 'Discount'] as const).map((m) => (
                                         <button
                                             key={m}
                                             type="button"
                                             onClick={() => setPaymentData({ ...paymentData, method: m })}
                                             className={`py-3 rounded-xl border font-black uppercase tracking-widest text-[9px] transition-all
                                                 ${paymentData.method === m
-                                                    ? 'bg-emerald-600 border-emerald-600 text-white shadow-lg shadow-emerald-600/20'
+                                                    ? m === 'Discount'
+                                                        ? 'bg-amber-500 border-amber-500 text-white shadow-lg shadow-amber-500/20'
+                                                        : 'bg-emerald-600 border-emerald-600 text-white shadow-lg shadow-emerald-600/20'
                                                     : 'bg-slate-50 border-slate-100 text-slate-400 hover:bg-slate-100'}`}
                                         >
                                             {m}
                                         </button>
                                     ))}
                                 </div>
+                                {paymentData.method === 'Discount' && (
+                                    <p className="text-[9px] font-bold text-amber-500 mt-2 text-center uppercase tracking-tighter italic animate-in fade-in duration-300">
+                                        Discount — no money collected, balance will be reduced directly
+                                    </p>
+                                )}
                             </div>
 
                             {paymentData.method === 'UPI' && (

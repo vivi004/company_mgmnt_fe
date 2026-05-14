@@ -96,7 +96,7 @@ const AdminCollections = ({ theme, orderLines, isAdmin: propsIsAdmin }: Props) =
     };
 
     // Mode badge renderer for a single row
-    const renderModeBadges = (cash: number, upi: number, cheque: number, pos: number = 0, pendingTxs: any[] = []) => {
+    const renderModeBadges = (cash: number, upi: number, cheque: number, pos: number = 0, pendingTxs: any[] = [], discount: number = 0) => {
         const badges: React.ReactNode[] = [];
         
         // 1. APPROVED Badges
@@ -118,6 +118,11 @@ const AdminCollections = ({ theme, orderLines, isAdmin: propsIsAdmin }: Props) =
         if (pos > 0) badges.push(
             <span key="pos" className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border border-indigo-500/20">
                 ➕ Addition ₹{fmt(pos)}
+            </span>
+        );
+        if (discount > 0) badges.push(
+            <span key="discount" className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20">
+                🏷️ Discount ₹{fmt(discount)}
             </span>
         );
 
@@ -232,6 +237,7 @@ const AdminCollections = ({ theme, orderLines, isAdmin: propsIsAdmin }: Props) =
                     { label: 'Billed Today', value: `₹${fmt(totals.todaysBillAmount)}`, icon: '🧾', color: 'blue' },
                     { label: 'Collected', value: `₹${fmt(totals.amountCollected)}`, icon: '💰', color: 'green' },
                     { label: 'Upcoming Bills', value: `₹${fmt(totals.totalFutureBills)}`, icon: '📅', color: totals.totalFutureBills > 0 ? 'purple' : 'slate' },
+                    { label: 'Discounts', value: `₹${fmt(modeBreakdown.discount || 0)}`, icon: '🏷️', color: 'amber' },
                     { label: 'Manual Adj', value: `₹${fmt(totals.totalManualAdjust)}`, icon: '⚙️', color: totals.totalManualAdjust === 0 ? 'slate' : totals.totalManualAdjust > 0 ? 'blue' : 'amber' },
                     { label: 'Pending', value: `₹${fmt(totals.todaysBillBalance)}`, icon: '⏳', color: totals.todaysBillBalance > 0 ? 'amber' : 'green' },
                     { label: 'Shops', value: String(collections.length), icon: '🏪', color: 'purple' },
@@ -384,13 +390,13 @@ const AdminCollections = ({ theme, orderLines, isAdmin: propsIsAdmin }: Props) =
                                                 <td className={`px-5 py-3.5 text-right font-bold ${isDark ? 'text-white' : 'text-slate-900'}`}>₹{fmt(row.todays_bill_amount)}</td>
                                                 <td className="px-5 py-3.5 text-right">
                                                     <div className={`font-black ${collected > 0 ? 'text-green-500' : isDark ? 'text-slate-500' : 'text-slate-400'}`}>₹{fmt(collected)}</div>
-                                                    <div className="flex justify-end mt-1">{renderModeBadges(row.cash_collected, row.upi_collected, row.cheque_collected, 0, row.pending_transactions.filter(t => (t.category || t.type || '').toUpperCase() === 'PAYMENT'))}</div>
+                                                    <div className="flex justify-end mt-1">{renderModeBadges(row.cash_collected, row.upi_collected, row.cheque_collected, 0, row.pending_transactions.filter(t => (t.category || t.type || '').toUpperCase() === 'PAYMENT'), row.discount_amount)}</div>
                                                 </td>
                                                 <td className={`px-5 py-3.5 text-right`}>
                                                     <div className={`font-bold ${row.manual_adjustments !== 0 ? (row.manual_adjustments > 0 ? 'text-blue-500' : 'text-amber-500') : isDark ? 'text-slate-600' : 'text-slate-300'}`}>
                                                         {row.manual_adjustments !== 0 ? `₹${fmt(row.manual_adjustments)}` : '—'}
                                                     </div>
-                                                    <div className="flex justify-end mt-1">{renderModeBadges(row.manual_cash, row.manual_upi, row.manual_cheque, row.manual_pos, row.pending_transactions.filter(t => (t.category || t.type || '').toUpperCase() === 'MANUAL_ADJUST'))}</div>
+                                                    <div className="flex justify-end mt-1">{renderModeBadges(row.manual_cash, row.manual_upi, row.manual_cheque, row.manual_pos, row.pending_transactions.filter(t => (t.category || t.type || '').toUpperCase() === 'MANUAL_ADJUST'), row.discount_amount)}</div>
                                                 </td>
                                                 <td className={`px-5 py-3.5 text-right font-bold ${row.future_bills !== 0 ? 'text-purple-500' : isDark ? 'text-slate-600' : 'text-slate-300'}`}>
                                                     {row.future_bills !== 0 ? `₹${fmt(row.future_bills)}` : '—'}
@@ -473,7 +479,7 @@ const AdminCollections = ({ theme, orderLines, isAdmin: propsIsAdmin }: Props) =
                                             <div><span className="text-slate-400">Upcoming:</span> <span className="font-bold text-purple-500">₹{fmt(row.future_bills)}</span></div>
                                             <div className="text-right"><span className="text-slate-400 text-xs font-black uppercase">Total:</span> <span className="font-black text-red-500 text-sm">₹{fmt(row.total_balance)}</span></div>
                                         </div>
-                                        <div>{renderModeBadges(row.cash_collected, row.upi_collected, row.cheque_collected, 0, row.pending_transactions.filter(t => (t.category || t.type || '').toUpperCase() === 'PAYMENT'))}</div>
+                                        <div>{renderModeBadges(row.cash_collected, row.upi_collected, row.cheque_collected, 0, row.pending_transactions.filter(t => (t.category || t.type || '').toUpperCase() === 'PAYMENT'), row.discount_amount)}</div>
                                     </div>
                                 );
                             })}
@@ -495,7 +501,7 @@ const AdminCollections = ({ theme, orderLines, isAdmin: propsIsAdmin }: Props) =
                     </div>
 
                     {/* ═══════ TABLE 2: Payment Mode Breakdown ═══════ */}
-                    {modeBreakdown.total > 0 && (
+                    {(
                         <div className={`rounded-2xl border overflow-hidden ${isDark ? 'bg-slate-900/50 border-white/5' : 'bg-white border-slate-100 shadow-sm'}`}>
                             <div className={`px-5 py-4 border-b flex items-center justify-between ${isDark ? 'border-white/5' : 'border-slate-100'}`}>
                                 <h3 className={`text-sm font-black uppercase tracking-widest ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
@@ -533,6 +539,11 @@ const AdminCollections = ({ theme, orderLines, isAdmin: propsIsAdmin }: Props) =
                                             icon: '📝', label: 'Cheque', amount: modeBreakdown.cheque, 
                                             reg: modeBreakdown.regCheque, man: modeBreakdown.manCheque,
                                             percent: modeBreakdown.chequePercent, color: 'amber' 
+                                        },
+                                        { 
+                                            icon: '🏷️', label: 'Discount', amount: modeBreakdown.discount, 
+                                            reg: modeBreakdown.discount, man: 0,
+                                            percent: 'N/A', color: 'amber' 
                                         },
                                     ].map(mode => (
                                         <tr key={mode.label} className={`border-t transition-colors ${isDark ? 'border-white/5 hover:bg-slate-800/30' : 'border-slate-50 hover:bg-slate-50/50'}`}>

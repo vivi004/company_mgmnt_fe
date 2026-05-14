@@ -152,6 +152,11 @@ export const useShopActions = (showToast: (msg: string, type: any) => void, onSu
                 if (!description) {
                     description = `Split Payment: Cash (₹${cashAmt}) + ${paymentData.upiApp} (₹${upiAmt})`;
                 }
+            } else if (paymentData.method === 'Discount') {
+                method = 'Discount';
+                if (!description) {
+                    description = `Discount Applied — ₹${amount.toLocaleString('en-IN')}`;
+                }
             }
 
             const cash_amount = paymentData.method === 'Dual Mode' ? parseFloat(paymentData.dualCashAmount) || 0 : (paymentData.method === 'Cash' ? amount : 0);
