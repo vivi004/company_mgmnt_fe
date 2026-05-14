@@ -150,7 +150,7 @@ export const useCollections = (orderLines: OrderLine[]) => {
     const totals = useMemo(() => {
         return collections.reduce(
             (acc, row) => {
-                const rowCollected = row.cash_collected + row.upi_collected + row.cheque_collected;
+                const rowCollected = row.cash_collected + row.upi_collected + row.cheque_collected + (row.discount_payment || 0);
                 // total_balance from backend is already: old_balance + todays_bill - collected + manual_adjustments
                 // future_bills is informational only and NOT included in total_balance
                 return {
@@ -159,7 +159,7 @@ export const useCollections = (orderLines: OrderLine[]) => {
                     todaysBillBalance: row.todays_bill_amount > 0
                         ? acc.todaysBillBalance + Math.max(0, row.todays_bill_amount - rowCollected)
                         : acc.todaysBillBalance,
-                    totalManualAdjust: acc.totalManualAdjust + (row.manual_adjustments || 0),
+                    totalManualAdjust: acc.totalManualAdjust + ((row.manual_adjustments || 0) + (row.discount_payment || 0)),
                     totalFutureBills: acc.totalFutureBills + (row.future_bills || 0),
                     totalBalance: acc.totalBalance + row.total_balance,
                 };
