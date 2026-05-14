@@ -162,9 +162,10 @@ export const useCollections = (orderLines: OrderLine[]) => {
                     totalManualAdjust: acc.totalManualAdjust + ((row.manual_adjustments || 0) + (row.discount_payment || 0)),
                     totalFutureBills: acc.totalFutureBills + (row.future_bills || 0),
                     totalBalance: acc.totalBalance + row.total_balance,
+                    totalOldBalance: acc.totalOldBalance + (row.old_balance || 0),
                 };
             },
-            { amountCollected: 0, todaysBillAmount: 0, todaysBillBalance: 0, totalManualAdjust: 0, totalFutureBills: 0, totalBalance: 0 }
+            { amountCollected: 0, todaysBillAmount: 0, todaysBillBalance: 0, totalManualAdjust: 0, totalFutureBills: 0, totalBalance: 0, totalOldBalance: 0 }
         );
     }, [collections]);
 

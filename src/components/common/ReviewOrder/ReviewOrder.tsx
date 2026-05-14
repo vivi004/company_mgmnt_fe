@@ -172,13 +172,44 @@ const ReviewOrder = ({ shopName, villageName, theme, cart, updateQuantity, onBac
                         <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mt-0.5">Select official invoice date</p>
                     </div>
                     <div className="flex items-center gap-3">
-                        <input
-                            type="date"
-                            value={deliveryDate}
-                            onChange={(e) => onDeliveryDateChange(e.target.value)}
-                            className={`px-5 py-3 rounded-2xl border font-black text-sm cursor-pointer transition-all
-                                    ${isDark ? 'bg-slate-800 border-white/10 text-white' : 'bg-slate-50 border-slate-200 text-slate-700 hover:bg-slate-100'}`}
-                        />
+                        <div className={`flex items-center p-1.5 rounded-2xl border transition-colors ${isDark ? 'bg-slate-800 border-white/10 shadow-lg shadow-black/20' : 'bg-white border-slate-200 shadow-sm'}`}>
+                            <button 
+                                onClick={() => {
+                                    const d = new Date(deliveryDate);
+                                    d.setDate(d.getDate() - 1);
+                                    onDeliveryDateChange(d.toISOString().split('T')[0]);
+                                }}
+                                className={`p-2 rounded-xl transition-colors ${isDark ? 'hover:bg-slate-700 text-slate-300' : 'hover:bg-slate-100 text-slate-600'}`}
+                                title="Previous Day"
+                            >
+                                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M15 19l-7-7 7-7" /></svg>
+                            </button>
+                            
+                            <div className="relative flex items-center justify-between w-[140px] px-3 py-1 cursor-pointer group">
+                                <span className={`text-sm font-black ${isDark ? 'text-white' : 'text-slate-900'}`}>
+                                    {deliveryDate.split('-').reverse().join('-')}
+                                </span>
+                                <svg className={`w-4 h-4 transition-colors ${isDark ? 'text-slate-400 group-hover:text-white' : 'text-slate-400 group-hover:text-slate-700'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
+                                <input
+                                    type="date"
+                                    value={deliveryDate}
+                                    onChange={(e) => onDeliveryDateChange(e.target.value)}
+                                    className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                                />
+                            </div>
+
+                            <button 
+                                onClick={() => {
+                                    const d = new Date(deliveryDate);
+                                    d.setDate(d.getDate() + 1);
+                                    onDeliveryDateChange(d.toISOString().split('T')[0]);
+                                }}
+                                className={`p-2 rounded-xl transition-colors ${isDark ? 'hover:bg-slate-700 text-slate-300' : 'hover:bg-slate-100 text-slate-600'}`}
+                                title="Next Day"
+                            >
+                                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5l7 7-7 7" /></svg>
+                            </button>
+                        </div>
                         {(() => {
                             const d = new Date(deliveryDate + 'T00:00:00');
                             const tomorrow = new Date();

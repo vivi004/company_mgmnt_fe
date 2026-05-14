@@ -426,8 +426,23 @@ const UnifiedOrderingView: React.FC<Props> = ({ shopName, theme, cart, rates, up
         {/* ── Product List ── */}
         <main 
           ref={scrollRef}
-          className={`flex-1 overflow-y-auto custom-scrollbar p-3 sm:p-6 pb-36 ${isDark ? 'bg-slate-900' : 'bg-gray-50'}`}
+          className={`flex-1 overflow-y-auto custom-scrollbar p-3 sm:p-6 pb-6 sm:pb-10 relative ${isDark ? 'bg-slate-900' : 'bg-gray-50'}`}
         >
+          {totalItems > 0 && (
+            <div className={`sticky top-0 z-30 mb-4 px-5 py-4 rounded-2xl flex items-center justify-between shadow-xl backdrop-blur-xl border transition-all animate-in fade-in slide-in-from-top-4 ${isDark ? 'bg-slate-800/90 border-blue-500/50 shadow-blue-900/20' : 'bg-white/90 border-blue-200 shadow-blue-500/10'}`}>
+              <div className="flex flex-col">
+                <span className={`text-[10px] font-black uppercase tracking-widest ${isDark ? 'text-slate-400' : 'text-blue-500'}`}>Current Order</span>
+                <span className={`text-lg font-black ${isDark ? 'text-white' : 'text-slate-900'}`}>{totalItems} Items</span>
+              </div>
+              <button
+                onClick={() => onReviewOrder(hasEditedPrice)}
+                className="px-6 sm:px-10 py-3 rounded-xl font-black text-xs sm:text-sm uppercase tracking-widest transition-all bg-blue-600 text-white shadow-xl shadow-blue-600/30 hover:bg-blue-700 active:scale-95"
+              >
+                Review Order →
+              </button>
+            </div>
+          )}
+
           <div className="flex flex-col gap-3 sm:gap-4 max-w-7xl mx-auto">
             <div className="grid grid-cols-1 2xl:grid-cols-2 gap-4">
               {filtered.map(p => (
@@ -459,26 +474,7 @@ const UnifiedOrderingView: React.FC<Props> = ({ shopName, theme, cart, rates, up
           </div>
         </main>
 
-
-
       </div>
-      {/* ── Footer ── */}
-      <footer className={`px-4 sm:px-6 h-16 sm:h-20 shrink-0 border-t flex items-center justify-between ${isDark ? 'bg-slate-950 border-white/10' : 'bg-white border-gray-100 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)]'}`}>
-        <div className="flex flex-col">
-          <span className={`text-[10px] font-black uppercase tracking-widest ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>Current Order</span>
-          <span className={`text-base sm:text-xl font-black ${isDark ? 'text-white' : 'text-slate-900'}`}>{totalItems} Items</span>
-        </div>
-        <button
-          onClick={() => onReviewOrder(hasEditedPrice)}
-          disabled={totalItems === 0}
-          className={`px-8 sm:px-12 py-3 sm:py-4 rounded-2xl font-black text-xs sm:text-sm uppercase tracking-widest transition-all
-            ${totalItems > 0
-              ? 'bg-blue-600 text-white shadow-xl shadow-blue-600/30 hover:bg-blue-700 active:scale-95'
-              : 'bg-gray-200 text-gray-400 cursor-not-allowed'}`}
-        >
-          Review Order →
-        </button>
-      </footer>
     </div>
   );
 };

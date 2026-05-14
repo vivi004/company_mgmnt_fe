@@ -56,19 +56,47 @@ const AdminBills: React.FC<Props> = ({ bills, theme, onDeleteBill, onClearAll, o
                     </div>
 
                     <div className="relative flex items-center" ref={refs.calendarRef}>
-                        <button
-                            onClick={() => actions.setIsCalendarOpen(!state.isCalendarOpen)}
-                            className={`flex items-center gap-3 pl-4 pr-5 py-2.5 rounded-2xl text-xs font-black uppercase tracking-widest outline-none border transition-all shadow-sm
-                                ${isDark
-                                    ? 'bg-slate-800 border-white/10 text-white hover:border-blue-500/50'
-                                    : 'bg-white border-slate-200 text-slate-800 hover:border-blue-500 hover:shadow-md'}
-                                ${state.isCalendarOpen ? (isDark ? 'border-blue-500/50 ring-2 ring-blue-500/20' : 'border-blue-500 ring-2 ring-blue-500/20') : ''}`}
-                        >
-                            <svg className={`w-4 h-4 ${isDark ? 'text-slate-400' : 'text-slate-500'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                            </svg>
-                            {state.selectedDate ? new Date(state.selectedDate).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric', timeZone: 'Asia/Kolkata' }) : 'Select Date Filter'}
-                        </button>
+                        <div className={`flex items-center rounded-2xl border shadow-sm transition-colors ${isDark ? 'bg-slate-800 border-white/10' : 'bg-white border-slate-200'}`}>
+                            {state.selectedDate && (
+                                <button 
+                                    onClick={() => {
+                                        const d = new Date(state.selectedDate);
+                                        d.setDate(d.getDate() - 1);
+                                        actions.setSelectedDate(d.toISOString().split('T')[0]);
+                                    }}
+                                    className={`p-2 rounded-xl transition-colors ${isDark ? 'hover:bg-slate-700 text-slate-300' : 'hover:bg-slate-100 text-slate-600'}`}
+                                    title="Previous Day"
+                                >
+                                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M15 19l-7-7 7-7" /></svg>
+                                </button>
+                            )}
+                            
+                            <button
+                                onClick={() => actions.setIsCalendarOpen(!state.isCalendarOpen)}
+                                className={`flex items-center gap-3 px-4 py-2.5 text-xs font-black uppercase tracking-widest outline-none transition-all ${!state.selectedDate ? 'rounded-2xl' : ''}
+                                    ${isDark ? 'text-white hover:text-blue-400' : 'text-slate-800 hover:text-blue-600'}
+                                    ${state.isCalendarOpen ? 'text-blue-500' : ''}`}
+                            >
+                                <svg className={`w-4 h-4 ${isDark ? 'text-slate-400' : 'text-slate-500'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                                </svg>
+                                {state.selectedDate ? new Date(state.selectedDate).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric', timeZone: 'Asia/Kolkata' }) : 'Select Date Filter'}
+                            </button>
+
+                            {state.selectedDate && (
+                                <button 
+                                    onClick={() => {
+                                        const d = new Date(state.selectedDate);
+                                        d.setDate(d.getDate() + 1);
+                                        actions.setSelectedDate(d.toISOString().split('T')[0]);
+                                    }}
+                                    className={`p-2 rounded-xl transition-colors ${isDark ? 'hover:bg-slate-700 text-slate-300' : 'hover:bg-slate-100 text-slate-600'}`}
+                                    title="Next Day"
+                                >
+                                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5l7 7-7 7" /></svg>
+                                </button>
+                            )}
+                        </div>
 
                         <AdminBillsCalendar
                             isCalendarOpen={state.isCalendarOpen}

@@ -214,12 +214,16 @@ const AdminCollections = ({ theme, orderLines, isAdmin: propsIsAdmin }: Props) =
                             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M15 19l-7-7 7-7" /></svg>
                         </button>
                         
-                        <div className="relative">
+                        <div className="relative flex items-center justify-between w-[130px] px-2 py-1 cursor-pointer group">
+                            <span className={`text-sm font-black ${isDark ? 'text-white' : 'text-slate-900'}`}>
+                                {selectedDate.split('-').reverse().join('-')}
+                            </span>
+                            <svg className={`w-4 h-4 transition-colors ${isDark ? 'text-slate-400 group-hover:text-white' : 'text-slate-400 group-hover:text-slate-700'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
                             <input
                                 type="date"
                                 value={selectedDate}
                                 onChange={(e) => setSelectedDate(e.target.value)}
-                                className={`w-[135px] sm:w-[140px] px-2 py-1 bg-transparent border-none text-sm font-black text-center focus:outline-none focus:ring-0 cursor-pointer ${isDark ? 'text-white [&::-webkit-calendar-picker-indicator]:filter [&::-webkit-calendar-picker-indicator]:invert' : 'text-slate-900 [&::-webkit-calendar-picker-indicator]:opacity-70 [&::-webkit-calendar-picker-indicator]:hover:opacity-100'}`}
+                                className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
                             />
                         </div>
 
@@ -262,7 +266,7 @@ const AdminCollections = ({ theme, orderLines, isAdmin: propsIsAdmin }: Props) =
             </div>
 
             {/* ── Summary Cards ── */}
-            <div className="grid grid-cols-2 sm:grid-cols-6 gap-3 sm:gap-4 mb-6">
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-7 gap-3 sm:gap-4 mb-6">
                 {[
                     { label: 'Billed Today', value: `₹${fmt(totals.todaysBillAmount)}`, icon: '🧾', color: 'blue' },
                     { label: 'Collected', value: `₹${fmt(totals.amountCollected)}`, icon: '💰', color: 'green' },
@@ -441,7 +445,7 @@ const AdminCollections = ({ theme, orderLines, isAdmin: propsIsAdmin }: Props) =
                                     <tr key="total-row" className={`border-t-2 font-black ${isDark ? 'border-blue-500/30 bg-blue-950/20' : 'border-blue-200 bg-blue-50/50'}`}>
                                         <td className="px-5 py-4"></td>
                                         <td className={`px-5 py-4 text-base uppercase tracking-wider ${isDark ? 'text-blue-400' : 'text-blue-700'}`}>Total</td>
-                                        <td className="px-5 py-4"></td>
+                                        <td className={`px-5 py-4 text-right text-base ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>₹{fmt(totals.totalOldBalance)}</td>
                                         <td className={`px-5 py-4 text-right text-base ${isDark ? 'text-white' : 'text-slate-900'}`}>₹{fmt(totals.todaysBillAmount)}</td>
                                         <td className={`px-5 py-4 text-right text-base ${totals.amountCollected > 0 ? 'text-green-500' : isDark ? 'text-slate-400' : 'text-slate-500'}`}>₹{fmt(totals.amountCollected)}</td>
                                         <td className={`px-5 py-4 text-right text-base ${totals.totalManualAdjust !== 0 ? 'text-blue-400' : isDark ? 'text-slate-600' : 'text-slate-400'}`}>₹{fmt(totals.totalManualAdjust)}</td>
@@ -544,14 +548,15 @@ const AdminCollections = ({ theme, orderLines, isAdmin: propsIsAdmin }: Props) =
                                     💸 Add Expense
                                 </button>
                             </div>
-                            <table className="w-full text-sm">
-                                <thead>
-                                    <tr className={`text-[10px] font-black uppercase tracking-widest ${isDark ? 'bg-slate-800/50 text-slate-400' : 'bg-slate-50 text-slate-500'}`}>
-                                        <th className="text-left px-5 py-3">Payment Mode / Detail</th>
-                                        <th className="text-right px-5 py-3">Amount</th>
-                                        <th className="text-right px-5 py-3">% Share</th>
-                                    </tr>
-                                </thead>
+                            <div className="overflow-x-auto">
+                                <table className="w-full text-sm min-w-[400px]">
+                                    <thead>
+                                        <tr className={`text-[10px] font-black uppercase tracking-widest ${isDark ? 'bg-slate-800/50 text-slate-400' : 'bg-slate-50 text-slate-500'}`}>
+                                            <th className="text-left px-5 py-3">Payment Mode / Detail</th>
+                                            <th className="text-right px-5 py-3">Amount</th>
+                                            <th className="text-right px-5 py-3">% Share</th>
+                                        </tr>
+                                    </thead>
                                 <tbody>
                                     {/* ── INCOME MODES ── */}
                                     {[
@@ -586,10 +591,10 @@ const AdminCollections = ({ theme, orderLines, isAdmin: propsIsAdmin }: Props) =
                                                 <div className="flex items-center gap-3">
                                                     <span className="text-xl">{mode.icon}</span>
                                                     <div className="flex flex-col">
-                                                        <span className="uppercase tracking-widest text-[11px] font-black">{mode.label}</span>
+                                                        <span className="uppercase tracking-widest text-sm font-black">{mode.label}</span>
                                                         {(mode.reg > 0 || mode.man > 0) && (
-                                                            <div className="flex gap-3 mt-1 text-[9px] font-black italic">
-                                                                {mode.reg > 0 && <span className={isDark ? 'text-slate-500' : 'text-slate-400'}>REG: ₹{fmt(mode.reg)}</span>}
+                                                            <div className="flex gap-5 mt-1.5 text-xs font-black">
+                                                                {mode.reg > 0 && <span className={isDark ? 'text-slate-400' : 'text-slate-500'}>REG: ₹{fmt(mode.reg)}</span>}
                                                                 {mode.man > 0 && <span className="text-amber-500">MAN: ₹{fmt(mode.man)}</span>}
                                                             </div>
                                                         )}
@@ -656,6 +661,7 @@ const AdminCollections = ({ theme, orderLines, isAdmin: propsIsAdmin }: Props) =
                                     </tr>
                                 </tbody>
                             </table>
+                            </div>
                         </div>
                     )}
                 </>
