@@ -135,6 +135,7 @@ export const useAdminDashboardData = () => {
                 await api().delete(`/api/bills/${id}`);
                 showToast("Bill deleted successfully", "success");
                 loadBills();
+                fetchOrderLines();
             } catch {
                 showToast("Failed to delete bill", "error");
             }
@@ -270,9 +271,14 @@ export const useAdminDashboardData = () => {
 
     useEffect(() => {
         if (activeTab === 'bills' || activeTab === 'bill-check') {
-            // Only re-load if we don't have bills or if it's been a while (optional)
-            // For now, let's just make it more resilient
             loadBills();
+        }
+        if (activeTab === 'order-lines' || activeTab === 'collections') {
+            fetchOrderLines();
+        }
+        if (activeTab === 'requests') {
+            fetchRequests();
+            fetchOlRequests();
         }
     }, [activeTab]);
 
