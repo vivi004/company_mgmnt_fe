@@ -23,7 +23,8 @@ export interface DailyCollection {
     manual_upi: number;
     manual_cheque: number;
     manual_pos: number;
-    discount_amount: number;
+    discount_payment: number;
+    discount_adjustment: number;
     pending_transactions: any[];
 }
 
@@ -84,7 +85,8 @@ export const useCollections = (orderLines: OrderLine[]) => {
                 manual_upi: parseFloat(row.manual_upi) || 0,
                 manual_cheque: parseFloat(row.manual_cheque) || 0,
                 manual_pos: parseFloat(row.manual_pos) || 0,
-                discount_amount: parseFloat(row.discount_amount) || 0,
+                discount_payment: parseFloat(row.discount_payment) || 0,
+                discount_adjustment: parseFloat(row.discount_adjustment) || 0,
                 future_bills: parseFloat(row.future_bills) || 0,
                 past_bills: parseFloat(row.past_bills) || 0,
                 old_balance: parseFloat(row.old_balance) || 0,
@@ -182,7 +184,9 @@ export const useCollections = (orderLines: OrderLine[]) => {
         const upi = regUpi + manUpi;
         const cheque = regCheque + manCheque;
         const totalExpenses = expenses.reduce((sum, e) => sum + e.amount, 0);
-        const discount = collections.reduce((sum, r) => sum + r.discount_amount, 0);
+        const discountPayment = collections.reduce((sum, r) => sum + r.discount_payment, 0);
+        const discountAdjustment = collections.reduce((sum, r) => sum + r.discount_adjustment, 0);
+        const totalDiscount = discountPayment + discountAdjustment;
         
         const netCash = rawCash - totalExpenses;
         const total = netCash + upi + cheque;
@@ -195,7 +199,9 @@ export const useCollections = (orderLines: OrderLine[]) => {
             totalExpenses,
             upi,
             cheque,
-            discount,
+            discount: totalDiscount,
+            discountPayment,
+            discountAdjustment,
             total,
             cashPercent: total > 0 ? ((netCash / total) * 100).toFixed(1) : '0.0',
             upiPercent: total > 0 ? ((upi / total) * 100).toFixed(1) : '0.0',

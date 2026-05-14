@@ -390,13 +390,13 @@ const AdminCollections = ({ theme, orderLines, isAdmin: propsIsAdmin }: Props) =
                                                 <td className={`px-5 py-3.5 text-right font-bold ${isDark ? 'text-white' : 'text-slate-900'}`}>₹{fmt(row.todays_bill_amount)}</td>
                                                 <td className="px-5 py-3.5 text-right">
                                                     <div className={`font-black ${collected > 0 ? 'text-green-500' : isDark ? 'text-slate-500' : 'text-slate-400'}`}>₹{fmt(collected)}</div>
-                                                    <div className="flex justify-end mt-1">{renderModeBadges(row.cash_collected, row.upi_collected, row.cheque_collected, 0, row.pending_transactions.filter(t => (t.category || t.type || '').toUpperCase() === 'PAYMENT'), row.discount_amount)}</div>
+                                                    <div className="flex justify-end mt-1">{renderModeBadges(row.cash_collected, row.upi_collected, row.cheque_collected, 0, row.pending_transactions.filter(t => (t.category || t.type || '').toUpperCase() === 'PAYMENT'), row.discount_payment)}</div>
                                                 </td>
                                                 <td className={`px-5 py-3.5 text-right`}>
                                                     <div className={`font-bold ${row.manual_adjustments !== 0 ? (row.manual_adjustments > 0 ? 'text-blue-500' : 'text-amber-500') : isDark ? 'text-slate-600' : 'text-slate-300'}`}>
                                                         {row.manual_adjustments !== 0 ? `₹${fmt(row.manual_adjustments)}` : '—'}
                                                     </div>
-                                                    <div className="flex justify-end mt-1">{renderModeBadges(row.manual_cash, row.manual_upi, row.manual_cheque, row.manual_pos, row.pending_transactions.filter(t => (t.category || t.type || '').toUpperCase() === 'MANUAL_ADJUST'), row.discount_amount)}</div>
+                                                    <div className="flex justify-end mt-1">{renderModeBadges(row.manual_cash, row.manual_upi, row.manual_cheque, row.manual_pos, row.pending_transactions.filter(t => (t.category || t.type || '').toUpperCase() === 'MANUAL_ADJUST'), row.discount_adjustment)}</div>
                                                 </td>
                                                 <td className={`px-5 py-3.5 text-right font-bold ${row.future_bills !== 0 ? 'text-purple-500' : isDark ? 'text-slate-600' : 'text-slate-300'}`}>
                                                     {row.future_bills !== 0 ? `₹${fmt(row.future_bills)}` : '—'}
@@ -474,12 +474,12 @@ const AdminCollections = ({ theme, orderLines, isAdmin: propsIsAdmin }: Props) =
                                             <div className="text-right">
                                                 <span className="text-slate-400">Adjust:</span> 
                                                 <span className={`font-bold ${row.manual_adjustments !== 0 ? (row.manual_adjustments > 0 ? 'text-blue-500' : 'text-amber-500') : ''}`}>₹{fmt(row.manual_adjustments)}</span>
-                                                <div className="flex justify-end mt-1">{renderModeBadges(row.manual_cash, row.manual_upi, row.manual_cheque, row.manual_pos, row.pending_transactions.filter(t => (t.category || t.type || '').toUpperCase() === 'MANUAL_ADJUST'))}</div>
+                                                <div className="flex justify-end mt-1">{renderModeBadges(row.manual_cash, row.manual_upi, row.manual_cheque, row.manual_pos, row.pending_transactions.filter(t => (t.category || t.type || '').toUpperCase() === 'MANUAL_ADJUST'), row.discount_adjustment)}</div>
                                              </div>
                                             <div><span className="text-slate-400">Upcoming:</span> <span className="font-bold text-purple-500">₹{fmt(row.future_bills)}</span></div>
                                             <div className="text-right"><span className="text-slate-400 text-xs font-black uppercase">Total:</span> <span className="font-black text-red-500 text-sm">₹{fmt(row.total_balance)}</span></div>
                                         </div>
-                                        <div>{renderModeBadges(row.cash_collected, row.upi_collected, row.cheque_collected, 0, row.pending_transactions.filter(t => (t.category || t.type || '').toUpperCase() === 'PAYMENT'), row.discount_amount)}</div>
+                                        <div>{renderModeBadges(row.cash_collected, row.upi_collected, row.cheque_collected, 0, row.pending_transactions.filter(t => (t.category || t.type || '').toUpperCase() === 'PAYMENT'), row.discount_payment)}</div>
                                     </div>
                                 );
                             })}
@@ -541,8 +541,13 @@ const AdminCollections = ({ theme, orderLines, isAdmin: propsIsAdmin }: Props) =
                                             percent: modeBreakdown.chequePercent, color: 'amber' 
                                         },
                                         { 
-                                            icon: '🏷️', label: 'Discount', amount: modeBreakdown.discount, 
-                                            reg: modeBreakdown.discount, man: 0,
+                                            icon: '🏷️', label: 'Discount (Payment)', amount: modeBreakdown.discountPayment, 
+                                            reg: modeBreakdown.discountPayment, man: 0,
+                                            percent: 'N/A', color: 'amber' 
+                                        },
+                                        { 
+                                            icon: '🏷️', label: 'Discount (Adj)', amount: modeBreakdown.discountAdjustment, 
+                                            reg: 0, man: modeBreakdown.discountAdjustment,
                                             percent: 'N/A', color: 'amber' 
                                         },
                                     ].map(mode => (
