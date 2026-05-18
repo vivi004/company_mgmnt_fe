@@ -1,7 +1,8 @@
 import React from 'react';
 import { useAdminBills } from './useAdminBills';
 import AdminBillsCalendar from './Admin_BillsCalendar';
-import AdminBillsEditModal from './Admin_BillsEditModal';
+import UnifiedOrderingView from '../../../components/common/ShopManager/UnifiedOrderingView';
+import ReviewOrder from '../../../components/common/ReviewOrder/ReviewOrder';
 import { previewBill, downloadBill, downloadAllFiltered, downloadStaffBillsPdf, type Bill } from '../../../utils/invoiceGenerator';
 import { printLoadingSheet } from '../../../utils/loadingSheetGenerator';
 import { useState } from 'react';
@@ -26,6 +27,46 @@ const AdminBills: React.FC<Props> = ({ bills, theme, onDeleteBill, onClearAll, o
     const handleVehicleChange = (staffName: string, vehicleNo: string) => {
         setSelectedVehicles(prev => ({ ...prev, [staffName]: vehicleNo }));
     };
+
+    if (state.editingBill) {
+        if (state.showReview) {
+            return (
+                <div className="animate-in fade-in slide-in-from-right-5 duration-500">
+                    <ReviewOrder
+                        shopName={state.editingBill.shopName}
+                        villageName={state.editingBill.villageName}
+                        theme={theme}
+                        cart={state.editCart}
+                        updateQuantity={actions.updateQuantity}
+                        onBack={() => actions.setShowReview(false)}
+                        onPlaceOrder={actions.handleSaveEdit}
+                        type="admin"
+                        deliveryDate={state.editDeliveryDate}
+                        onDeliveryDateChange={actions.setEditDeliveryDate}
+                        customRates={state.editRates}
+                    />
+                </div>
+            );
+        }
+
+        return (
+            <div className="animate-in fade-in slide-in-from-right-5 duration-500">
+                <UnifiedOrderingView
+                    shopName={state.editingBill.shopName}
+                    theme={theme}
+                    cart={state.editCart}
+                    rates={state.editRates}
+                    updateQuantity={actions.updateQuantity}
+                    updateRate={actions.updateRate}
+                    onBack={() => actions.setEditingBill(null)}
+                    onReviewOrder={(edited) => {
+                        actions.setIsEditedPrice(edited);
+                        actions.setShowReview(true);
+                    }}
+                />
+            </div>
+        );
+    }
 
     return (
         <div className="animate-in fade-in slide-in-from-bottom-5 duration-500">
@@ -325,25 +366,7 @@ const AdminBills: React.FC<Props> = ({ bills, theme, onDeleteBill, onClearAll, o
                 </div>
             )}
 
-            <AdminBillsEditModal
-                open={!!state.editingBill}
-                onClose={() => actions.setEditingBill(null)}
-                editingBill={state.editingBill}
-                editCart={state.editCart}
-                setEditCart={actions.setEditCart}
-                editRates={state.editRates}
-                setEditRates={actions.setEditRates}
-                editDeliveryDate={state.editDeliveryDate}
-                setEditDeliveryDate={actions.setEditDeliveryDate}
-                searchQuery={state.searchQuery}
-                setSearchQuery={actions.setSearchQuery}
-                selectedCategory={state.selectedCategory}
-                setSelectedCategory={actions.setSelectedCategory}
-                handleSaveEdit={actions.handleSaveEdit}
-                getTotal={computed.getTotal}
-                getItemCount={computed.getItemCount}
-                theme={theme}
-            />
+
         </div>
     );
 };

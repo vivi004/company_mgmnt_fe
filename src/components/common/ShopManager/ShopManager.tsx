@@ -296,7 +296,7 @@ const ShopManager = ({ orderLineId, villageName, theme, onBack, type, handleRefr
                 }}
                 onEditOrder={() => {
                     setShowBill(false);
-                    setShowReview(true);
+                    setShowReview(false);
                 }}
                 type={type}
                 deliveryDate={new Date(deliveryDate + 'T00:00:00').toISOString()}

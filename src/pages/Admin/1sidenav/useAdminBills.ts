@@ -25,9 +25,9 @@ export const useAdminBills = (
     const [editCart, setEditCart] = useState<Record<string, number>>({});
     const [editRates, setEditRates] = useState<Record<string, number>>({});
     const [editDeliveryDate, setEditDeliveryDate] = useState<string>('');
-    const [searchQuery, setSearchQuery] = useState('');
     const [listSearchQuery, setListSearchQuery] = useState('');
-    const [selectedCategory, setSelectedCategory] = useState('All');
+    const [showReview, setShowReview] = useState(false);
+    const [isEditedPrice, setIsEditedPrice] = useState(false);
 
     // Close calendar when clicking outside
     useEffect(() => {
@@ -78,6 +78,35 @@ export const useAdminBills = (
     const getItemCount = (cart: Record<string, number>) =>
         Object.values(cart).reduce((s, q) => s + q, 0);
 
+    const updateQuantity = (id: string, delta: number) => {
+        setEditCart(prev => {
+            const current = prev[id] || 0;
+            const next = Math.max(0, current + delta);
+            if (next === 0) {
+                const newCart = { ...prev };
+                delete newCart[id];
+                return newCart;
+            }
+            return { ...prev, [id]: next };
+        });
+    };
+
+    const updateRate = (id: string, rate: number) => {
+        setEditRates(prev => {
+            const next = { ...prev };
+            const p = getAllProducts().find(x => x.id === id);
+            if (rate === 0 || (p && rate === p.price)) {
+                delete next[id];
+            } else {
+                next[id] = rate;
+            }
+            // Flush variants so they recalculate from the new base rate
+            delete next[`${id}_box`];
+            delete next[`${id}_ltr`];
+            return next;
+        });
+    };
+
     const openEditModal = (bill: Bill) => {
         setEditingBill(bill);
         setEditCart({ ...bill.cart });
@@ -87,9 +116,8 @@ export const useAdminBills = (
         const d = bill.deliveryDate || bill.date || '';
         const datePart = d.includes('T') ? d.split('T')[0] : d.split(' ')[0];
         setEditDeliveryDate(datePart);
-        
-        setSearchQuery('');
-        setSelectedCategory('All');
+        setShowReview(false);
+        setIsEditedPrice(false);
     };
 
     const handleSaveEdit = () => {
@@ -106,9 +134,7 @@ export const useAdminBills = (
             if (p.id.endsWith('_box') || p.id.endsWith('_ltr')) return;
 
             if (finalCart[p.id] || finalCart[`${p.id}_box`] || finalCart[`${p.id}_ltr`]) {
-                if (finalRates[p.id] === undefined) {
-                    finalRates[p.id] = p.price;
-                }
+                finalRates[p.id] = editRates[p.id] ?? p.price;
             }
         });
 
@@ -118,10 +144,11 @@ export const useAdminBills = (
         const originalRates = editingBill.customRates || {};
         const hasEditedPrice = Object.keys(finalRates).some(id => {
             return finalRates[id] !== undefined && finalRates[id] !== (originalRates[id] ?? finalRates[id]);
-        }) || editingBill.isEditedPrice === true; // preserve flag if previously set
+        }) || editingBill.isEditedPrice === true || isEditedPrice === true; // preserve flag if previously set or edited in current session
 
         onEditBill(editingBill.id, finalCart, finalRates, finalDeliveryDate, hasEditedPrice);
         setEditingBill(null);
+        setShowReview(false);
     };
 
     // Calendar Logic
@@ -170,15 +197,16 @@ export const useAdminBills = (
     return {
         state: {
             selectedDate, isCalendarOpen, currentCalDate, editingBill,
-            editCart, editRates, searchQuery, listSearchQuery, selectedCategory,
+            editCart, editRates, listSearchQuery,
             minDate, maxDate, todayStr, filteredBills, groupedBills,
-            editDeliveryDate
+            editDeliveryDate, showReview, isEditedPrice
         },
         actions: {
             setSelectedDate, setIsCalendarOpen, setEditingBill,
-            setEditCart, setEditRates, setSearchQuery, setListSearchQuery, setSelectedCategory,
-            setEditDeliveryDate,
-            openEditModal, handleSaveEdit, handlePrevMonth, handleNextMonth, handleDateSelect
+            setEditCart, setEditRates, setListSearchQuery,
+            setEditDeliveryDate, setShowReview, setIsEditedPrice,
+            openEditModal, handleSaveEdit, handlePrevMonth, handleNextMonth, handleDateSelect,
+            updateQuantity, updateRate
         },
         computed: {
             getTotal, getItemCount, generateCalendarDays

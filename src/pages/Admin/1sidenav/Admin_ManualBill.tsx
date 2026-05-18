@@ -82,7 +82,7 @@ const Admin_ManualBill: React.FC<AdminManualBillProps> = ({ shopName, villageNam
                     }}
                     onEditOrder={() => {
                         setShowBill(false);
-                        setShowReview(true);
+                        setShowReview(false);
                     }}
                     type={type}
                 />
