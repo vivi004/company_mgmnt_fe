@@ -235,7 +235,7 @@ export function getAllProducts(): Product[] {
             });
         }
 
-        // 500ml gets Box(20) virtual product
+        // 500ml gets Box(20) virtual product and Litre (2x500ml)
         if (normalSize === '500 ml') {
             expanded.push({
                 ...product,
@@ -243,6 +243,13 @@ export function getAllProducts(): Product[] {
                 size: '1 BOX (20x500ml)',
                 price: effectivePrice * 20,
                 unit: 'BOX'
+            });
+            expanded.push({
+                ...product,
+                id: p.id + '_ltr',
+                size: '1 LTR (2x500ml)',
+                price: effectivePrice * 2,
+                unit: 'LTR'
             });
         }
 

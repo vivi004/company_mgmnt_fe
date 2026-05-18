@@ -77,8 +77,13 @@ const ReviewOrder = ({ shopName, villageName, theme, cart, updateQuantity, onBac
 
                             {cartItems.map((item, index) => {
                                 const isBox = item.id.includes('_box');
-                                const is500_Ltr = !isBox && item.id.includes('_ltr');
-                                const cartDelta = is500_Ltr ? 0.5 : 1;
+                                const isLtrVariant = !isBox && item.id.includes('_ltr');
+                                const is100ml = item.size.toLowerCase() === '100 ml';
+                                const is200ml = item.size.toLowerCase() === '200 ml';
+                                const is500ml = item.size.toLowerCase() === '500 ml';
+                                const isConvertibleLtr = isLtrVariant && (is100ml || is200ml || is500ml);
+                                const ltrMultiplier = is100ml ? 10 : is200ml ? 5 : is500ml ? 2 : 1;
+                                const cartDelta = isConvertibleLtr ? (1 / ltrMultiplier) : 1;
 
                                 const description = item.brand !== 'Nisha' ? `${item.brand.toUpperCase()} ${item.size.toUpperCase()}` : `${item.name.toUpperCase()} ${item.size.toUpperCase()}`;
                                 let displayUnit = (item.unit || 'NOS').toUpperCase();
@@ -94,6 +99,10 @@ const ReviewOrder = ({ shopName, villageName, theme, cart, updateQuantity, onBac
                                 } else if (displayUnit === 'LITRE') {
                                     displayUnit = 'PCS';
                                 }
+
+                                const displayQty = isConvertibleLtr ? item.quantity / ltrMultiplier : item.quantity;
+                                const displayRate = isConvertibleLtr ? item.price * ltrMultiplier : item.price;
+                                const displayUnitFinal = isConvertibleLtr ? 'LTR' : displayUnit;
 
                                 return (
                                     <div
@@ -117,9 +126,9 @@ const ReviewOrder = ({ shopName, villageName, theme, cart, updateQuantity, onBac
                                                     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 12H4" /></svg>
                                                 </button>
                                                 <div className="text-center min-w-[3rem]">
-                                                    <span className={`block font-black ${isDark ? 'text-white' : 'text-slate-900'}`}>{item.quantity}</span>
+                                                    <span className={`block font-black ${isDark ? 'text-white' : 'text-slate-900'}`}>{displayQty}</span>
                                                     <span className="block text-[10px] font-black uppercase tracking-widest text-slate-500">
-                                                        {displayUnit === 'CAN' ? 'CANS' : displayUnit}
+                                                        {displayUnitFinal === 'CAN' ? 'CANS' : displayUnitFinal}
                                                     </span>
                                                 </div>
                                                 <button onClick={() => updateQuantity(item.id, cartDelta)} className={`w-8 h-8 rounded-full flex items-center justify-center bg-${primaryColor}-500 text-white hover:bg-${primaryColor}-600 shadow-md shadow-${primaryColor}-500/20 transition-all`}>
@@ -129,12 +138,12 @@ const ReviewOrder = ({ shopName, villageName, theme, cart, updateQuantity, onBac
                                         </div>
 
                                         <div className={`col-span-2 text-right pr-4 font-black ${isDark ? 'text-slate-300' : 'text-slate-700'}`}>
-                                            ₹{item.price.toLocaleString('en-IN', { minimumFractionDigits: 2 })}
+                                            ₹{displayRate.toLocaleString('en-IN', { minimumFractionDigits: 2 })}
                                         </div>
 
                                         <div className="col-span-2 text-right flex flex-col items-end gap-1">
                                             <div className="flex items-baseline gap-2">
-                                                <p className={`font-black text-base sm:text-lg ${isDark ? 'text-white' : 'text-slate-900'}`}>₹{(item.price * item.quantity).toLocaleString('en-IN', { minimumFractionDigits: 2 })}</p>
+                                                <p className={`font-black text-base sm:text-lg ${isDark ? 'text-white' : 'text-slate-900'}`}>₹{(displayRate * displayQty).toLocaleString('en-IN', { minimumFractionDigits: 2 })}</p>
                                                 {customRates[item.id] !== undefined && (
                                                     <span className="text-[8px] font-black uppercase tracking-widest text-orange-500 bg-orange-500/10 px-1.5 py-0.5 rounded border border-orange-500/20">Edited Price</span>
                                                 )}

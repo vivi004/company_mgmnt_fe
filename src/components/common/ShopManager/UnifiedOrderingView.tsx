@@ -165,11 +165,25 @@ const BoxLitreControls = memo(({ boxId, litreId, boxMultiplier, litreStep, litre
 
 const UnifiedProductCard = memo(({ product, cart, rates, isDark, updateQuantity, updateRate, handleManualQuantity }: CardProps) => {
   // Local state for price input to allow clearing/editing without jumps
-  const [priceInput, setPriceInput] = useState<string>((rates[product.id] ?? product.price).toString());
+  const sizeLower = product.size.toLowerCase();
+  const is100ml = sizeLower === '100 ml';
+  const is200ml = sizeLower === '200 ml';
+  const is500ml = sizeLower === '500 ml';
+  const getMultiplier = () => {
+    if (is100ml) return 10;
+    if (is200ml) return 5;
+    if (is500ml) return 2;
+    return 1;
+  };
+  const mult = getMultiplier();
+  const getDisplayPrice = (val: number) => val * mult;
+  const getRawPrice = (val: number) => val / mult;
+
+  const [priceInput, setPriceInput] = useState<string>(getDisplayPrice(rates[product.id] ?? product.price).toString());
 
   // Sync with prop changes only if not focused or if meaningfully different
   useEffect(() => {
-    const currentPrice = rates[product.id] ?? product.price;
+    const currentPrice = getDisplayPrice(rates[product.id] ?? product.price);
     if (parseFloat(priceInput) !== currentPrice && priceInput !== "") {
       setPriceInput(currentPrice.toString());
     }
@@ -190,7 +204,8 @@ const UnifiedProductCard = memo(({ product, cart, rates, isDark, updateQuantity,
     if (/^\d*\.?\d*$/.test(finalVal)) {
       setPriceInput(finalVal);
       const numeric = parseFloat(finalVal);
-      updateRate(product.id, isNaN(numeric) ? 0 : numeric);
+      const finalPrice = isNaN(numeric) ? 0 : getRawPrice(numeric);
+      updateRate(product.id, finalPrice);
     }
   };
 
@@ -205,7 +220,7 @@ const UnifiedProductCard = memo(({ product, cart, rates, isDark, updateQuantity,
     // Pattern matching exactly like old layout
     if (sizeLower === '100 ml') return <BoxLitreControls boxId={product.id + '_box'} litreId={product.id + '_ltr'} boxMultiplier={50} litreStep={1} litreMultiplier={10} litreLabel="LTR" currentBaseRate={currentBaseRate} isDark={isDark} updateQuantity={updateQuantity} handleManualQuantity={handleManualQuantity} product={product} cart={cart} />;
     if (sizeLower === '200 ml') return <BoxLitreControls boxId={product.id + '_box'} litreId={product.id + '_ltr'} boxMultiplier={25} litreStep={1} litreMultiplier={5} litreLabel="LTR" currentBaseRate={currentBaseRate} isDark={isDark} updateQuantity={updateQuantity} handleManualQuantity={handleManualQuantity} product={product} cart={cart} />;
-    if (sizeLower === '500 ml') return <BoxLitreControls boxId={product.id + '_box'} litreId={product.id} boxMultiplier={20} litreStep={1} litreMultiplier={1} litreLabel="PCS" currentBaseRate={currentBaseRate} isDark={isDark} updateQuantity={updateQuantity} handleManualQuantity={handleManualQuantity} product={product} cart={cart} />;
+    if (sizeLower === '500 ml') return <BoxLitreControls boxId={product.id + '_box'} litreId={product.id + '_ltr'} boxMultiplier={20} litreStep={1} litreMultiplier={2} litreLabel="LTR" currentBaseRate={currentBaseRate} isDark={isDark} updateQuantity={updateQuantity} handleManualQuantity={handleManualQuantity} product={product} cart={cart} />;
     if (sizeLower === '1 litre' || sizeLower === '1 ltr-pet' || sizeLower === '1 ltr') return <BoxLitreControls boxId={product.id + '_box'} litreId={product.id} boxMultiplier={10} litreStep={1} litreMultiplier={1} litreLabel="PCS" currentBaseRate={currentBaseRate} isDark={isDark} updateQuantity={updateQuantity} handleManualQuantity={handleManualQuantity} product={product} cart={cart} />;
     if (sizeLower === '2 ltr') return <BoxLitreControls boxId={product.id + '_box'} litreId={product.id} boxMultiplier={5} litreStep={1} litreMultiplier={1} litreLabel="2L-PCS" currentBaseRate={currentBaseRate} isDark={isDark} updateQuantity={updateQuantity} handleManualQuantity={handleManualQuantity} product={product} cart={cart} />;
 
@@ -258,7 +273,7 @@ const UnifiedProductCard = memo(({ product, cart, rates, isDark, updateQuantity,
                 onChange={(e) => handlePriceChange(e.target.value)}
                 onBlur={() => {
                   if (priceInput === "" || isNaN(parseFloat(priceInput))) {
-                    setPriceInput(product.price.toString());
+                    setPriceInput(getDisplayPrice(rates[product.id] ?? product.price).toString());
                   }
                 }}
                 className={`w-20 text-xs font-black bg-transparent outline-none ${isDark ? 'text-white' : 'text-slate-900'}`}

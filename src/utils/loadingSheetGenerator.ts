@@ -1,4 +1,4 @@
-import { getAllProducts } from '../constants/productData';
+import { getAllProducts, getCartItems } from '../constants/productData';
 import type { Bill } from './invoiceGenerator';
 
 interface ProductLine {
@@ -58,8 +58,27 @@ export function generateLoadingSheet(bills: Bill[], dateStr: string, vehicleNo: 
             if (qty <= 0) return;
             if (!aggregated[pid]) aggregated[pid] = { qty: 0, rates: [] };
             aggregated[pid].qty += qty;
+            
             const product = productMap.get(pid);
-            const rate = customRates[pid] ?? customRates[pid.replace(/_box$|_ltr$/, '')] ?? product?.price ?? 0;
+            const basePid = pid.replace(/_box$|_ltr$/, '');
+            const isLtr = pid.endsWith('_ltr');
+            const isBox = pid.endsWith('_box');
+            const pBase = productMap.get(basePid);
+            const baseSize = pBase?.size.toLowerCase() || '';
+
+            let rate = customRates[pid] ?? product?.price ?? 0;
+            if (customRates[pid] === undefined) {
+                const baseRate = customRates[basePid];
+                if (baseRate !== undefined) {
+                    let multiplier = 1;
+                    if (isBox) {
+                        multiplier = baseSize === '100 ml' ? 50 : baseSize === '200 ml' ? 25 : baseSize === '500 ml' ? 20 : (baseSize.includes('1 ltr') || baseSize.includes('1 litre')) ? 10 : baseSize.includes('2 ltr') ? 5 : 1;
+                    } else if (isLtr) {
+                        multiplier = baseSize === '100 ml' ? 10 : baseSize === '200 ml' ? 5 : baseSize === '500 ml' ? 2 : 1;
+                    }
+                    rate = baseRate * multiplier;
+                }
+            }
             aggregated[pid].rates.push(rate);
         });
     });
@@ -78,7 +97,9 @@ export function generateLoadingSheet(bills: Bill[], dateStr: string, vehicleNo: 
         let displayUnit = (product.unit || 'NOS').toUpperCase();
 
         // Specific Rules matching business requirements using regex for exact density matching
-        if (/\b15\s*(LTR|KG|L|T|TIN)\b/i.test(description)) {
+        if (pid.endsWith('_ltr') && (pid.includes('100ml') || pid.includes('200ml') || pid.includes('500ml'))) {
+            displayUnit = 'LTR';
+        } else if (/\b15\s*(LTR|KG|L|T|TIN)\b/i.test(description)) {
             displayUnit = 'TIN';
         } else if (/\b5\s*(LTR|KG|L|CAN)\b/i.test(description)) {
             displayUnit = 'CAN';
@@ -133,15 +154,7 @@ export function generateLoadingSheet(bills: Bill[], dateStr: string, vehicleNo: 
     });
 
     const shopLines: ShopLine[] = bills.map((bill, i) => {
-        const customRates = bill.customRates || {};
-        let total = 0;
-        allProducts.forEach(p => {
-            const qty = bill.cart[p.id] || 0;
-            if (qty > 0) {
-                const rate = customRates[p.id] ?? p.price;
-                total += rate * qty;
-            }
-        });
+        const total = getCartItems(bill.cart, bill.customRates).reduce((sum, item) => sum + (item.price * item.quantity), 0);
         return {
             sno: i + 1,
             invoiceNo: bill.invoiceNo,

@@ -19,7 +19,23 @@ export interface Bill {
 }
 
 export const invoiceHTML = (bill: Bill, vehicleNo: string = '') => {
-    const items = getCartItems(bill.cart, bill.customRates);
+    const items = getCartItems(bill.cart, bill.customRates).map(it => {
+        const isLtrVariant = it.id.endsWith('_ltr');
+        const sizeLower = it.size.toLowerCase();
+        const is100ml = sizeLower === '100 ml';
+        const is200ml = sizeLower === '200 ml';
+        const is500ml = sizeLower === '500 ml';
+        if (isLtrVariant && (is100ml || is200ml || is500ml)) {
+            const multiplier = is100ml ? 10 : is200ml ? 5 : is500ml ? 2 : 1;
+            return {
+                ...it,
+                quantity: it.quantity / multiplier,
+                price: it.price * multiplier,
+                unit: 'LTR'
+            };
+        }
+        return it;
+    });
     const totalQty = items.reduce((a, i) => a + i.quantity, 0);
     const totalAmt = items.reduce((a, i) => a + i.price * i.quantity, 0);
 
@@ -48,6 +64,7 @@ export const invoiceHTML = (bill: Bill, vehicleNo: string = '') => {
         if (/\b15\s*(LTR|KG|L|T|TIN)\b/i.test(desc))              u = 'TIN';
         else if (/\b5\s*(LTR|KG|L|CAN)\b/i.test(desc))            u = 'CAN';
         else if (/\bBOX\b/i.test(desc) || it.id.includes('_box')) u = 'BOX';
+        else if (it.id.endsWith('_ltr') && (it.size.toLowerCase() === '100 ml' || it.size.toLowerCase() === '200 ml' || it.size.toLowerCase() === '500 ml')) u = 'LTR';
         else if (/\b(100|200|500)\s*ML\b/i.test(desc))            u = 'PCS';
         else if (u === 'LITRE')                                    u = 'PCS';
         return `<tr>
