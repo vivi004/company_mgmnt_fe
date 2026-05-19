@@ -231,8 +231,9 @@ export const useAdminSales = () => {
     }, [staffRows, startDate, endDate]);
 
     // Export PDF
-    const exportPDF = useCallback(async () => {
-        const { printHtmlDirectly } = await import('../../../utils/invoiceGenerator');
+    const exportPDF = useCallback(() => {
+        const w = window.open('', '_blank');
+        if (!w) return;
         const totalSales = staffRows.reduce((s, r) => s + r.totalAmount, 0);
         const totalOrders = staffRows.reduce((s, r) => s + r.totalOrders, 0);
         const html = `
@@ -254,8 +255,9 @@ export const useAdminSales = () => {
         <table><thead><tr><th>#</th><th>Staff Name</th><th>Total Orders</th><th>Total Sales (₹)</th><th>Avg Order (₹)</th><th>Last Sale</th></tr></thead>
         <tbody>${staffRows.map((r, i) => `<tr><td>${i + 1}</td><td>${r.name}</td><td>${r.totalOrders}</td><td>${r.totalAmount.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</td><td>${r.avgOrderValue.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</td><td>${r.lastSaleDate}</td></tr>`).join('')}
         </tbody></table></body></html>`;
-
-        printHtmlDirectly(html, `Sales-Report-${startDate}-to-${endDate}`);
+        w.document.write(html);
+        w.document.close();
+        setTimeout(() => { w.print(); }, 600);
     }, [staffRows, startDate, endDate]);
 
     const toggleSort = (col: 'amount' | 'orders') => {

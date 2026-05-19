@@ -230,74 +230,12 @@ ${itemRows}
     return page('ORIGINAL FOR RECIPIENT') + page('DUPLICATE FOR SUPPLIER');
 };
 
-export const printHtmlDirectly = (htmlContent: string, title: string = 'Invoice') => {
-    const originalTitle = document.title;
-    document.title = title;
-
-    // Create temporary styles to hide everything except the print container
-    const style = document.createElement('style');
-    style.id = 'print-helper-style';
-    style.innerHTML = `
-        @media print {
-            body > *:not(#print-helper-container) {
-                display: none !important;
-            }
-            #print-helper-container {
-                display: block !important;
-                width: 100% !important;
-                margin: 0 !important;
-                padding: 0 !important;
-                position: absolute !important;
-                left: 0 !important;
-                top: 0 !important;
-                background: #ffffff !important;
-                color: #000000 !important;
-            }
-            #print-helper-container * {
-                box-sizing: border-box;
-            }
-            #print-helper-container div.bp {
-                page-break-after: always !important;
-                width: 100% !important;
-                margin: 0 !important;
-                box-shadow: none !important;
-            }
-            #print-helper-container div.bp:last-child {
-                page-break-after: auto !important;
-            }
-            #print-helper-container table {
-                width: 100% !important;
-                border-collapse: collapse !important;
-            }
-            #print-helper-container td, #print-helper-container th {
-                border: none;
-            }
-        }
-    `;
-    document.head.appendChild(style);
-
-    // Create temporary container
-    const container = document.createElement('div');
-    container.id = 'print-helper-container';
-    container.innerHTML = htmlContent;
-    document.body.appendChild(container);
-
-    // Trigger printing and cleanup
-    setTimeout(() => {
-        window.print();
-        document.title = originalTitle;
-        if (style.parentNode) style.parentNode.removeChild(style);
-        if (container.parentNode) container.parentNode.removeChild(container);
-    }, 250);
-};
-
-export const generatePdfMobile = async (htmlContent: string, filename: string, isLandscape: boolean = false) => {
-    console.log("[PDF Debug] Redirecting to printHtmlDirectly for Android compatibility:", filename, "landscape:", isLandscape);
-    printHtmlDirectly(htmlContent, filename.replace('.pdf', ''));
-};
-
 export const downloadBill = (bill: Bill, vehicleNo: string = '') => {
-    printHtmlDirectly(invoiceHTML(bill, vehicleNo), `Invoice-${bill.invoiceNo}-${bill.shopName}`);
+    const w = window.open('', '_blank');
+    if (!w) return;
+    w.document.write(`<html><head><title>Invoice-${bill.shopName}</title><style>*{margin:0;padding:0;box-sizing:border-box}body{font-family:Arial,sans-serif;font-size:11px;color:#000;background:#fff}@page{size:A4;margin:8mm}table{width:100%;border-collapse:collapse}td,th{border:none}div.bp{page-break-after:always}div.bp:last-child{page-break-after:auto}</style></head><body>${invoiceHTML(bill, vehicleNo)}</body></html>`);
+    w.document.close();
+    setTimeout(() => { w.print(); w.close(); }, 600);
 };
 
 export const previewBill = (bill: Bill, vehicleNo: string = '') => {
@@ -309,12 +247,20 @@ export const previewBill = (bill: Bill, vehicleNo: string = '') => {
 
 export const downloadAllFiltered = (filteredBills: Bill[], vehicleNo: string = '') => {
     if (filteredBills.length === 0) return;
+    const w = window.open('', '_blank');
+    if (!w) return;
     const allHTML = filteredBills.map(b => invoiceHTML(b, vehicleNo)).join('');
-    printHtmlDirectly(allHTML, `All-Invoices`);
+    w.document.write(`<html><head><title>All Invoices</title><style>*{margin:0;padding:0;box-sizing:border-box}body{font-family:Arial,sans-serif;font-size:11px;color:#000;background:#fff}@page{size:A4;margin:8mm}table{width:100%;border-collapse:collapse}td,th{border:none}div.bp{page-break-after:always}div.bp:last-child{page-break-after:auto}</style></head><body>${allHTML}</body></html>`);
+    w.document.close();
+    setTimeout(() => { w.print(); w.close(); }, 600);
 };
 
 export const downloadStaffBillsPdf = (staffBills: Bill[], staffName: string, vehicleNo: string = '') => {
     if (staffBills.length === 0) return;
+    const w = window.open('', '_blank');
+    if (!w) return;
     const allHTML = staffBills.map(b => invoiceHTML(b, vehicleNo)).join('');
-    printHtmlDirectly(allHTML, `${staffName}-Invoices`);
+    w.document.write(`<html><head><title>${staffName} Invoices</title><style>*{margin:0;padding:0;box-sizing:border-box}body{font-family:Arial,sans-serif;font-size:11px;color:#000;background:#fff}@page{size:A4;margin:8mm}table{width:100%;border-collapse:collapse}td,th{border:none}div.bp{page-break-after:always}div.bp:last-child{page-break-after:auto}</style></head><body>${allHTML}</body></html>`);
+    w.document.close();
+    setTimeout(() => { w.print(); w.close(); }, 600);
 };

@@ -1,5 +1,5 @@
 import { getAllProducts, getCartItems } from '../constants/productData';
-import { printHtmlDirectly, type Bill } from './invoiceGenerator';
+import type { Bill } from './invoiceGenerator';
 
 interface ProductLine {
     name: string;
@@ -285,5 +285,9 @@ export function previewLoadingSheet(bills: Bill[], dateStr: string, vehicleNo: s
 
 export function printLoadingSheet(bills: Bill[], dateStr: string, vehicleNo: string = '') {
     const html = generateLoadingSheet(bills, dateStr, vehicleNo);
-    printHtmlDirectly(html, `Loading-Sheet-${dateStr}`);
+    const w = window.open('', '_blank');
+    if (!w) return;
+    w.document.write(html);
+    w.document.close();
+    setTimeout(() => w.print(), 600);
 }
