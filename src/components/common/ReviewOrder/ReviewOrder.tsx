@@ -87,8 +87,14 @@ const ReviewOrder = ({ shopName, villageName, theme, cart, updateQuantity, onBac
                                 const ltrMultiplier = is100ml ? 10 : is200ml ? 5 : is500ml ? 2 : 1;
                                 const cartDelta = isConvertibleLtr ? (1 / ltrMultiplier) : 1;
 
-                                const description = item.brand !== 'Nisha' ? `${item.brand.toUpperCase()} ${item.size.toUpperCase()}` : `${item.name.toUpperCase()} ${item.size.toUpperCase()}`;
+                                let description = item.brand !== 'Nisha' ? `${item.brand.toUpperCase()} ${item.size.toUpperCase()}` : `${item.name.toUpperCase()} ${item.size.toUpperCase()}`;
+                                if (item.id === 'vs-gn-500ml-box' || item.id === 'vs-gn-1l-box') {
+                                    description = description.replace(/\s*BOX$/i, '');
+                                }
                                 let displayUnit = (item.unit || 'NOS').toUpperCase();
+                                if (item.id === 'vs-gn-500ml-box' || item.id === 'vs-gn-1l-box' || item.id.endsWith('-box')) {
+                                    displayUnit = 'BOX';
+                                }
 
                                 if (/\b15\s*(LTR|KG|L|T|TIN)\b/i.test(description)) {
                                     displayUnit = 'TIN';
@@ -116,7 +122,7 @@ const ReviewOrder = ({ shopName, villageName, theme, cart, updateQuantity, onBac
 
                                         <div className="col-span-5">
                                             <p className={`font-black text-base ${isDark ? 'text-white' : 'text-slate-900'}`}>
-                                                {item.name} {item.size}
+                                                {item.id === 'vs-gn-500ml-box' || item.id === 'vs-gn-1l-box' ? `${item.name} ${item.size.replace(/\s*box$/i, '')}` : `${item.name} ${item.size}`}
                                             </p>
                                             <p className="text-xs font-bold text-slate-500 mt-0.5">{item.brand}</p>
                                         </div>
@@ -193,7 +199,7 @@ const ReviewOrder = ({ shopName, villageName, theme, cart, updateQuantity, onBac
                                     <div className="flex items-start justify-between gap-4">
                                         <div className="min-w-0 flex-1">
                                             <p className={`font-black text-base truncate ${isDark ? 'text-white' : 'text-slate-900'}`}>
-                                                {index + 1}. {item.name} {item.size}
+                                                {index + 1}. {item.id === 'vs-gn-500ml-box' || item.id === 'vs-gn-1l-box' ? `${item.name} ${item.size.replace(/\s*box$/i, '')}` : `${item.name} ${item.size}`}
                                             </p>
                                             <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mt-0.5">{item.brand}</p>
                                         </div>

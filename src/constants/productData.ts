@@ -78,6 +78,10 @@ export const DEFAULT_NISHA_PRODUCTS: Product[] = [
     { id: 'nm-5l-can', name: 'Neem Oil', brand: 'Nisha', size: '5 Ltr Can', price: 1800, unit: 'CAN', icon: '🍃' },
     { id: 'nm-15l', name: 'Neem Oil', brand: 'Nisha', size: '15 LTR', price: 5325, unit: 'Litre', icon: '🍃' },
     { id: 'nm-15kg', name: 'Neem Oil', brand: 'Nisha', size: '15 KG', price: 5807.5, unit: 'KG', icon: '🍃' },
+
+    // Varshini Groundnut Oil
+    { id: 'vs-gn-500ml-box', name: 'Varshini Groundnut oil', brand: 'VARSHINI', size: '500 ml box', price: 2200, unit: 'BOX', icon: '🥜' },
+    { id: 'vs-gn-1l-box', name: 'Varshini Groundnut oil', brand: 'VARSHINI', size: '1 LTR box', price: 2200, unit: 'BOX', icon: '🥜' },
 ];
 
 export const DEFAULT_MIXED_OIL_PRODUCTS: Product[] = [
@@ -369,6 +373,7 @@ export const DEFAULT_NISHA_SUBCATEGORIES: NishaSubcategory[] = [
     { id: 'NM', name: 'Neem Oil', icon: '🍃' },
     { id: 'MO', name: 'Mahua Oil(iluppa ennai)', icon: '🌼' },
     { id: 'LO', name: 'Lamp oil', icon: '🪔' },
+    { id: 'VS', name: 'Varshini', icon: '🛢️' },
 ];
 
 const NISHA_SUBCAT_KEY = 'nishaSubcats_v2';

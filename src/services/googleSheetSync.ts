@@ -122,6 +122,12 @@ function mapSheetToProducts(rows: string[][]): Record<string, number> {
     set('gn-15l', 7, 1);
     set('gn-15kg', 8, 1);
 
+    // ── Block 1: Varshini Pure Groundnut Oil ──
+    // Connected to Groundnut Oil 1 BOX (20x500ml) rate from Row 2, Col 1 (with factor of 10)
+    set('vs-gn-500ml-box', 2, 1, 10);
+    // Connected to Groundnut Oil 1 BOX (10x1L) rate from Row 3, Col 1 (with factor of 10)
+    set('vs-gn-1l-box', 3, 1, 10);
+
     // ── Block 1: Varshini Mixed Oil (cols C=2, D=3) ──
     set('mo-v-0.5po', 2, 3); // 1500 (BOX)
     set('mo-v-1lpo', 3, 3); // 1500 (BOX)

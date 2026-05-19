@@ -59,9 +59,14 @@ export const invoiceHTML = (bill: Bill, vehicleNo: string = '') => {
     const LRB = 'border-left:1px solid #000;border-right:1px solid #000;border-top:none;border-bottom:1px solid #000;padding:3px 5px;vertical-align:top;';
 
     const itemRows = items.map((it, i) => {
-        const desc = `${it.name.toUpperCase()} ${it.size.toUpperCase()}`;
+        let desc = `${it.name.toUpperCase()} ${it.size.toUpperCase()}`;
+        if (it.id === 'vs-gn-500ml-box' || it.id === 'vs-gn-1l-box') {
+            desc = desc.replace(/\s*BOX$/i, '');
+        }
         let u = (it.unit || 'NOS').toUpperCase();
-        if (/\b15\s*(LTR|KG|L|T|TIN)\b/i.test(desc))              u = 'TIN';
+        if (it.id === 'vs-gn-500ml-box' || it.id === 'vs-gn-1l-box' || it.id.endsWith('-box')) {
+            u = 'BOX';
+        } else if (/\b15\s*(LTR|KG|L|T|TIN)\b/i.test(desc))              u = 'TIN';
         else if (/\b5\s*(LTR|KG|L|CAN)\b/i.test(desc))            u = 'CAN';
         else if (/\bBOX\b/i.test(desc) || it.id.includes('_box')) u = 'BOX';
         else if (it.id.endsWith('_ltr') && (it.size.toLowerCase() === '100 ml' || it.size.toLowerCase() === '200 ml' || it.size.toLowerCase() === '500 ml')) u = 'LTR';

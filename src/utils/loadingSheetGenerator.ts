@@ -32,7 +32,10 @@ function getCategoryForProductId(pid: string, products: any[]): string {
     const name = p.name.toUpperCase();
     const brand = p.brand.toUpperCase();
 
-    if (brand === 'VARSHINI' || brand === 'ROSHINI') return 'VARSHINI GOLD';
+    if (brand === 'VARSHINI' || brand === 'ROSHINI') {
+        if (name.includes('GROUNDNUT')) return 'GROUNDNUT OIL';
+        return 'VARSHINI GOLD';
+    }
     if (name.includes('LAMP') || name.includes('DEEPAM')) return 'PANJA DEEPA OIL';
     if (name.includes('CASTOR')) return 'CASTOR OIL';
     if (name.includes('GROUNDNUT')) return 'GROUNDNUT OIL';
@@ -93,11 +96,15 @@ export function generateLoadingSheet(bills: Bill[], dateStr: string, vehicleNo: 
 
         const avgRate = data.rates.length > 0 ? data.rates.reduce((a, b) => a + b, 0) / data.rates.length : product.price;
 
-        const description = `${product.name} ${product.size}`.toUpperCase();
+        let description = `${product.name} ${product.size}`.toUpperCase();
+        if (pid === 'vs-gn-500ml-box' || pid === 'vs-gn-1l-box') {
+            description = description.replace(/\s*BOX$/i, '');
+        }
         let displayUnit = (product.unit || 'NOS').toUpperCase();
 
-        // Specific Rules matching business requirements using regex for exact density matching
-        if (pid.endsWith('_ltr') && (pid.includes('100ml') || pid.includes('200ml') || pid.includes('500ml'))) {
+        if (pid === 'vs-gn-500ml-box' || pid === 'vs-gn-1l-box' || pid.endsWith('-box')) {
+            displayUnit = 'BOX';
+        } else if (pid.endsWith('_ltr') && (pid.includes('100ml') || pid.includes('200ml') || pid.includes('500ml'))) {
             displayUnit = 'LTR';
         } else if (/\b15\s*(LTR|KG|L|T|TIN)\b/i.test(description)) {
             displayUnit = 'TIN';
