@@ -570,53 +570,39 @@ const AdminCollections = ({ theme, orderLines, isAdmin: propsIsAdmin }: Props) =
                                                     </button>
                                                 </div>
                                             </div>
-                                            <div className="grid grid-cols-2 gap-x-4 gap-y-3.5 text-[11px] border-t border-slate-100/50 dark:border-white/5 pt-3">
-                                                {/* Prev Bal */}
-                                                <div>
-                                                    <span className="text-slate-500 dark:text-slate-400 font-medium">Prev Bal:</span>{' '}
-                                                    <span className="font-bold text-slate-800 dark:text-slate-200">₹{fmt(row.old_balance)}</span>
-                                                </div>
-                                                {/* Today's Bill */}
+                                            <div className="grid grid-cols-2 gap-2 text-[11px]">
+                                                <div><span className="text-slate-400">Prev Bal:</span> <span className="font-bold">₹{fmt(row.old_balance)}</span></div>
+                                                <div className="text-right"><span className="text-slate-400">Today Bill:</span> <span className="font-bold">₹{fmt(row.todays_bill_amount)}</span></div>
+                                                
+                                                <div><span className="text-slate-400">Collected:</span> <span className="font-bold text-green-500">₹{fmt(collected)}</span></div>
                                                 <div className="text-right">
-                                                    <span className="text-slate-500 dark:text-slate-400 font-medium">Today Bill:</span>{' '}
-                                                    <span className="font-bold text-slate-950 dark:text-white">₹{fmt(row.todays_bill_amount)}</span>
+                                                    <span className="text-slate-400">Adjust:</span> 
+                                                    <span className={`font-bold ${(row.manual_adjustments + (row.discount_payment || 0)) !== 0 ? ((row.manual_adjustments + (row.discount_payment || 0)) > 0 ? 'text-blue-500' : 'text-amber-500') : ''}`}>₹{fmt(row.manual_adjustments + (row.discount_payment || 0))}</span>
                                                 </div>
 
-                                                {/* Collected & its badges */}
-                                                <div className="flex flex-col gap-1.5">
-                                                    <div>
-                                                        <span className="text-slate-500 dark:text-slate-400 font-medium">Collected:</span>{' '}
-                                                        <span className="font-black text-emerald-600 dark:text-emerald-400">₹{fmt(collected)}</span>
-                                                    </div>
-                                                    <div className="flex flex-wrap gap-1">
-                                                        {renderModeBadges(row.cash_collected, row.upi_collected, row.cheque_collected, 0, row.pending_transactions.filter(t => (t.category || t.type || '').toUpperCase() === 'PAYMENT'), row.discount_payment)}
-                                                    </div>
+                                                {/* Mode breakdown badges aligned correctly and cleanly */}
+                                                <div className="col-span-2 mt-1 space-y-1.5 border-t border-slate-100/50 dark:border-white/5 pt-2">
+                                                    {(collected > 0 || row.pending_transactions.filter(t => (t.category || t.type || '').toUpperCase() === 'PAYMENT').length > 0) && (
+                                                        <div className="flex flex-wrap items-center gap-1.5">
+                                                            <span className="text-[9px] font-black uppercase tracking-wider text-slate-400">Collected by:</span>
+                                                            <div className="flex flex-wrap gap-1">
+                                                                {renderModeBadges(row.cash_collected, row.upi_collected, row.cheque_collected, 0, row.pending_transactions.filter(t => (t.category || t.type || '').toUpperCase() === 'PAYMENT'), row.discount_payment)}
+                                                            </div>
+                                                        </div>
+                                                    )}
+                                                    {((row.manual_adjustments + (row.discount_payment || 0)) !== 0 || row.pending_transactions.filter(t => (t.category || t.type || '').toUpperCase() === 'MANUAL_ADJUST').length > 0) && (
+                                                        <div className="flex flex-wrap items-center gap-1.5">
+                                                            <span className="text-[9px] font-black uppercase tracking-wider text-slate-400">Adjusted by:</span>
+                                                            <div className="flex flex-wrap gap-1">
+                                                                {renderModeBadges(row.manual_cash, row.manual_upi, row.manual_cheque, row.manual_pos, row.pending_transactions.filter(t => (t.category || t.type || '').toUpperCase() === 'MANUAL_ADJUST'), row.discount_adjustment)}
+                                                            </div>
+                                                        </div>
+                                                    )}
                                                 </div>
-
-                                                {/* Adjust & its badges */}
-                                                <div className="flex flex-col gap-1.5 items-end">
-                                                    <div className="text-right">
-                                                        <span className="text-slate-500 dark:text-slate-400 font-medium">Adjust:</span>{' '}
-                                                        <span className={`font-black ${(row.manual_adjustments + (row.discount_payment || 0)) !== 0 ? ((row.manual_adjustments + (row.discount_payment || 0)) > 0 ? 'text-blue-600 dark:text-blue-400' : 'text-amber-600 dark:text-amber-400') : 'text-slate-700 dark:text-slate-300'}`}>
-                                                            ₹{fmt(row.manual_adjustments + (row.discount_payment || 0))}
-                                                        </span>
-                                                    </div>
-                                                    <div className="flex flex-wrap gap-1 justify-end">
-                                                        {renderModeBadges(row.manual_cash, row.manual_upi, row.manual_cheque, row.manual_pos, row.pending_transactions.filter(t => (t.category || t.type || '').toUpperCase() === 'MANUAL_ADJUST'), row.discount_adjustment)}
-                                                    </div>
-                                                </div>
-
-                                                {/* Upcoming */}
-                                                <div>
-                                                    <span className="text-slate-500 dark:text-slate-400 font-medium">Upcoming:</span>{' '}
-                                                    <span className="font-bold text-purple-600 dark:text-purple-400">₹{fmt(row.future_bills)}</span>
-                                                </div>
-                                                {/* Total Balance */}
-                                                <div className="text-right">
-                                                    <span className="text-slate-500 dark:text-slate-400 text-xs font-black uppercase">Total:</span>{' '}
-                                                    <span className={`font-black text-sm ml-1 ${row.total_balance > 0 ? 'text-rose-600 dark:text-rose-400' : 'text-emerald-600 dark:text-emerald-400'}`}>
-                                                        ₹{fmt(row.total_balance)}
-                                                    </span>
+                                                
+                                                <div className="col-span-2 border-t border-slate-100/30 dark:border-white/5 pt-2 flex items-center justify-between">
+                                                    <div><span className="text-slate-400">Upcoming:</span> <span className="font-bold text-purple-500">₹{fmt(row.future_bills)}</span></div>
+                                                    <div className="text-right"><span className="text-slate-400 text-xs font-black uppercase">Total:</span> <span className="font-black text-red-500 text-sm ml-1.5">₹{fmt(row.total_balance)}</span></div>
                                                 </div>
                                             </div>
                                         </div>
@@ -624,32 +610,16 @@ const AdminCollections = ({ theme, orderLines, isAdmin: propsIsAdmin }: Props) =
                                 })
                             )}
                             {/* Mobile TOTAL Card */}
-                            <div className={`p-4 space-y-2 rounded-2xl ${isDark ? 'bg-blue-950/30 border border-blue-500/10' : 'bg-blue-50/90 border border-blue-100 shadow-md'}`}>
-                                <p className={`text-xs font-black uppercase tracking-widest ${isDark ? 'text-blue-400' : 'text-blue-800'}`}>Total Summary</p>
-                                <div className="grid grid-cols-2 gap-x-4 gap-y-2 text-xs">
-                                    <div>
-                                        <span className="text-slate-600 dark:text-slate-400 font-semibold">Bill:</span>{' '}
-                                        <span className="font-black text-slate-950 dark:text-white">₹{fmt(filteredTotals.todaysBillAmount)}</span>
-                                    </div>
-                                    <div className="text-right">
-                                        <span className="text-slate-600 dark:text-slate-400 font-semibold">Collected:</span>{' '}
-                                        <span className="font-black text-emerald-600 dark:text-emerald-400">₹{fmt(filteredTotals.amountCollected)}</span>
-                                    </div>
-                                    <div>
-                                        <span className="text-slate-600 dark:text-slate-400 font-semibold">Adjust:</span>{' '}
-                                        <span className={`font-black ${filteredTotals.totalManualAdjust !== 0 ? (filteredTotals.totalManualAdjust > 0 ? 'text-blue-600 dark:text-blue-400' : 'text-amber-600 dark:text-amber-400') : 'text-slate-700 dark:text-slate-300'}`}>
-                                            ₹{fmt(filteredTotals.totalManualAdjust)}
-                                        </span>
-                                    </div>
-                                    <div className="text-right">
-                                        <span className="text-slate-600 dark:text-slate-400 font-semibold">Upcoming:</span>{' '}
-                                        <span className="font-black text-purple-600 dark:text-purple-400">₹{fmt(filteredTotals.totalFutureBills)}</span>
-                                    </div>
-                                    <div className={`col-span-2 text-center mt-2 border-t pt-2.5 ${isDark ? 'border-white/5' : 'border-blue-200/50'}`}>
-                                        <span className="text-slate-600 dark:text-slate-400 font-black uppercase tracking-tighter">Total Balance:</span>{' '}
-                                        <span className={`font-black text-lg ml-2 ${filteredTotals.totalBalance > 0 ? 'text-rose-600 dark:text-rose-400' : 'text-emerald-600 dark:text-emerald-400'}`}>
-                                            ₹{fmt(filteredTotals.totalBalance)}
-                                        </span>
+                            <div className={`p-4 space-y-1 ${isDark ? 'bg-blue-950/20' : 'bg-blue-50/80'}`}>
+                                <p className={`text-xs font-black uppercase tracking-widest ${isDark ? 'text-blue-400' : 'text-blue-700'}`}>Total Summary</p>
+                                <div className="grid grid-cols-2 gap-2 text-xs">
+                                    <div><span className="text-slate-500">Bill:</span> <span className="font-black">₹{fmt(filteredTotals.todaysBillAmount)}</span></div>
+                                    <div className="text-right"><span className="text-slate-500">Collected:</span> <span className="font-black">₹{fmt(filteredTotals.amountCollected)}</span></div>
+                                    <div><span className="text-slate-500">Adjust:</span> <span className="font-black">₹{fmt(filteredTotals.totalManualAdjust)}</span></div>
+                                    <div className="text-right"><span className="text-slate-500">Upcoming:</span> <span className="font-black">₹{fmt(filteredTotals.totalFutureBills)}</span></div>
+                                    <div className="col-span-2 text-center mt-2 border-t border-blue-200/50 pt-2">
+                                        <span className="text-slate-500 font-black uppercase tracking-tighter">Total Balance:</span> 
+                                        <span className="font-black text-lg ml-2 text-red-500">₹{fmt(filteredTotals.totalBalance)}</span>
                                     </div>
                                 </div>
                             </div>
