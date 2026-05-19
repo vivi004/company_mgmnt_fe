@@ -129,7 +129,6 @@ const AdminDashboard = () => {
                                 bills={state.bills}
                                 theme={state.theme}
                                 onDeleteBill={actions.handleDeleteBill}
-                                onClearAll={actions.handleClearAllBills}
                                 onEditBill={actions.handleEditBill}
                                 selectedDate={state.billSelectedDate}
                                 setSelectedDate={actions.setBillSelectedDate}

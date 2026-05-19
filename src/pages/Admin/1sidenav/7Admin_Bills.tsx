@@ -11,14 +11,13 @@ interface Props {
     bills: Bill[];
     theme: string;
     onDeleteBill: (id: number) => void;
-    onClearAll: () => void;
     onEditBill: (id: number, newCart: Record<string, number>, newRates?: Record<string, number>, newDate?: string, isEditedPrice?: boolean) => void;
     selectedDate: string;
     setSelectedDate: (date: string) => void;
     motorVehicles: any[];
 }
 
-const AdminBills: React.FC<Props> = ({ bills, theme, onDeleteBill, onClearAll, onEditBill, selectedDate, setSelectedDate, motorVehicles }) => {
+const AdminBills: React.FC<Props> = ({ bills, theme, onDeleteBill, onEditBill, selectedDate, setSelectedDate, motorVehicles }) => {
     const isDark = theme === 'dark';
     const { state, actions, computed, refs } = useAdminBills(bills, onEditBill, selectedDate, setSelectedDate);
 
@@ -185,16 +184,6 @@ const AdminBills: React.FC<Props> = ({ bills, theme, onDeleteBill, onClearAll, o
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                         </svg>
                         <span className="truncate">Loading Sheet</span>
-                    </button>
-                    <button
-                        onClick={onClearAll}
-                        disabled={bills.length === 0}
-                        className="flex-1 sm:flex-none px-4 sm:px-6 py-3 bg-red-500/10 hover:bg-red-500 disabled:opacity-40 disabled:cursor-not-allowed text-red-500 hover:text-white font-black rounded-2xl text-[10px] sm:text-xs uppercase tracking-widest transition-all border border-red-500/20 hover:border-red-500 hover:-translate-y-0.5 active:scale-95 flex items-center justify-center gap-2 w-full sm:w-auto"
-                    >
-                        <svg className="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                        </svg>
-                        <span className="truncate">Clear All</span>
                     </button>
                 </div>
             </div>
