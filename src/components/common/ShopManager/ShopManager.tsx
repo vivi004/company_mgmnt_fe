@@ -518,85 +518,104 @@ const ShopManager = ({ orderLineId, villageName, theme, onBack, type, handleRefr
                             <div
                                 key={shop.id}
                                 onClick={() => setSelectedShop(shop)}
-                                className={`flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-4 sm:p-6 rounded-2xl sm:rounded-[28px] border group transition-all hover:-translate-y-1 cursor-pointer
+                                className={`flex flex-col justify-between p-5 sm:p-6 rounded-[28px] border group transition-all hover:-translate-y-1 cursor-pointer h-full
                                 ${isDark ? 'bg-slate-900 border-white/5 hover:bg-slate-800 hover:border-white/10' :
                                         shop.has_order_today
                                             ? 'bg-emerald-50 border-emerald-100 shadow-none'
                                             : 'bg-white border-slate-100 shadow-lg shadow-slate-200/30 hover:shadow-xl hover:shadow-blue-500/10'}`}
                             >
-                                <div className="flex items-center gap-4 sm:gap-5 flex-grow min-w-0">
-                                    <div className={`relative w-12 h-12 sm:w-16 sm:h-16 flex-shrink-0 flex items-center justify-center rounded-xl sm:rounded-[20px] text-2xl sm:text-3xl
+                                <div className="flex items-start gap-4 sm:gap-5 w-full">
+                                    <div className={`relative w-12 h-12 sm:w-14 sm:h-14 flex-shrink-0 flex items-center justify-center rounded-xl sm:rounded-2xl text-2xl sm:text-3xl
                                     ${isDark ? 'bg-slate-800 border border-white/10' : 'bg-white border border-slate-100 shadow-lg'}`}>
                                         🏬
                                         {shop.has_order_today && (
-                                            <div className="absolute -top-2 -right-2 w-5 h-5 sm:w-6 sm:h-6 bg-emerald-500 rounded-full flex items-center justify-center border-2 border-white text-[8px] sm:text-[10px] text-white">
+                                            <div className="absolute -top-1.5 -right-1.5 w-5 h-5 bg-emerald-500 rounded-full flex items-center justify-center border-2 border-white text-[8px] text-white font-bold">
                                                 ✓
                                             </div>
                                         )}
                                     </div>
 
                                     <div className="flex-grow min-w-0">
-                                        <div className="flex items-center justify-between gap-2">
-                                            <p className={`font-black text-base sm:text-xl leading-tight truncate ${isDark ? 'text-white' : 'text-slate-900'}`}>{shop.shop_name}</p>
+                                        <div className="flex items-start justify-between gap-2">
+                                            <p className={`font-black text-base sm:text-lg leading-tight break-words ${isDark ? 'text-white' : 'text-slate-900'}`}>{shop.shop_name}</p>
                                             {shop.has_order_today && (
-                                                <span className="px-1.5 py-0.5 bg-emerald-500 text-white text-[8px] font-black uppercase tracking-widest rounded-md shrink-0">
+                                                <span className="px-1.5 py-0.5 bg-emerald-500 text-white text-[8px] font-black uppercase tracking-widest rounded-md shrink-0 mt-0.5">
                                                     Order Taken
                                                 </span>
                                             )}
                                         </div>
-                                        <p className="text-[10px] sm:text-xs font-bold text-slate-500 uppercase tracking-widest mt-1 truncate">
+                                        <p className="text-[10px] sm:text-xs font-bold text-slate-500 uppercase tracking-widest mt-1.5 break-words">
                                             {(isAdmin ? shop.owner_name : shop.owner_name) || '—'} {shop.shop_owner && <span className="text-blue-500 ml-1">• {shop.shop_owner}</span>}
                                         </p>
-                                        <p className="text-xs sm:text-sm text-slate-500 font-medium mt-0.5 truncate">{shop.phone || '—'}</p>
-                                        {shop.phone2 && <p className="text-xs sm:text-sm text-slate-500 font-medium truncate">{shop.phone2}</p>}
-                                        <p className={`text-xs sm:text-sm font-black mt-2 ${shop.balance > 0 ? 'text-emerald-400' : 'text-slate-400'}`}>
+                                        <p className="text-xs text-slate-500 font-medium mt-1 break-words">{shop.phone || '—'}</p>
+                                        {shop.phone2 && <p className="text-xs text-slate-500 font-medium break-words">{shop.phone2}</p>}
+                                        <p className={`text-xs sm:text-sm font-black mt-3 uppercase tracking-wider ${shop.balance > 0 ? 'text-emerald-500' : 'text-slate-400'}`}>
                                             BALANCE ₹{Number(shop.balance).toLocaleString('en-IN', { minimumFractionDigits: 2 })}
                                         </p>
                                     </div>
                                 </div>
 
-                                <div className="flex items-center gap-4 justify-between sm:justify-end w-full sm:w-auto border-t border-slate-100/50 dark:border-white/5 pt-3 sm:pt-0 sm:border-t-0">
-                                    <div className="flex items-center flex-wrap sm:flex-nowrap gap-2 sm:gap-3 flex-grow sm:flex-grow-0">
+                                <div className="mt-5 pt-4 border-t border-slate-100/50 dark:border-white/5 w-full">
+                                    <div className="grid grid-cols-4 gap-2.5 w-full">
                                         <button
                                             onClick={(e) => { e.preventDefault(); e.stopPropagation(); setSelectedShop(shop); setPaymentData(p => ({ ...p, amount: '', method: 'Cash' })); setShowPaymentModal(true); }}
-                                            className={`flex-1 sm:flex-initial p-2.5 sm:p-3 rounded-xl sm:rounded-2xl border transition-all flex items-center justify-center gap-1.5 ${isDark ? 'bg-white/5 border-white/10 text-emerald-400 hover:bg-emerald-500/20' : 'bg-emerald-50 border-emerald-100 text-emerald-600 hover:bg-emerald-600 hover:text-white'}`}
+                                            className={`p-3 rounded-2xl border transition-all flex flex-col items-center justify-center gap-1.5 text-[8px] sm:text-[9px] font-black uppercase tracking-widest ${isDark ? 'bg-white/5 border-white/10 text-emerald-400 hover:bg-emerald-500/20' : 'bg-emerald-50 border-emerald-100 text-emerald-600 hover:bg-emerald-600 hover:text-white'}`}
                                             title="Collect Payment"
                                         >
-                                            <svg className="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-                                            <span className="sm:hidden text-[9px] font-black uppercase tracking-widest">Collect</span>
+                                            <svg className="w-4.5 h-4.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                                            <span>Collect</span>
                                         </button>
                                         <button
                                             onClick={(e) => { e.preventDefault(); e.stopPropagation(); fetchLedger(shop); }}
-                                            className={`flex-1 sm:flex-initial p-2.5 sm:p-3 rounded-xl sm:rounded-2xl border transition-all flex items-center justify-center gap-1.5 ${isDark ? 'bg-white/5 border-white/10 text-indigo-400 hover:bg-indigo-500/20' : 'bg-indigo-50 border-indigo-100 text-indigo-600 hover:bg-indigo-600 hover:text-white'}`}
+                                            className={`p-3 rounded-2xl border transition-all flex flex-col items-center justify-center gap-1.5 text-[8px] sm:text-[9px] font-black uppercase tracking-widest ${isDark ? 'bg-white/5 border-white/10 text-indigo-400 hover:bg-indigo-500/20' : 'bg-indigo-50 border-indigo-100 text-indigo-600 hover:bg-indigo-600 hover:text-white'}`}
                                             title="Ledger"
                                         >
-                                            <svg className="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 17v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2m3.222.882a.5.5 0 010-.764L15.39 8.388a.5.5 0 01.44-.061l1.597.532a.5.5 0 00.54-.124l1.26-1.26a.5.5 0 00-.518-.813l-1.18.393a.5.5 0 01-.44-.061l-1.597-.532a.5.5 0 00-.54.124l-1.26 1.26a.5.5 0 00.518.813l1.18-.393z" /></svg>
-                                            <span className="sm:hidden text-[9px] font-black uppercase tracking-widest">Ledger</span>
+                                            <svg className="w-4.5 h-4.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 17v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2m3.222.882a.5.5 0 010-.764L15.39 8.388a.5.5 0 01.44-.061l1.597.532a.5.5 0 00.54-.124l1.26-1.26a.5.5 0 00-.518-.813l-1.18.393a.5.5 0 01-.44-.061l-1.597-.532a.5.5 0 00-.54.124l-1.26 1.26a.5.5 0 00.518.813l1.18-.393z" /></svg>
+                                            <span>Ledger</span>
                                         </button>
-                                        {isAdmin && (
+                                        {isAdmin ? (
                                             <>
                                                 <button
                                                     onClick={(e) => { e.preventDefault(); e.stopPropagation(); openEdit(shop); }}
-                                                    className={`flex-1 sm:flex-initial p-2.5 sm:p-3 rounded-xl sm:rounded-2xl border transition-all flex items-center justify-center gap-1.5 ${isDark ? 'bg-white/5 border-white/10 text-blue-400 hover:bg-blue-500/20' : 'bg-blue-50 border-blue-100 text-blue-600 hover:bg-blue-600 hover:text-white'}`}
+                                                    className={`p-3 rounded-2xl border transition-all flex flex-col items-center justify-center gap-1.5 text-[8px] sm:text-[9px] font-black uppercase tracking-widest ${isDark ? 'bg-white/5 border-white/10 text-blue-400 hover:bg-blue-500/20' : 'bg-blue-50 border-blue-100 text-blue-600 hover:bg-blue-600 hover:text-white'}`}
                                                     title="Edit"
                                                 >
-                                                    <svg className="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" /></svg>
-                                                    <span className="sm:hidden text-[9px] font-black uppercase tracking-widest">Edit</span>
+                                                    <svg className="w-4.5 h-4.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" /></svg>
+                                                    <span>Edit</span>
                                                 </button>
                                                 <button
                                                     onClick={(e) => { e.preventDefault(); e.stopPropagation(); handleDelete(shop.id); }}
-                                                    className={`flex-1 sm:flex-initial p-2.5 sm:p-3 rounded-xl sm:rounded-2xl border transition-all flex items-center justify-center gap-1.5 ${isDark ? 'bg-white/5 border-white/10 text-red-400 hover:bg-red-500/20' : 'bg-red-50 border-red-100 text-red-500 hover:bg-red-600 hover:text-white'}`}
+                                                    className={`p-3 rounded-2xl border transition-all flex flex-col items-center justify-center gap-1.5 text-[8px] sm:text-[9px] font-black uppercase tracking-widest ${isDark ? 'bg-white/5 border-white/10 text-red-400 hover:bg-red-500/20' : 'bg-red-50 border-red-100 text-red-500 hover:bg-red-600 hover:text-white'}`}
                                                     title="Delete"
                                                 >
-                                                    <svg className="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
-                                                    <span className="sm:hidden text-[9px] font-black uppercase tracking-widest">Delete</span>
+                                                    <svg className="w-4.5 h-4.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
+                                                    <span>Delete</span>
                                                 </button>
                                             </>
+                                        ) : (
+                                            <>
+                                                <div className="col-span-2 flex w-full">
+                                                    <button
+                                                        onClick={(e) => { e.preventDefault(); e.stopPropagation(); setSelectedShop(shop); setPaymentData(p => ({ ...p, amount: '', method: 'Cash' })); setShowPaymentModal(true); }}
+                                                        className={`w-full p-3 rounded-2xl border transition-all flex flex-col items-center justify-center gap-1.5 text-[8px] sm:text-[9px] font-black uppercase tracking-widest ${isDark ? 'bg-white/5 border-white/10 text-emerald-400 hover:bg-emerald-500/20' : 'bg-emerald-50 border-emerald-100 text-emerald-600 hover:bg-emerald-600 hover:text-white'}`}
+                                                        title="Collect Payment"
+                                                    >
+                                                        <svg className="w-4.5 h-4.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                                                        <span>Collect</span>
+                                                    </button>
+                                                </div>
+                                                <div className="col-span-2 flex w-full">
+                                                    <button
+                                                        onClick={(e) => { e.preventDefault(); e.stopPropagation(); fetchLedger(shop); }}
+                                                        className={`w-full p-3 rounded-2xl border transition-all flex flex-col items-center justify-center gap-1.5 text-[8px] sm:text-[9px] font-black uppercase tracking-widest ${isDark ? 'bg-white/5 border-white/10 text-indigo-400 hover:bg-indigo-500/20' : 'bg-indigo-50 border-indigo-100 text-indigo-600 hover:bg-indigo-600 hover:text-white'}`}
+                                                        title="Ledger"
+                                                    >
+                                                        <svg className="w-4.5 h-4.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 17v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2m3.222.882a.5.5 0 010-.764L15.39 8.388a.5.5 0 01.44-.061l1.597.532a.5.5 0 00.54-.124l1.26-1.26a.5.5 0 00-.518-.813l-1.18.393a.5.5 0 01-.44-.061l-1.597-.532a.5.5 0 00-.54.124l-1.26 1.26a.5.5 0 00.518.813l1.18-.393z" /></svg>
+                                                        <span>Ledger</span>
+                                                    </button>
+                                                </div>
+                                            </>
                                         )}
-                                    </div>
-
-                                    <div className={`text-slate-400 group-hover:text-${primaryColor}-400 transition-colors flex-shrink-0 hidden sm:block`}>
-                                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5l7 7-7 7" /></svg>
                                     </div>
                                 </div>
                             </div>
