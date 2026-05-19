@@ -1,3 +1,5 @@
+import { z } from 'zod';
+
 /**
  * Google Sheets API Integration for Product Rate Syncing
  * 
@@ -11,6 +13,40 @@ const SHEET_SYNC_TIME_KEY = 'googleSheetSyncTime_v1';
 interface SheetRatesData {
     rates: Record<string, number>;
     syncedAt: string;
+}
+
+/**
+ * Cell Validation Schema using Zod to safeguard parsing boundaries
+ */
+const CellSchema = z.object({
+    productId: z.string(),
+    rowIdx: z.number().min(0),
+    colIdx: z.number().min(0),
+    value: z.any().refine(val => {
+        if (val === undefined || val === null || val === '') return false;
+        const strVal = val.toString().trim();
+        if (strVal === '-' || strVal === 'NA' || strVal === 'NOT AVL' || strVal.startsWith('#')) return false;
+        const num = parseFloat(strVal.replace(/,/g, ''));
+        return !isNaN(num);
+    }, {
+        message: "Cell value must be a valid, non-empty numerical rate"
+    })
+});
+
+/**
+ * Safe, zero-dependency helper to capture and report frontend exceptions to Sentry if initialized
+ */
+function captureFrontendException(err: any, extra?: any) {
+    try {
+        const Sentry = (window as any).Sentry;
+        if (Sentry && typeof Sentry.captureException === 'function') {
+            Sentry.captureException(err, { extra });
+        } else {
+            console.error('[SENTRY SAFE] Reported to local console:', err.message || err, extra);
+        }
+    } catch (e) {
+        console.error('[SENTRY SAFE ERR] Failed to propagate error to Sentry:', e);
+    }
 }
 
 /**
@@ -40,8 +76,35 @@ function mapSheetToProducts(rows: string[][]): Record<string, number> {
     const rates: Record<string, number> = {};
 
     function set(id: string, row: number, col: number, factor: number = 1) {
-        if (!rows[row]) return;
-        const price = parsePrice(rows[row][col]);
+        // Validate row and column boundary constraints
+        if (!rows[row] || rows[row][col] === undefined) {
+            console.error(`[VALIDATION ERROR] Missing row/column index in spreadsheet: Product "${id}" (Row ${row}, Col ${col})`);
+            return;
+        }
+
+        const rawValue = rows[row][col];
+
+        // Zod validation checks for missing columns, required fields, numbers, empty values, or invalid texts
+        const result = CellSchema.safeParse({
+            productId: id,
+            rowIdx: row,
+            colIdx: col,
+            value: rawValue
+        });
+
+        if (!result.success) {
+            console.error(`[VALIDATION SKIPPED] Cell parsing bypassed for "${id}" (Row ${row}, Col ${col}):`, result.error.format());
+            captureFrontendException(new Error(`Zod Validation Failure: Product "${id}" cell invalid`), {
+                productId: id,
+                rowIdx: row,
+                colIdx: col,
+                rawValue,
+                validationError: result.error.format()
+            });
+            return; // Skip only the invalid row, do not crash
+        }
+
+        const price = parsePrice(rawValue);
         if (price !== null) {
             rates[id] = price * factor;
         }
@@ -158,6 +221,24 @@ export async function syncRatesFromSheet(): Promise<{ success: boolean; rateCoun
         return { success: false, rateCount: 0, error: 'Google Sheets API key not configured. Add VITE_GOOGLE_SHEETS_API_KEY to .env' };
     }
 
+    // --- API RATE LIMIT & CACHE THROTTLING PROTECTION (10-15 MINS) ---
+    // Prevent duplicated Google Sheets API hits within 10 minutes to avoid 429 errors.
+    try {
+        const lastSync = localStorage.getItem(SHEET_SYNC_TIME_KEY);
+        if (lastSync) {
+            const timeDiffMins = (Date.now() - new Date(lastSync).getTime()) / 1000 / 60;
+            if (timeDiffMins < 10) {
+                console.log(`[RATE LIMIT PROTECTION] Utilizing cached Google Sheet rates. Last sync was only ${timeDiffMins.toFixed(1)} minutes ago.`);
+                const cachedRates = getSheetRates();
+                if (Object.keys(cachedRates).length > 0) {
+                    return { success: true, rateCount: Object.keys(cachedRates).length };
+                }
+            }
+        }
+    } catch (cacheErr) {
+        console.error('[CACHE PROTECTION WARNING] Failed to read rate-limit cache:', cacheErr);
+    }
+
     try {
         const range = 'A1:Z100';
         const url = `https://sheets.googleapis.com/v4/spreadsheets/${sheetId}/values/${range}?key=${apiKey}&valueRenderOption=UNFORMATTED_VALUE`;
@@ -191,6 +272,11 @@ export async function syncRatesFromSheet(): Promise<{ success: boolean; rateCoun
         return { success: true, rateCount };
     } catch (err) {
         const message = err instanceof Error ? err.message : 'Unknown error';
+        captureFrontendException(err instanceof Error ? err : new Error(message), {
+            context: 'Google Sheets sync request failed',
+            apiKeyConfigured: !!apiKey,
+            sheetId
+        });
         return { success: false, rateCount: 0, error: `Network error: ${message}` };
     }
 }
