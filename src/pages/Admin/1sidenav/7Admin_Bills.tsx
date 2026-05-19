@@ -217,39 +217,41 @@ const AdminBills: React.FC<Props> = ({ bills, theme, onDeleteBill, onClearAll, o
                         return (
                             <div key={staffName} className="space-y-8">
                                 {/* Staff Header */}
-                                <div className="flex flex-wrap items-center justify-between px-2 gap-4">
+                                <div className="flex flex-col sm:flex-row sm:items-center justify-between px-2 gap-4">
                                     <h3 className={`text-2xl font-black italic tracking-tighter ${isDark ? 'text-white' : 'text-slate-900'}`}>
                                         {staffName}'s Bills
                                     </h3>
-                                    <div className="flex flex-wrap items-center gap-3">
+                                    <div className="flex flex-col xs:flex-row items-stretch xs:items-center gap-3 w-full sm:w-auto">
                                         <select
                                             value={selectedVehicles[staffName] || ''}
                                             onChange={(e) => handleVehicleChange(staffName, e.target.value)}
-                                            className={`px-3 py-2 rounded-xl text-xs font-bold uppercase tracking-widest border transition-all focus:outline-none ${isDark ? 'bg-slate-800 border-white/10 text-white' : 'bg-white border-slate-200 text-slate-700'}`}
+                                            className={`w-full xs:w-48 px-3 py-2 rounded-xl text-xs font-bold uppercase tracking-widest border transition-all focus:outline-none ${isDark ? 'bg-slate-800 border-white/10 text-white' : 'bg-white border-slate-200 text-slate-700'}`}
                                         >
                                             <option value="">Select Vehicle</option>
                                             {motorVehicles.map(v => (
                                                 <option key={v.id} value={v.vehicle_no}>{v.vehicle_no}</option>
                                             ))}
                                         </select>
-                                        <button
-                                            onClick={() => downloadStaffBillsPdf(allStaffBills, staffName, selectedVehicles[staffName] || '')}
-                                            className="px-4 py-2 bg-blue-500/10 hover:bg-blue-500 text-blue-600 dark:text-blue-400 hover:text-white font-black rounded-xl text-xs uppercase tracking-widest transition-all shadow-sm flex items-center gap-2"
-                                        >
-                                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                                            </svg>
-                                            Staff PDF
-                                        </button>
-                                        <button
-                                            onClick={() => printLoadingSheet(allStaffBills, state.selectedDate || state.todayStr, selectedVehicles[staffName] || '')}
-                                            className="px-4 py-2 bg-emerald-500/10 hover:bg-emerald-500 text-emerald-600 dark:text-emerald-400 hover:text-white font-black rounded-xl text-xs uppercase tracking-widest transition-all shadow-sm flex items-center gap-2"
-                                        >
-                                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                                            </svg>
-                                            Staff Sheet
-                                        </button>
+                                        <div className="flex items-center gap-3 flex-1 xs:flex-initial">
+                                            <button
+                                                onClick={() => downloadStaffBillsPdf(allStaffBills, staffName, selectedVehicles[staffName] || '')}
+                                                className="flex-1 xs:flex-initial px-4 py-2 bg-blue-500/10 hover:bg-blue-500 text-blue-600 dark:text-blue-400 hover:text-white font-black rounded-xl text-xs uppercase tracking-widest transition-all shadow-sm flex items-center justify-center gap-2"
+                                            >
+                                                <svg className="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                                                </svg>
+                                                Staff PDF
+                                            </button>
+                                            <button
+                                                onClick={() => printLoadingSheet(allStaffBills, state.selectedDate || state.todayStr, selectedVehicles[staffName] || '')}
+                                                className="flex-1 xs:flex-initial px-4 py-2 bg-emerald-500/10 hover:bg-emerald-500 text-emerald-600 dark:text-emerald-400 hover:text-white font-black rounded-xl text-xs uppercase tracking-widest transition-all shadow-sm flex items-center justify-center gap-2"
+                                            >
+                                                <svg className="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                                                </svg>
+                                                Staff Sheet
+                                            </button>
+                                        </div>
                                     </div>
                                 </div>
 
@@ -257,7 +259,7 @@ const AdminBills: React.FC<Props> = ({ bills, theme, onDeleteBill, onClearAll, o
                                 <div className="space-y-10 pl-2 sm:pl-6 border-l-2 border-slate-100 dark:border-white/5 ml-2 sm:ml-4">
                                     {Object.entries(villageGroups).map(([villageName, villageBills]) => (
                                         <div key={villageName} className="space-y-4">
-                                            <div className="flex items-center justify-between">
+                                            <div className="flex flex-col xs:flex-row xs:items-center justify-between gap-3 px-1">
                                                 <div className="flex items-center gap-3">
                                                     <div className={`w-10 h-10 rounded-xl flex items-center justify-center text-lg ${isDark ? 'bg-blue-500/10 text-blue-400' : 'bg-blue-50 text-blue-600'}`}>
                                                         📍
@@ -271,7 +273,7 @@ const AdminBills: React.FC<Props> = ({ bills, theme, onDeleteBill, onClearAll, o
                                                         </p>
                                                     </div>
                                                 </div>
-                                                <div className="flex gap-2">
+                                                <div className="flex gap-2 w-full xs:w-auto justify-end">
                                                     <button
                                                         onClick={() => downloadStaffBillsPdf(villageBills, `${staffName}_${villageName}`, selectedVehicles[staffName] || '')}
                                                         className={`px-3 py-1.5 rounded-lg text-[9px] font-black uppercase tracking-widest border transition-all ${isDark ? 'bg-white/5 border-white/10 text-slate-400 hover:text-white' : 'bg-white border-slate-200 text-slate-500 hover:text-blue-600 shadow-sm'}`}
@@ -287,7 +289,8 @@ const AdminBills: React.FC<Props> = ({ bills, theme, onDeleteBill, onClearAll, o
                                                 </div>
                                             </div>
 
-                                            <div className={`rounded-[24px] sm:rounded-[32px] border overflow-x-auto hide-scrollbar ${isDark ? 'bg-slate-900/50 border-white/5' : 'bg-white border-slate-100 shadow-lg shadow-slate-200/20'}`}>
+                                            {/* Desktop View Table */}
+                                            <div className={`hidden sm:block rounded-[24px] sm:rounded-[32px] border overflow-x-auto hide-scrollbar ${isDark ? 'bg-slate-900/50 border-white/5' : 'bg-white border-slate-100 shadow-lg shadow-slate-200/20'}`}>
                                                 <div className="min-w-[800px]">
                                                     <div className={`grid grid-cols-12 gap-4 px-8 py-4 text-[9px] font-black uppercase tracking-widest border-b
                                                         ${isDark ? 'bg-slate-800/50 border-white/5 text-slate-400' : 'bg-slate-50 border-slate-100 text-slate-500'}`}>
@@ -361,6 +364,79 @@ const AdminBills: React.FC<Props> = ({ bills, theme, onDeleteBill, onClearAll, o
                                                         </div>
                                                     ))}
                                                 </div>
+                                            </div>
+
+                                            {/* Mobile View Feed */}
+                                            <div className="sm:hidden space-y-4">
+                                                {villageBills.map((bill) => (
+                                                    <div 
+                                                        key={bill.id} 
+                                                        className={`p-4 rounded-2xl border transition-all flex flex-col gap-3
+                                                            ${isDark ? 'bg-slate-900/40 border-white/5' : 'bg-white border-slate-100 shadow-md shadow-slate-200/10'}`}
+                                                    >
+                                                        <div className="flex items-start justify-between gap-3">
+                                                            <div className="min-w-0 flex-1">
+                                                                <div className="flex items-center flex-wrap gap-2">
+                                                                    <span className={`text-xs font-black shrink-0 ${isDark ? 'text-blue-400' : 'text-blue-600'}`}>
+                                                                        #{bill.invoiceNo}
+                                                                    </span>
+                                                                    <p className={`font-black text-sm truncate ${isDark ? 'text-white' : 'text-slate-900'}`}>{bill.shopName}</p>
+                                                                    {bill.isEditedPrice && (
+                                                                        <span className="text-[8px] font-black uppercase tracking-widest text-red-500 bg-red-500/10 px-1.5 py-0.5 rounded border border-red-500/20 shrink-0">Edited Price</span>
+                                                                    )}
+                                                                </div>
+                                                                <p className={`text-[10px] font-black uppercase tracking-tight mt-1 ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>
+                                                                    {bill.specificArea || 'NO LANDMARK'}
+                                                                </p>
+                                                            </div>
+                                                            <div className="text-right flex-shrink-0">
+                                                                <p className={`font-black text-base ${isDark ? 'text-white' : 'text-slate-900'}`}>
+                                                                    ₹{computed.getTotal(bill.cart, bill.customRates).toLocaleString('en-IN', { minimumFractionDigits: 2 })}
+                                                                </p>
+                                                                <p className="text-[9px] font-bold text-slate-400 mt-0.5">
+                                                                    {computed.getItemCount(bill.cart)} items
+                                                                </p>
+                                                            </div>
+                                                        </div>
+                                                        
+                                                        <div className="flex flex-col xs:flex-row xs:items-center justify-between border-t border-slate-100 dark:border-white/5 pt-2.5 gap-2.5">
+                                                            <span className={`text-[10px] font-black ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
+                                                                Date: {new Date(bill.deliveryDate || bill.date).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric', timeZone: 'Asia/Kolkata' })}
+                                                            </span>
+                                                            <div className="flex items-center justify-end gap-2 w-full xs:w-auto">
+                                                                <button
+                                                                    onClick={() => previewBill(bill, selectedVehicles[staffName] || '')}
+                                                                    className={`flex-1 xs:flex-initial p-2 rounded-lg transition-all border flex items-center justify-center
+                                                                        ${isDark ? 'bg-slate-800 border-white/10 text-slate-300 hover:text-white' : 'bg-white border-slate-200 text-slate-600 hover:text-slate-900 shadow-sm'}`}
+                                                                    title="Preview"
+                                                                >
+                                                                    <svg className="w-4 h-4 animate-in fade-in" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M15 12a3 3 0 11-6 0 3 3 0 016 0zM2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg>
+                                                                </button>
+                                                                <button
+                                                                    onClick={() => actions.openEditModal(bill)}
+                                                                    className={`flex-1 xs:flex-initial p-2 rounded-lg transition-all border flex items-center justify-center
+                                                                        ${isDark ? 'bg-slate-800 border-white/10 text-slate-300 hover:text-blue-400' : 'bg-white border-slate-200 text-slate-600 hover:text-blue-600 shadow-sm'}`}
+                                                                    title="Edit"
+                                                                >
+                                                                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg>
+                                                                </button>
+                                                                <button
+                                                                    onClick={() => downloadBill(bill, selectedVehicles[staffName] || '')}
+                                                                    className="flex-1 xs:flex-initial px-3 py-2 bg-blue-500 hover:bg-blue-600 text-white font-black rounded-lg text-[9px] uppercase tracking-widest transition-all active:scale-90 flex items-center justify-center"
+                                                                >
+                                                                    PDF
+                                                                </button>
+                                                                <button
+                                                                    onClick={() => onDeleteBill(bill.id)}
+                                                                    className="p-2 bg-red-500/10 hover:bg-red-500 text-red-500 hover:text-white font-black rounded-lg transition-all border border-red-500/20 active:scale-90 flex items-center justify-center"
+                                                                    title="Delete"
+                                                                >
+                                                                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
+                                                                </button>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                ))}
                                             </div>
                                         </div>
                                     ))}
