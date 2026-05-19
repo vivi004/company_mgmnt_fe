@@ -5,8 +5,6 @@ import { getAuthAxios } from '../../../utils/apiClient';
 interface SettingsProps {
     theme: string;
     setTheme: (theme: string) => void;
-    companyName: string;
-    setCompanyName: (name: string) => void;
     backendStatus: string;
     lastSynced: string;
     isSyncing: boolean;
@@ -44,7 +42,7 @@ const SectionHeader = ({ icon, title, subtitle, colorClass, theme }: { icon: str
 );
 
 const AdminSettings = ({
-    theme, setTheme, companyName, setCompanyName,
+    theme, setTheme,
     lastSynced, isSyncing,
     handleManualSync, handleAppSync,
     nextInvoiceNo, setNextInvoiceNo, lastInvoiceNo,
