@@ -573,20 +573,20 @@ const AdminCollections = ({ theme, orderLines, isAdmin: propsIsAdmin }: Props) =
                                             <div className="grid grid-cols-2 gap-x-4 gap-y-3.5 text-[11px] border-t border-slate-100/50 dark:border-white/5 pt-3">
                                                 {/* Prev Bal */}
                                                 <div>
-                                                    <span className="text-slate-500 dark:text-slate-400 font-semibold">Prev Bal:</span>{' '}
-                                                    <span className="font-black text-slate-800 dark:text-slate-200">₹{fmt(row.old_balance)}</span>
+                                                    <span className="font-extrabold text-slate-600 dark:text-slate-400">Prev Bal:</span>{' '}
+                                                    <span className="font-black text-slate-900 dark:text-slate-100">₹{fmt(row.old_balance)}</span>
                                                 </div>
                                                 {/* Today's Bill */}
                                                 <div className="text-right">
-                                                    <span className="text-slate-500 dark:text-slate-400 font-semibold">Today Bill:</span>{' '}
-                                                    <span className="font-black text-slate-800 dark:text-slate-200">₹{fmt(row.todays_bill_amount)}</span>
+                                                    <span className="font-extrabold text-slate-600 dark:text-slate-400">Today Bill:</span>{' '}
+                                                    <span className="font-black text-slate-900 dark:text-slate-100">₹{fmt(row.todays_bill_amount)}</span>
                                                 </div>
 
                                                 {/* Collected & its badges */}
                                                 <div className="flex flex-col gap-1.5">
                                                     <div>
-                                                        <span className="text-slate-500 dark:text-slate-400 font-semibold">Collected:</span>{' '}
-                                                        <span className="font-black text-emerald-600 dark:text-emerald-400">₹{fmt(collected)}</span>
+                                                        <span className="font-extrabold text-slate-600 dark:text-slate-400">Collected:</span>{' '}
+                                                        <span className="font-black text-green-600 dark:text-green-400">₹{fmt(collected)}</span>
                                                     </div>
                                                     <div className="flex flex-wrap gap-1">
                                                         {renderModeBadges(row.cash_collected, row.upi_collected, row.cheque_collected, 0, row.pending_transactions.filter(t => (t.category || t.type || '').toUpperCase() === 'PAYMENT'), row.discount_payment)}
@@ -596,8 +596,8 @@ const AdminCollections = ({ theme, orderLines, isAdmin: propsIsAdmin }: Props) =
                                                 {/* Adjust & its badges */}
                                                 <div className="flex flex-col gap-1.5 items-end">
                                                     <div className="text-right">
-                                                        <span className="text-slate-500 dark:text-slate-400 font-semibold">Adjust:</span>{' '}
-                                                        <span className={`font-black ${(row.manual_adjustments + (row.discount_payment || 0)) !== 0 ? ((row.manual_adjustments + (row.discount_payment || 0)) > 0 ? 'text-blue-600 dark:text-blue-400' : 'text-amber-600 dark:text-amber-400') : 'text-slate-800 dark:text-slate-200'}`}>
+                                                        <span className="font-extrabold text-slate-600 dark:text-slate-400">Adjust:</span>{' '}
+                                                        <span className={`font-black ${(row.manual_adjustments + (row.discount_payment || 0)) !== 0 ? ((row.manual_adjustments + (row.discount_payment || 0)) > 0 ? 'text-blue-600 dark:text-blue-400' : 'text-amber-600 dark:text-amber-400') : 'text-slate-900 dark:text-slate-100'}`}>
                                                             ₹{fmt(row.manual_adjustments + (row.discount_payment || 0))}
                                                         </span>
                                                     </div>
@@ -608,13 +608,13 @@ const AdminCollections = ({ theme, orderLines, isAdmin: propsIsAdmin }: Props) =
 
                                                 {/* Upcoming */}
                                                 <div>
-                                                    <span className="text-slate-500 dark:text-slate-400 font-semibold">Upcoming:</span>{' '}
+                                                    <span className="font-extrabold text-slate-600 dark:text-slate-400">Upcoming:</span>{' '}
                                                     <span className="font-black text-purple-600 dark:text-purple-400">₹{fmt(row.future_bills)}</span>
                                                 </div>
                                                 {/* Total Balance */}
                                                 <div className="text-right">
-                                                    <span className="text-slate-500 dark:text-slate-400 font-black uppercase text-[10px]">Total:</span>{' '}
-                                                    <span className="font-black text-red-600 dark:text-red-500 text-sm ml-1">₹{fmt(row.total_balance)}</span>
+                                                    <span className="font-extrabold text-slate-600 dark:text-slate-400 text-xs uppercase">Total:</span>{' '}
+                                                    <span className="font-black text-red-600 dark:text-red-400 text-sm ml-1">₹{fmt(row.total_balance)}</span>
                                                 </div>
                                             </div>
                                         </div>
