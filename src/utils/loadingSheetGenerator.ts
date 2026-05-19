@@ -1,5 +1,6 @@
 import { getAllProducts, getCartItems } from '../constants/productData';
 import type { Bill } from './invoiceGenerator';
+import { generatePdfFromHtml } from './invoiceGenerator';
 
 interface ProductLine {
     name: string;
@@ -285,9 +286,12 @@ export function previewLoadingSheet(bills: Bill[], dateStr: string, vehicleNo: s
 
 export function printLoadingSheet(bills: Bill[], dateStr: string, vehicleNo: string = '') {
     const html = generateLoadingSheet(bills, dateStr, vehicleNo);
-    const w = window.open('', '_blank');
-    if (!w) return;
-    w.document.write(html);
-    w.document.close();
-    setTimeout(() => w.print(), 600);
+    const displayDate = new Date(dateStr + 'T00:00:00').toLocaleDateString('en-IN', { 
+        day: '2-digit', 
+        month: 'short', 
+        year: 'numeric',
+        timeZone: 'Asia/Kolkata' 
+    }).split(' ').join('-');
+    const filename = `Report_LoadingSheet_${displayDate}.pdf`;
+    generatePdfFromHtml(html, filename);
 }

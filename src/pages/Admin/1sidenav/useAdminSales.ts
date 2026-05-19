@@ -2,6 +2,7 @@ import { useState, useMemo, useCallback } from 'react';
 import { getAuthAxios } from '../../../utils/apiClient';
 import { useToast } from '../../../components/Toast';
 import { getCartItems } from '../../../constants/productData';
+import { generatePdfFromHtml } from '../../../utils/invoiceGenerator';
 
 interface RawBill {
     id: number;
@@ -232,8 +233,6 @@ export const useAdminSales = () => {
 
     // Export PDF
     const exportPDF = useCallback(() => {
-        const w = window.open('', '_blank');
-        if (!w) return;
         const totalSales = staffRows.reduce((s, r) => s + r.totalAmount, 0);
         const totalOrders = staffRows.reduce((s, r) => s + r.totalOrders, 0);
         const html = `
@@ -255,9 +254,8 @@ export const useAdminSales = () => {
         <table><thead><tr><th>#</th><th>Staff Name</th><th>Total Orders</th><th>Total Sales (₹)</th><th>Avg Order (₹)</th><th>Last Sale</th></tr></thead>
         <tbody>${staffRows.map((r, i) => `<tr><td>${i + 1}</td><td>${r.name}</td><td>${r.totalOrders}</td><td>${r.totalAmount.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</td><td>${r.avgOrderValue.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</td><td>${r.lastSaleDate}</td></tr>`).join('')}
         </tbody></table></body></html>`;
-        w.document.write(html);
-        w.document.close();
-        setTimeout(() => { w.print(); }, 600);
+        const filename = `Report_${startDate}_to_${endDate}.pdf`;
+        generatePdfFromHtml(html, filename);
     }, [staffRows, startDate, endDate]);
 
     const toggleSort = (col: 'amount' | 'orders') => {

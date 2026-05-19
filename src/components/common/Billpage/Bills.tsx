@@ -1,5 +1,5 @@
 import React, { useRef } from 'react';
-import { invoiceHTML, type Bill } from '../../../utils/invoiceGenerator';
+import { invoiceHTML, downloadBill, type Bill } from '../../../utils/invoiceGenerator';
 
 interface Props {
     shopName: string;
@@ -48,18 +48,7 @@ const Bills = ({ shopName, villageName, theme, invoiceNo, cart, customRates, onN
     };
 
     const handlePDF = () => {
-        const el = printRef.current;
-        if (!el) return;
-        const w = window.open('', '_blank');
-        if (!w) return;
-        w.document.write(`<html><head><title>Invoice-${shopName}</title><style>
-*{margin:0;padding:0;box-sizing:border-box}body{font-family:Arial,sans-serif;font-size:11px;color:#000;background:#fff}
-@page{size:A4;margin:8mm}table{width:100%;border-collapse:collapse}
-td,th{border:none}
-.bp{page-break-after:always}.bp:last-child{page-break-after:auto}
-</style></head><body>${el.innerHTML}</body></html>`);
-        w.document.close();
-        setTimeout(() => { w.print(); w.close(); }, 600);
+        downloadBill(mockBill);
     };
 
     const primaryColor = type === 'admin' ? 'blue' : 'emerald';

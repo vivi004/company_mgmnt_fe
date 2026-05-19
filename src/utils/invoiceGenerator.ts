@@ -230,12 +230,81 @@ ${itemRows}
     return page('ORIGINAL FOR RECIPIENT') + page('DUPLICATE FOR SUPPLIER');
 };
 
+const loadHtml2Pdf = (): Promise<any> => {
+    return new Promise((resolve, reject) => {
+        if (typeof window === 'undefined') {
+            reject(new Error('Window is not defined'));
+            return;
+        }
+        if ((window as any).html2pdf) {
+            resolve((window as any).html2pdf);
+            return;
+        }
+        const script = document.createElement('script');
+        script.src = 'https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js';
+        script.onload = () => {
+            resolve((window as any).html2pdf);
+        };
+        script.onerror = () => {
+            reject(new Error('Failed to load html2pdf library'));
+        };
+        document.head.appendChild(script);
+    });
+};
+
+const wrapWithStyles = (htmlContent: string) => {
+    return `
+        <div style="font-family:Arial,sans-serif;font-size:11px;color:#000;background:#fff;width:100%;">
+            <style>
+                * { margin: 0; padding: 0; box-sizing: border-box; }
+                table { width: 100%; border-collapse: collapse; }
+                td, th { border: none; }
+                div.bp { page-break-after: always; }
+                div.bp:last-child { page-break-after: auto; }
+            </style>
+            ${htmlContent}
+        </div>
+    `;
+};
+
+export const generatePdfFromHtml = async (htmlContent: string, filename: string) => {
+    try {
+        const html2pdf = await loadHtml2Pdf();
+        const element = document.createElement('div');
+        element.innerHTML = htmlContent;
+        element.style.position = 'absolute';
+        element.style.left = '-9999px';
+        element.style.top = '0';
+        element.style.width = '210mm'; // Standard A4 width
+        document.body.appendChild(element);
+
+        const opt = {
+            margin:       [8, 8, 8, 8],
+            filename:     filename,
+            image:        { type: 'jpeg', quality: 0.98 },
+            html2canvas:  { scale: 2, useCORS: true, letterRendering: true },
+            jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' },
+            pagebreak:    { mode: ['css', 'legacy'] }
+        };
+
+        await html2pdf().set(opt).from(element).save();
+        document.body.removeChild(element);
+    } catch (error) {
+        console.error('Error generating PDF:', error);
+        // Fallback to classic window.print approach
+        const w = window.open('', '_blank');
+        if (w) {
+            w.document.write(`<html><head><title>${filename.replace('.pdf', '')}</title><style>*{margin:0;padding:0;box-sizing:border-box}body{font-family:Arial,sans-serif;font-size:11px;color:#000;background:#fff}@page{size:A4;margin:8mm}table{width:100%;border-collapse:collapse}td,th{border:none}div.bp{page-break-after:always}div.bp:last-child{page-break-after:auto}</style></head><body>${htmlContent}</body></html>`);
+            w.document.close();
+            setTimeout(() => { w.print(); w.close(); }, 600);
+        }
+    }
+};
+
 export const downloadBill = (bill: Bill, vehicleNo: string = '') => {
-    const w = window.open('', '_blank');
-    if (!w) return;
-    w.document.write(`<html><head><title>Invoice-${bill.shopName}</title><style>*{margin:0;padding:0;box-sizing:border-box}body{font-family:Arial,sans-serif;font-size:11px;color:#000;background:#fff}@page{size:A4;margin:8mm}table{width:100%;border-collapse:collapse}td,th{border:none}div.bp{page-break-after:always}div.bp:last-child{page-break-after:auto}</style></head><body>${invoiceHTML(bill, vehicleNo)}</body></html>`);
-    w.document.close();
-    setTimeout(() => { w.print(); w.close(); }, 600);
+    const filename = `Bill_${bill.invoiceNo}.pdf`;
+    const html = wrapWithStyles(invoiceHTML(bill, vehicleNo));
+    generatePdfFromHtml(html, filename);
 };
 
 export const previewBill = (bill: Bill, vehicleNo: string = '') => {
@@ -247,20 +316,16 @@ export const previewBill = (bill: Bill, vehicleNo: string = '') => {
 
 export const downloadAllFiltered = (filteredBills: Bill[], vehicleNo: string = '') => {
     if (filteredBills.length === 0) return;
-    const w = window.open('', '_blank');
-    if (!w) return;
+    const filename = `Report_${new Date().toLocaleDateString('en-IN', { timeZone: 'Asia/Kolkata' }).replace(/\//g, '-')}.pdf`;
     const allHTML = filteredBills.map(b => invoiceHTML(b, vehicleNo)).join('');
-    w.document.write(`<html><head><title>All Invoices</title><style>*{margin:0;padding:0;box-sizing:border-box}body{font-family:Arial,sans-serif;font-size:11px;color:#000;background:#fff}@page{size:A4;margin:8mm}table{width:100%;border-collapse:collapse}td,th{border:none}div.bp{page-break-after:always}div.bp:last-child{page-break-after:auto}</style></head><body>${allHTML}</body></html>`);
-    w.document.close();
-    setTimeout(() => { w.print(); w.close(); }, 600);
+    const html = wrapWithStyles(allHTML);
+    generatePdfFromHtml(html, filename);
 };
 
 export const downloadStaffBillsPdf = (staffBills: Bill[], staffName: string, vehicleNo: string = '') => {
     if (staffBills.length === 0) return;
-    const w = window.open('', '_blank');
-    if (!w) return;
+    const filename = `Report_${staffName}_${new Date().toLocaleDateString('en-IN', { timeZone: 'Asia/Kolkata' }).replace(/\//g, '-')}.pdf`;
     const allHTML = staffBills.map(b => invoiceHTML(b, vehicleNo)).join('');
-    w.document.write(`<html><head><title>${staffName} Invoices</title><style>*{margin:0;padding:0;box-sizing:border-box}body{font-family:Arial,sans-serif;font-size:11px;color:#000;background:#fff}@page{size:A4;margin:8mm}table{width:100%;border-collapse:collapse}td,th{border:none}div.bp{page-break-after:always}div.bp:last-child{page-break-after:auto}</style></head><body>${allHTML}</body></html>`);
-    w.document.close();
-    setTimeout(() => { w.print(); w.close(); }, 600);
+    const html = wrapWithStyles(allHTML);
+    generatePdfFromHtml(html, filename);
 };
