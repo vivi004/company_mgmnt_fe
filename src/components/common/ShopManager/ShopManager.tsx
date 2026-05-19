@@ -66,7 +66,10 @@ const ShopManager = ({ orderLineId, villageName, theme, onBack, type, handleRefr
     const [deliveryDate, setDeliveryDate] = useState(() => {
         const d = new Date();
         d.setDate(d.getDate() + 1);
-        return d.toISOString().slice(0, 10); // YYYY-MM-DD for <input type="date">
+        const yyyy = d.getFullYear();
+        const mm = String(d.getMonth() + 1).padStart(2, '0');
+        const dd = String(d.getDate()).padStart(2, '0');
+        return `${yyyy}-${mm}-${dd}`; // YYYY-MM-DD local format
     });
 
     // Filtering & Sorting
@@ -566,22 +569,26 @@ const ShopManager = ({ orderLineId, villageName, theme, onBack, type, handleRefr
 
                                 <div className="mt-5 pt-4 border-t border-slate-100/50 dark:border-white/5 w-full">
                                     <div className="grid grid-cols-4 gap-2.5 w-full">
-                                        <button
-                                            onClick={(e) => { e.preventDefault(); e.stopPropagation(); setSelectedShop(shop); setPaymentData(p => ({ ...p, amount: '', method: 'Cash' })); setShowPaymentModal(true); }}
-                                            className={`p-3 rounded-2xl border transition-all flex flex-col items-center justify-center gap-1.5 text-[8px] sm:text-[9px] font-black uppercase tracking-widest ${isDark ? 'bg-white/5 border-white/10 text-emerald-400 hover:bg-emerald-500/20' : 'bg-emerald-50 border-emerald-100 text-emerald-600 hover:bg-emerald-600 hover:text-white'}`}
-                                            title="Collect Payment"
-                                        >
-                                            <svg className="w-4.5 h-4.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-                                            <span>Collect</span>
-                                        </button>
-                                        <button
-                                            onClick={(e) => { e.preventDefault(); e.stopPropagation(); fetchLedger(shop); }}
-                                            className={`p-3 rounded-2xl border transition-all flex flex-col items-center justify-center gap-1.5 text-[8px] sm:text-[9px] font-black uppercase tracking-widest ${isDark ? 'bg-white/5 border-white/10 text-indigo-400 hover:bg-indigo-500/20' : 'bg-indigo-50 border-indigo-100 text-indigo-600 hover:bg-indigo-600 hover:text-white'}`}
-                                            title="Ledger"
-                                        >
-                                            <svg className="w-4.5 h-4.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 17v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2m3.222.882a.5.5 0 010-.764L15.39 8.388a.5.5 0 01.44-.061l1.597.532a.5.5 0 00.54-.124l1.26-1.26a.5.5 0 00-.518-.813l-1.18.393a.5.5 0 01-.44-.061l-1.597-.532a.5.5 0 00-.54.124l-1.26 1.26a.5.5 0 00.518.813l1.18-.393z" /></svg>
-                                            <span>Ledger</span>
-                                        </button>
+                                        {isAdmin && (
+                                            <>
+                                                <button
+                                                    onClick={(e) => { e.preventDefault(); e.stopPropagation(); setSelectedShop(shop); setPaymentData(p => ({ ...p, amount: '', method: 'Cash' })); setShowPaymentModal(true); }}
+                                                    className={`p-3 rounded-2xl border transition-all flex flex-col items-center justify-center gap-1.5 text-[8px] sm:text-[9px] font-black uppercase tracking-widest ${isDark ? 'bg-white/5 border-white/10 text-emerald-400 hover:bg-emerald-500/20' : 'bg-emerald-50 border-emerald-100 text-emerald-600 hover:bg-emerald-600 hover:text-white'}`}
+                                                    title="Collect Payment"
+                                                >
+                                                    <svg className="w-4.5 h-4.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                                                    <span>Collect</span>
+                                                </button>
+                                                <button
+                                                    onClick={(e) => { e.preventDefault(); e.stopPropagation(); fetchLedger(shop); }}
+                                                    className={`p-3 rounded-2xl border transition-all flex flex-col items-center justify-center gap-1.5 text-[8px] sm:text-[9px] font-black uppercase tracking-widest ${isDark ? 'bg-white/5 border-white/10 text-indigo-400 hover:bg-indigo-500/20' : 'bg-indigo-50 border-indigo-100 text-indigo-600 hover:bg-indigo-600 hover:text-white'}`}
+                                                    title="Ledger"
+                                                >
+                                                    <svg className="w-4.5 h-4.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 17v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2m3.222.882a.5.5 0 010-.764L15.39 8.388a.5.5 0 01.44-.061l1.597.532a.5.5 0 00.54-.124l1.26-1.26a.5.5 0 00-.518-.813l-1.18.393a.5.5 0 01-.44-.061l-1.597-.532a.5.5 0 00-.54.124l-1.26 1.26a.5.5 0 00.518.813l1.18-.393z" /></svg>
+                                                    <span>Ledger</span>
+                                                </button>
+                                            </>
+                                        )}
                                         {isAdmin ? (
                                             <>
                                                 <button
