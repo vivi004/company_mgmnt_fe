@@ -230,12 +230,95 @@ ${itemRows}
     return page('ORIGINAL FOR RECIPIENT') + page('DUPLICATE FOR SUPPLIER');
 };
 
+export const generatePdfMobile = async (htmlContent: string, filename: string, isLandscape: boolean = false) => {
+    console.log("[PDF Debug] Initiating mobile PDF generation:", filename);
+    try {
+        const html2pdf = await new Promise<any>((resolve, reject) => {
+            if ((window as any).html2pdf) {
+                resolve((window as any).html2pdf);
+                return;
+            }
+            const script = document.createElement('script');
+            script.src = 'https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js';
+            script.onload = () => resolve((window as any).html2pdf);
+            script.onerror = (e) => reject(new Error("Failed to load PDF library: " + e));
+            document.head.appendChild(script);
+        });
+
+        const container = document.createElement('div');
+        container.style.position = 'absolute';
+        container.style.left = '-9999px';
+        container.style.top = '0';
+        container.style.width = isLandscape ? '297mm' : '210mm';
+        container.style.background = '#ffffff';
+
+        // Check if there are internal page-break directives in htmlContent or if it's already a full html page
+        const needsWrappers = !htmlContent.includes('<style>');
+        if (needsWrappers) {
+            container.innerHTML = `
+                <style>
+                    * { margin: 0; padding: 0; box-sizing: border-box; }
+                    body { font-family: Arial, sans-serif; font-size: 11px; color: #000; background: #fff; }
+                    table { width: 100%; border-collapse: collapse; table-layout: fixed; }
+                    td, th { border: none; }
+                    div.bp { 
+                        page-break-after: always; 
+                        padding: 6mm 8mm; 
+                        box-sizing: border-box; 
+                        width: 210mm; 
+                        height: 297mm;
+                        position: relative;
+                    }
+                    div.bp:last-child { page-break-after: auto; }
+                </style>
+                <div>${htmlContent}</div>
+            `;
+        } else {
+            // For custom HTML pages (like loading sheet)
+            container.innerHTML = htmlContent;
+        }
+
+        document.body.appendChild(container);
+
+        const opt = {
+            margin:       0,
+            filename:     filename,
+            image:        { type: 'jpeg', quality: 0.98 },
+            html2canvas:  { scale: 2, useCORS: true, letterRendering: true },
+            jsPDF:        { unit: 'mm', format: 'a4', orientation: isLandscape ? 'landscape' : 'portrait' }
+        };
+
+        await html2pdf().from(container).set(opt).save();
+        console.log("[PDF Debug] PDF download triggered successfully for mobile:", filename);
+        document.body.removeChild(container);
+    } catch (err) {
+        console.error("[PDF Debug] Error generating mobile PDF:", err);
+        alert("Unable to generate PDF file. Downloading backup text format instead...");
+        
+        // As a ultimate fallback, do a backup text file download so the user never loses data!
+        const blob = new Blob([htmlContent.replace(/<[^>]*>/g, '')], { type: 'text/plain' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = filename.replace('.pdf', '.txt');
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+    }
+};
+
 export const downloadBill = (bill: Bill, vehicleNo: string = '') => {
-    const w = window.open('', '_blank');
-    if (!w) return;
-    w.document.write(`<html><head><title>Invoice-${bill.shopName}</title><style>*{margin:0;padding:0;box-sizing:border-box}body{font-family:Arial,sans-serif;font-size:11px;color:#000;background:#fff}@page{size:A4;margin:8mm}table{width:100%;border-collapse:collapse}td,th{border:none}div.bp{page-break-after:always}div.bp:last-child{page-break-after:auto}</style></head><body>${invoiceHTML(bill, vehicleNo)}</body></html>`);
-    w.document.close();
-    setTimeout(() => { w.print(); w.close(); }, 600);
+    const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+    if (isMobile) {
+        generatePdfMobile(invoiceHTML(bill, vehicleNo), `Invoice-${bill.invoiceNo}-${bill.shopName.replace(/\s+/g, '_')}.pdf`);
+    } else {
+        const w = window.open('', '_blank');
+        if (!w) return;
+        w.document.write(`<html><head><title>Invoice-${bill.shopName}</title><style>*{margin:0;padding:0;box-sizing:border-box}body{font-family:Arial,sans-serif;font-size:11px;color:#000;background:#fff}@page{size:A4;margin:8mm}table{width:100%;border-collapse:collapse}td,th{border:none}div.bp{page-break-after:always}div.bp:last-child{page-break-after:auto}</style></head><body>${invoiceHTML(bill, vehicleNo)}</body></html>`);
+        w.document.close();
+        setTimeout(() => { w.print(); w.close(); }, 600);
+    }
 };
 
 export const previewBill = (bill: Bill, vehicleNo: string = '') => {
@@ -247,20 +330,30 @@ export const previewBill = (bill: Bill, vehicleNo: string = '') => {
 
 export const downloadAllFiltered = (filteredBills: Bill[], vehicleNo: string = '') => {
     if (filteredBills.length === 0) return;
-    const w = window.open('', '_blank');
-    if (!w) return;
+    const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
     const allHTML = filteredBills.map(b => invoiceHTML(b, vehicleNo)).join('');
-    w.document.write(`<html><head><title>All Invoices</title><style>*{margin:0;padding:0;box-sizing:border-box}body{font-family:Arial,sans-serif;font-size:11px;color:#000;background:#fff}@page{size:A4;margin:8mm}table{width:100%;border-collapse:collapse}td,th{border:none}div.bp{page-break-after:always}div.bp:last-child{page-break-after:auto}</style></head><body>${allHTML}</body></html>`);
-    w.document.close();
-    setTimeout(() => { w.print(); w.close(); }, 600);
+    if (isMobile) {
+        generatePdfMobile(allHTML, `All-Invoices.pdf`);
+    } else {
+        const w = window.open('', '_blank');
+        if (!w) return;
+        w.document.write(`<html><head><title>All Invoices</title><style>*{margin:0;padding:0;box-sizing:border-box}body{font-family:Arial,sans-serif;font-size:11px;color:#000;background:#fff}@page{size:A4;margin:8mm}table{width:100%;border-collapse:collapse}td,th{border:none}div.bp{page-break-after:always}div.bp:last-child{page-break-after:auto}</style></head><body>${allHTML}</body></html>`);
+        w.document.close();
+        setTimeout(() => { w.print(); w.close(); }, 600);
+    }
 };
 
 export const downloadStaffBillsPdf = (staffBills: Bill[], staffName: string, vehicleNo: string = '') => {
     if (staffBills.length === 0) return;
-    const w = window.open('', '_blank');
-    if (!w) return;
+    const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
     const allHTML = staffBills.map(b => invoiceHTML(b, vehicleNo)).join('');
-    w.document.write(`<html><head><title>${staffName} Invoices</title><style>*{margin:0;padding:0;box-sizing:border-box}body{font-family:Arial,sans-serif;font-size:11px;color:#000;background:#fff}@page{size:A4;margin:8mm}table{width:100%;border-collapse:collapse}td,th{border:none}div.bp{page-break-after:always}div.bp:last-child{page-break-after:auto}</style></head><body>${allHTML}</body></html>`);
-    w.document.close();
-    setTimeout(() => { w.print(); w.close(); }, 600);
+    if (isMobile) {
+        generatePdfMobile(allHTML, `${staffName.replace(/\s+/g, '_')}-Invoices.pdf`);
+    } else {
+        const w = window.open('', '_blank');
+        if (!w) return;
+        w.document.write(`<html><head><title>${staffName} Invoices</title><style>*{margin:0;padding:0;box-sizing:border-box}body{font-family:Arial,sans-serif;font-size:11px;color:#000;background:#fff}@page{size:A4;margin:8mm}table{width:100%;border-collapse:collapse}td,th{border:none}div.bp{page-break-after:always}div.bp:last-child{page-break-after:auto}</style></head><body>${allHTML}</body></html>`);
+        w.document.close();
+        setTimeout(() => { w.print(); w.close(); }, 600);
+    }
 };
