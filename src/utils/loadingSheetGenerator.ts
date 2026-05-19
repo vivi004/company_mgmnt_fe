@@ -1,5 +1,5 @@
 import { getAllProducts, getCartItems } from '../constants/productData';
-import { generatePdfMobile, type Bill } from './invoiceGenerator';
+import { printHtmlDirectly, type Bill } from './invoiceGenerator';
 
 interface ProductLine {
     name: string;
@@ -285,14 +285,5 @@ export function previewLoadingSheet(bills: Bill[], dateStr: string, vehicleNo: s
 
 export function printLoadingSheet(bills: Bill[], dateStr: string, vehicleNo: string = '') {
     const html = generateLoadingSheet(bills, dateStr, vehicleNo);
-    const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
-    if (isMobile) {
-        generatePdfMobile(html, `Loading-Sheet-${dateStr}.pdf`);
-    } else {
-        const w = window.open('', '_blank');
-        if (!w) return;
-        w.document.write(html);
-        w.document.close();
-        setTimeout(() => w.print(), 600);
-    }
+    printHtmlDirectly(html, `Loading-Sheet-${dateStr}`);
 }

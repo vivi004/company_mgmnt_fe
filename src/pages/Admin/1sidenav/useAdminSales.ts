@@ -232,7 +232,7 @@ export const useAdminSales = () => {
 
     // Export PDF
     const exportPDF = useCallback(async () => {
-        const { generatePdfMobile } = await import('../../../utils/invoiceGenerator');
+        const { printHtmlDirectly } = await import('../../../utils/invoiceGenerator');
         const totalSales = staffRows.reduce((s, r) => s + r.totalAmount, 0);
         const totalOrders = staffRows.reduce((s, r) => s + r.totalOrders, 0);
         const html = `
@@ -255,16 +255,7 @@ export const useAdminSales = () => {
         <tbody>${staffRows.map((r, i) => `<tr><td>${i + 1}</td><td>${r.name}</td><td>${r.totalOrders}</td><td>${r.totalAmount.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</td><td>${r.avgOrderValue.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</td><td>${r.lastSaleDate}</td></tr>`).join('')}
         </tbody></table></body></html>`;
 
-        const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
-        if (isMobile) {
-            await generatePdfMobile(html, `Sales-Report-${startDate}-to-${endDate}.pdf`, true);
-        } else {
-            const w = window.open('', '_blank');
-            if (!w) return;
-            w.document.write(html);
-            w.document.close();
-            setTimeout(() => { w.print(); }, 600);
-        }
+        printHtmlDirectly(html, `Sales-Report-${startDate}-to-${endDate}`);
     }, [staffRows, startDate, endDate]);
 
     const toggleSort = (col: 'amount' | 'orders') => {
