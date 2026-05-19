@@ -146,8 +146,6 @@ const AdminDashboard = () => {
                             <AdminSettings
                                 theme={state.theme}
                                 setTheme={actions.setTheme}
-                                companyName={state.companyName}
-                                setCompanyName={actions.setCompanyName}
                                 backendStatus={state.backendStatus}
                                 lastSynced={state.lastSynced}
                                 isSyncing={state.isSyncing}
