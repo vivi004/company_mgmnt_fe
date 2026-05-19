@@ -37,7 +37,7 @@ const AdminCollections = ({ theme, orderLines, isAdmin: propsIsAdmin }: Props) =
     const [searchQuery, setSearchQuery] = useState('');
 
     // Dynamic filtered list based on query matching shop name or owner name
-    const filteredCollections = collections.filter(row =>
+    const filteredCollections = collections.filter(row => 
         (row.shop_name || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
         (row.owner_name || '').toLowerCase().includes(searchQuery.toLowerCase())
     );
@@ -126,7 +126,7 @@ const AdminCollections = ({ theme, orderLines, isAdmin: propsIsAdmin }: Props) =
     // Mode badge renderer for a single row
     const renderModeBadges = (cash: number, upi: number, cheque: number, pos: number = 0, pendingTxs: any[] = [], discount: number = 0) => {
         const badges: React.ReactNode[] = [];
-
+        
         // 1. APPROVED Badges
         if (cash > 0) badges.push(
             <span key="cash" className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-green-500/10 text-green-600 dark:text-green-400 border border-green-500/20">
@@ -163,18 +163,18 @@ const AdminCollections = ({ theme, orderLines, isAdmin: propsIsAdmin }: Props) =
             const icon = mode === 'UPI' ? '📱' : (mode === 'CHEQUE' ? '📝' : '⏳');
             const color = mode === 'UPI' ? 'blue' : 'amber';
             const amt = typeof tx.amount === 'string' ? parseFloat(tx.amount) : tx.amount;
-
+            
             badges.push(
                 <div key={`pending-${tx.id || pIdx}`} className={`flex items-center gap-2 p-1.5 pl-2.5 rounded-xl border border-dashed animate-pulse transition-all
                     ${mode === 'UPI' ? 'bg-blue-500/5 border-blue-500/20' : 'bg-amber-500/5 border-amber-500/20'}`}>
                     <span className={`text-[10px] font-black uppercase tracking-tighter text-${color}-600 dark:text-${color}-400`}>
                         {icon} PENDING ₹{fmt(amt || 0)}
                     </span>
-
+                    
                     {isAdmin && (
                         <div className="flex items-center gap-1.5 ml-1 border-l border-white/10 pl-1.5">
-                            <button
-                                onClick={(e) => { e.stopPropagation(); if (window.confirm(`Approve this ${mode} amount of ₹${fmt(amt || 0)}?`)) handleApprove(tx.id); }}
+                            <button 
+                                onClick={(e) => { e.stopPropagation(); if(window.confirm(`Approve this ${mode} amount of ₹${fmt(amt || 0)}?`)) handleApprove(tx.id); }}
                                 className="w-6 h-6 flex items-center justify-center bg-emerald-500 text-white rounded-lg hover:bg-emerald-600 transition-all shadow-lg shadow-emerald-500/20 group/btn"
                                 title="Click to Approve and Reduce Balance"
                             >
@@ -182,9 +182,9 @@ const AdminCollections = ({ theme, orderLines, isAdmin: propsIsAdmin }: Props) =
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={4} d="M5 13l4 4L19 7" />
                                 </svg>
                             </button>
-                            <button
-                                onClick={(e) => {
-                                    e.stopPropagation();
+                            <button 
+                                onClick={(e) => { 
+                                    e.stopPropagation(); 
                                     const reason = window.prompt('Enter rejection reason (optional):');
                                     if (reason !== null) handleReject(tx.id, reason);
                                 }}
@@ -218,8 +218,8 @@ const AdminCollections = ({ theme, orderLines, isAdmin: propsIsAdmin }: Props) =
                     </p>
                 </div>
                 <div className="flex items-center gap-2 sm:gap-3">
-                    <button
-                        onClick={refresh}
+                    <button 
+                        onClick={refresh} 
                         disabled={loading}
                         className={`p-2.5 rounded-xl border transition-all hover:scale-105 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed ${isDark ? 'bg-slate-800 border-white/10 text-white hover:bg-slate-700' : 'bg-white border-slate-200 text-slate-700 hover:bg-slate-50 shadow-sm'}`}
                         title="Refresh"
@@ -230,7 +230,7 @@ const AdminCollections = ({ theme, orderLines, isAdmin: propsIsAdmin }: Props) =
                     </button>
 
                     <div className={`flex items-center p-1 rounded-xl border shadow-sm transition-colors ${isDark ? 'bg-slate-800 border-white/10 hover:border-white/20' : 'bg-white border-slate-200 hover:border-slate-300'}`}>
-                        <button
+                        <button 
                             onClick={() => {
                                 const d = new Date(selectedDate);
                                 d.setDate(d.getDate() - 1);
@@ -241,7 +241,7 @@ const AdminCollections = ({ theme, orderLines, isAdmin: propsIsAdmin }: Props) =
                         >
                             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M15 19l-7-7 7-7" /></svg>
                         </button>
-
+                        
                         <div className="relative flex items-center justify-between w-[130px] px-2 py-1 cursor-pointer group">
                             <span className={`text-sm font-black ${isDark ? 'text-white' : 'text-slate-900'}`}>
                                 {selectedDate.split('-').reverse().join('-')}
@@ -255,7 +255,7 @@ const AdminCollections = ({ theme, orderLines, isAdmin: propsIsAdmin }: Props) =
                             />
                         </div>
 
-                        <button
+                        <button 
                             onClick={() => {
                                 const d = new Date(selectedDate);
                                 d.setDate(d.getDate() + 1);
@@ -402,8 +402,8 @@ const AdminCollections = ({ theme, orderLines, isAdmin: propsIsAdmin }: Props) =
                                     value={searchQuery}
                                     onChange={(e) => setSearchQuery(e.target.value)}
                                     placeholder="Search by shop or owner name..."
-                                    className={`w-full pl-10 pr-4 py-2 text-xs font-bold rounded-xl border focus:ring-4 outline-none transition-all ${isDark
-                                        ? 'bg-slate-800 border-white/10 text-white placeholder-slate-500 focus:ring-blue-500/20 focus:border-blue-500'
+                                    className={`w-full pl-10 pr-4 py-2 text-xs font-bold rounded-xl border focus:ring-4 outline-none transition-all ${isDark 
+                                        ? 'bg-slate-800 border-white/10 text-white placeholder-slate-500 focus:ring-blue-500/20 focus:border-blue-500' 
                                         : 'bg-slate-50 border-slate-200 text-slate-900 placeholder-slate-400 focus:ring-blue-500/10 focus:border-blue-500 shadow-inner'}`}
                                 />
                                 {searchQuery && (
@@ -462,19 +462,19 @@ const AdminCollections = ({ theme, orderLines, isAdmin: propsIsAdmin }: Props) =
                                                                 )}
                                                             </div>
                                                             <div className="flex items-center gap-2 mt-1.5 opacity-0 group-hover:opacity-100 transition-opacity">
-                                                                <button
+                                                                <button 
                                                                     onClick={() => { setSelectedShop(actionShop); setShowPaymentModal(true); }}
                                                                     className="px-2 py-0.5 rounded-md bg-emerald-500/10 text-emerald-600 text-[10px] font-black uppercase tracking-tighter hover:bg-emerald-500 hover:text-white transition-all"
                                                                 >
                                                                     Collect ₹
                                                                 </button>
-                                                                <button
+                                                                <button 
                                                                     onClick={() => { setSelectedShop(actionShop); setShowAdjustModal(true); }}
                                                                     className="px-2 py-0.5 rounded-md bg-blue-500/10 text-blue-600 text-[10px] font-black uppercase tracking-tighter hover:bg-blue-500 hover:text-white transition-all"
                                                                 >
                                                                     Adjust ±
                                                                 </button>
-                                                                <button
+                                                                <button 
                                                                     onClick={() => fetchLedger(actionShop)}
                                                                     className="px-2 py-0.5 rounded-md bg-slate-500/10 text-slate-600 text-[10px] font-black uppercase tracking-tighter hover:bg-slate-500 hover:text-white transition-all"
                                                                 >
@@ -513,7 +513,7 @@ const AdminCollections = ({ theme, orderLines, isAdmin: propsIsAdmin }: Props) =
                                         <td className={`px-5 py-4 text-right text-base ${isDark ? 'text-white' : 'text-slate-900'}`}>₹{fmt(filteredTotals.todaysBillAmount)}</td>
                                         <td className={`px-5 py-4 text-right text-base ${filteredTotals.amountCollected > 0 ? 'text-green-500' : isDark ? 'text-slate-400' : 'text-slate-500'}`}>₹{fmt(filteredTotals.amountCollected)}</td>
                                         <td className={`px-5 py-4 text-right text-base ${filteredTotals.totalManualAdjust !== 0 ? 'text-blue-400' : isDark ? 'text-slate-600' : 'text-slate-400'}`}>₹{fmt(filteredTotals.totalManualAdjust)}</td>
-                                        <td className={`px-5 py-4 text-right text-base ${filteredTotals.totalFutureBills !== 0 ? 'text-purple-500' : isDark ? 'text-slate-600' : 'text-slate-400'}`}>₹{fmt(filteredTotals.totalFutureBills)}</td>
+                                        <td className={`px-5 py-4 text-right text-base ${ filteredTotals.totalFutureBills !== 0 ? 'text-purple-500' : isDark ? 'text-slate-600' : 'text-slate-400'}`}>₹{fmt(filteredTotals.totalFutureBills)}</td>
                                         <td className={`px-5 py-4 text-right text-base ${filteredTotals.totalBalance > 0 ? 'text-red-500' : 'text-green-500'}`}>₹{fmt(filteredTotals.totalBalance)}</td>
                                     </tr>
                                 </tbody>
@@ -541,7 +541,7 @@ const AdminCollections = ({ theme, orderLines, isAdmin: propsIsAdmin }: Props) =
                                                     )}
                                                 </span>
                                                 <div className="flex items-center gap-2">
-                                                    <button
+                                                    <button 
                                                         onClick={() => {
                                                             const s = { id: row.shop_id, shop_name: row.shop_name, balance: row.total_balance, village_name: row.village_name };
                                                             setSelectedShop(s); setShowPaymentModal(true);
@@ -550,7 +550,7 @@ const AdminCollections = ({ theme, orderLines, isAdmin: propsIsAdmin }: Props) =
                                                     >
                                                         ₹
                                                     </button>
-                                                    <button
+                                                    <button 
                                                         onClick={() => {
                                                             const s = { id: row.shop_id, shop_name: row.shop_name, balance: row.total_balance, village_name: row.village_name };
                                                             setSelectedShop(s); setShowAdjustModal(true);
@@ -559,7 +559,7 @@ const AdminCollections = ({ theme, orderLines, isAdmin: propsIsAdmin }: Props) =
                                                     >
                                                         ±
                                                     </button>
-                                                    <button
+                                                    <button 
                                                         onClick={() => {
                                                             const s = { id: row.shop_id, shop_name: row.shop_name, balance: row.total_balance, village_name: row.village_name };
                                                             fetchLedger(s);
@@ -573,20 +573,20 @@ const AdminCollections = ({ theme, orderLines, isAdmin: propsIsAdmin }: Props) =
                                             <div className="grid grid-cols-2 gap-x-4 gap-y-3.5 text-[11px] border-t border-slate-100/50 dark:border-white/5 pt-3">
                                                 {/* Prev Bal */}
                                                 <div>
-                                                    <span className="font-extrabold text-slate-600 dark:text-slate-400">Prev Bal:</span>{' '}
-                                                    <span className="font-black text-slate-900 dark:text-pink-500">₹{fmt(row.old_balance)}</span>
+                                                    <span className="text-slate-500 dark:text-slate-400 font-medium">Prev Bal:</span>{' '}
+                                                    <span className="font-bold text-slate-800 dark:text-slate-200">₹{fmt(row.old_balance)}</span>
                                                 </div>
                                                 {/* Today's Bill */}
                                                 <div className="text-right">
-                                                    <span className="font-extrabold text-slate-600 dark:text-slate-400">Today Bill:</span>{' '}
-                                                    <span className="font-black text-slate-900 dark:text-pink-500">₹{fmt(row.todays_bill_amount)}</span>
+                                                    <span className="text-slate-500 dark:text-slate-400 font-medium">Today Bill:</span>{' '}
+                                                    <span className="font-bold text-slate-950 dark:text-white">₹{fmt(row.todays_bill_amount)}</span>
                                                 </div>
 
                                                 {/* Collected & its badges */}
                                                 <div className="flex flex-col gap-1.5">
                                                     <div>
-                                                        <span className="font-extrabold text-slate-600 dark:text-slate-400">Collected:</span>{' '}
-                                                        <span className="font-black text-green-600 dark:text-green-400">₹{fmt(collected)}</span>
+                                                        <span className="text-slate-500 dark:text-slate-400 font-medium">Collected:</span>{' '}
+                                                        <span className="font-black text-emerald-600 dark:text-emerald-400">₹{fmt(collected)}</span>
                                                     </div>
                                                     <div className="flex flex-wrap gap-1">
                                                         {renderModeBadges(row.cash_collected, row.upi_collected, row.cheque_collected, 0, row.pending_transactions.filter(t => (t.category || t.type || '').toUpperCase() === 'PAYMENT'), row.discount_payment)}
@@ -596,8 +596,8 @@ const AdminCollections = ({ theme, orderLines, isAdmin: propsIsAdmin }: Props) =
                                                 {/* Adjust & its badges */}
                                                 <div className="flex flex-col gap-1.5 items-end">
                                                     <div className="text-right">
-                                                        <span className="font-extrabold text-slate-600 dark:text-slate-400">Adjust:</span>{' '}
-                                                        <span className={`font-black ${(row.manual_adjustments + (row.discount_payment || 0)) !== 0 ? ((row.manual_adjustments + (row.discount_payment || 0)) > 0 ? 'text-blue-600 dark:text-blue-400' : 'text-amber-600 dark:text-amber-400') : 'text-slate-900 dark:text-slate-100'}`}>
+                                                        <span className="text-slate-500 dark:text-slate-400 font-medium">Adjust:</span>{' '}
+                                                        <span className={`font-black ${(row.manual_adjustments + (row.discount_payment || 0)) !== 0 ? ((row.manual_adjustments + (row.discount_payment || 0)) > 0 ? 'text-blue-600 dark:text-blue-400' : 'text-amber-600 dark:text-amber-400') : 'text-slate-700 dark:text-slate-300'}`}>
                                                             ₹{fmt(row.manual_adjustments + (row.discount_payment || 0))}
                                                         </span>
                                                     </div>
@@ -608,13 +608,15 @@ const AdminCollections = ({ theme, orderLines, isAdmin: propsIsAdmin }: Props) =
 
                                                 {/* Upcoming */}
                                                 <div>
-                                                    <span className="font-extrabold text-slate-600 dark:text-slate-400">Upcoming:</span>{' '}
-                                                    <span className="font-black text-purple-600 dark:text-purple-400">₹{fmt(row.future_bills)}</span>
+                                                    <span className="text-slate-500 dark:text-slate-400 font-medium">Upcoming:</span>{' '}
+                                                    <span className="font-bold text-purple-600 dark:text-purple-400">₹{fmt(row.future_bills)}</span>
                                                 </div>
                                                 {/* Total Balance */}
                                                 <div className="text-right">
-                                                    <span className="font-extrabold text-slate-600 dark:text-slate-400 text-xs uppercase">Total:</span>{' '}
-                                                    <span className="font-black text-red-600 dark:text-red-400 text-sm ml-1">₹{fmt(row.total_balance)}</span>
+                                                    <span className="text-slate-500 dark:text-slate-400 text-xs font-black uppercase">Total:</span>{' '}
+                                                    <span className={`font-black text-sm ml-1 ${row.total_balance > 0 ? 'text-rose-600 dark:text-rose-400' : 'text-emerald-600 dark:text-emerald-400'}`}>
+                                                        ₹{fmt(row.total_balance)}
+                                                    </span>
                                                 </div>
                                             </div>
                                         </div>
@@ -622,16 +624,32 @@ const AdminCollections = ({ theme, orderLines, isAdmin: propsIsAdmin }: Props) =
                                 })
                             )}
                             {/* Mobile TOTAL Card */}
-                            <div className={`p-4 space-y-1 ${isDark ? 'bg-blue-950/20' : 'bg-blue-50/80'}`}>
-                                <p className={`text-xs font-black uppercase tracking-widest ${isDark ? 'text-blue-400' : 'text-blue-700'}`}>Total Summary</p>
-                                <div className="grid grid-cols-2 gap-2 text-xs">
-                                    <div><span className="text-slate-500">Bill:</span> <span className="font-black">₹{fmt(filteredTotals.todaysBillAmount)}</span></div>
-                                    <div className="text-right"><span className="text-slate-500">Collected:</span> <span className="font-black">₹{fmt(filteredTotals.amountCollected)}</span></div>
-                                    <div><span className="text-slate-500">Adjust:</span> <span className="font-black">₹{fmt(filteredTotals.totalManualAdjust)}</span></div>
-                                    <div className="text-right"><span className="text-slate-500">Upcoming:</span> <span className="font-black">₹{fmt(filteredTotals.totalFutureBills)}</span></div>
-                                    <div className="col-span-2 text-center mt-2 border-t border-blue-200/50 pt-2">
-                                        <span className="text-slate-500 font-black uppercase tracking-tighter">Total Balance:</span>
-                                        <span className="font-black text-lg ml-2 text-red-500">₹{fmt(filteredTotals.totalBalance)}</span>
+                            <div className={`p-4 space-y-2 rounded-2xl ${isDark ? 'bg-blue-950/30 border border-blue-500/10' : 'bg-blue-50/90 border border-blue-100 shadow-md'}`}>
+                                <p className={`text-xs font-black uppercase tracking-widest ${isDark ? 'text-blue-400' : 'text-blue-800'}`}>Total Summary</p>
+                                <div className="grid grid-cols-2 gap-x-4 gap-y-2 text-xs">
+                                    <div>
+                                        <span className="text-slate-600 dark:text-slate-400 font-semibold">Bill:</span>{' '}
+                                        <span className="font-black text-slate-950 dark:text-white">₹{fmt(filteredTotals.todaysBillAmount)}</span>
+                                    </div>
+                                    <div className="text-right">
+                                        <span className="text-slate-600 dark:text-slate-400 font-semibold">Collected:</span>{' '}
+                                        <span className="font-black text-emerald-600 dark:text-emerald-400">₹{fmt(filteredTotals.amountCollected)}</span>
+                                    </div>
+                                    <div>
+                                        <span className="text-slate-600 dark:text-slate-400 font-semibold">Adjust:</span>{' '}
+                                        <span className={`font-black ${filteredTotals.totalManualAdjust !== 0 ? (filteredTotals.totalManualAdjust > 0 ? 'text-blue-600 dark:text-blue-400' : 'text-amber-600 dark:text-amber-400') : 'text-slate-700 dark:text-slate-300'}`}>
+                                            ₹{fmt(filteredTotals.totalManualAdjust)}
+                                        </span>
+                                    </div>
+                                    <div className="text-right">
+                                        <span className="text-slate-600 dark:text-slate-400 font-semibold">Upcoming:</span>{' '}
+                                        <span className="font-black text-purple-600 dark:text-purple-400">₹{fmt(filteredTotals.totalFutureBills)}</span>
+                                    </div>
+                                    <div className={`col-span-2 text-center mt-2 border-t pt-2.5 ${isDark ? 'border-white/5' : 'border-blue-200/50'}`}>
+                                        <span className="text-slate-600 dark:text-slate-400 font-black uppercase tracking-tighter">Total Balance:</span>{' '}
+                                        <span className={`font-black text-lg ml-2 ${filteredTotals.totalBalance > 0 ? 'text-rose-600 dark:text-rose-400' : 'text-emerald-600 dark:text-emerald-400'}`}>
+                                            ₹{fmt(filteredTotals.totalBalance)}
+                                        </span>
                                     </div>
                                 </div>
                             </div>
@@ -661,110 +679,110 @@ const AdminCollections = ({ theme, orderLines, isAdmin: propsIsAdmin }: Props) =
                                             <th className="text-right px-5 py-3">% Share</th>
                                         </tr>
                                     </thead>
-                                    <tbody>
-                                        {/* ── INCOME MODES ── */}
-                                        {[
-                                            {
-                                                icon: '💵', label: 'Cash (Net)', amount: modeBreakdown.netCash,
-                                                reg: modeBreakdown.regCash, man: modeBreakdown.manCash,
-                                                raw: modeBreakdown.rawCash, percent: modeBreakdown.cashPercent, color: 'green', isNet: true
-                                            },
-                                            {
-                                                icon: '📱', label: 'UPI', amount: modeBreakdown.upi,
-                                                reg: modeBreakdown.regUpi, man: modeBreakdown.manUpi,
-                                                percent: modeBreakdown.upiPercent, color: 'blue'
-                                            },
-                                            {
-                                                icon: '📝', label: 'Cheque', amount: modeBreakdown.cheque,
-                                                reg: modeBreakdown.regCheque, man: modeBreakdown.manCheque,
-                                                percent: modeBreakdown.chequePercent, color: 'amber'
-                                            },
-                                            {
-                                                icon: '🏷️', label: 'Discount (Payment)', amount: modeBreakdown.discountPayment,
-                                                reg: modeBreakdown.discountPayment, man: 0,
-                                                percent: 'N/A', color: 'amber'
-                                            },
-                                            {
-                                                icon: '🏷️', label: 'Discount (Adj)', amount: modeBreakdown.discountAdjustment,
-                                                reg: 0, man: modeBreakdown.discountAdjustment,
-                                                percent: 'N/A', color: 'amber'
-                                            },
-                                        ].map(mode => (
-                                            <tr key={mode.label} className={`border-t transition-colors ${isDark ? 'border-white/5 hover:bg-slate-800/30' : 'border-slate-50 hover:bg-slate-50/50'}`}>
-                                                <td className={`px-5 py-4 font-bold ${isDark ? 'text-white' : 'text-slate-900'}`}>
-                                                    <div className="flex items-center gap-3">
-                                                        <span className="text-xl">{mode.icon}</span>
-                                                        <div className="flex flex-col">
-                                                            <span className="uppercase tracking-widest text-sm font-black">{mode.label}</span>
-                                                            {(mode.reg > 0 || mode.man > 0) && (
-                                                                <div className="flex gap-5 mt-1.5 text-xs font-black">
-                                                                    {mode.reg > 0 && <span className={isDark ? 'text-slate-400' : 'text-slate-500'}>REG: ₹{fmt(mode.reg)}</span>}
-                                                                    {mode.man > 0 && <span className="text-amber-500">MAN: ₹{fmt(mode.man)}</span>}
-                                                                </div>
-                                                            )}
-                                                        </div>
+                                <tbody>
+                                    {/* ── INCOME MODES ── */}
+                                    {[
+                                        { 
+                                            icon: '💵', label: 'Cash (Net)', amount: modeBreakdown.netCash, 
+                                            reg: modeBreakdown.regCash, man: modeBreakdown.manCash,
+                                            raw: modeBreakdown.rawCash, percent: modeBreakdown.cashPercent, color: 'green', isNet: true 
+                                        },
+                                        { 
+                                            icon: '📱', label: 'UPI', amount: modeBreakdown.upi, 
+                                            reg: modeBreakdown.regUpi, man: modeBreakdown.manUpi,
+                                            percent: modeBreakdown.upiPercent, color: 'blue' 
+                                        },
+                                        { 
+                                            icon: '📝', label: 'Cheque', amount: modeBreakdown.cheque, 
+                                            reg: modeBreakdown.regCheque, man: modeBreakdown.manCheque,
+                                            percent: modeBreakdown.chequePercent, color: 'amber' 
+                                        },
+                                        { 
+                                            icon: '🏷️', label: 'Discount (Payment)', amount: modeBreakdown.discountPayment, 
+                                            reg: modeBreakdown.discountPayment, man: 0,
+                                            percent: 'N/A', color: 'amber' 
+                                        },
+                                        { 
+                                            icon: '🏷️', label: 'Discount (Adj)', amount: modeBreakdown.discountAdjustment, 
+                                            reg: 0, man: modeBreakdown.discountAdjustment,
+                                            percent: 'N/A', color: 'amber' 
+                                        },
+                                    ].map(mode => (
+                                        <tr key={mode.label} className={`border-t transition-colors ${isDark ? 'border-white/5 hover:bg-slate-800/30' : 'border-slate-50 hover:bg-slate-50/50'}`}>
+                                            <td className={`px-5 py-4 font-bold ${isDark ? 'text-white' : 'text-slate-900'}`}>
+                                                <div className="flex items-center gap-3">
+                                                    <span className="text-xl">{mode.icon}</span>
+                                                    <div className="flex flex-col">
+                                                        <span className="uppercase tracking-widest text-sm font-black">{mode.label}</span>
+                                                        {(mode.reg > 0 || mode.man > 0) && (
+                                                            <div className="flex gap-5 mt-1.5 text-xs font-black">
+                                                                {mode.reg > 0 && <span className={isDark ? 'text-slate-400' : 'text-slate-500'}>REG: ₹{fmt(mode.reg)}</span>}
+                                                                {mode.man > 0 && <span className="text-amber-500">MAN: ₹{fmt(mode.man)}</span>}
+                                                            </div>
+                                                        )}
                                                     </div>
-                                                </td>
-                                                <td className="px-5 py-4 text-right font-black">
-                                                    {mode.isNet && modeBreakdown.totalExpenses > 0 ? (
-                                                        <div className="flex flex-col items-end">
-                                                            <span className={isDark ? 'text-white' : 'text-slate-900 text-base'}>₹{fmt(mode.amount)}</span>
-                                                            <span className="text-[10px] text-slate-500 font-bold">(₹{fmt(mode.raw || 0)} - ₹{fmt(modeBreakdown.totalExpenses)})</span>
-                                                        </div>
-                                                    ) : (
+                                                </div>
+                                            </td>
+                                            <td className="px-5 py-4 text-right font-black">
+                                                {mode.isNet && modeBreakdown.totalExpenses > 0 ? (
+                                                    <div className="flex flex-col items-end">
                                                         <span className={isDark ? 'text-white' : 'text-slate-900 text-base'}>₹{fmt(mode.amount)}</span>
-                                                    )}
-                                                </td>
-                                                <td className="px-5 py-4 text-right font-black text-slate-400">
-                                                    {mode.percent}%
-                                                </td>
-                                            </tr>
-                                        ))}
-
-                                        {/* ── INDIVIDUAL EXPENSES ── */}
-                                        {expenses.map((exp, eIdx) => (
-                                            <tr key={`exp-${exp.id || eIdx}`} className={`border-t border-dashed group ${isDark ? 'border-white/5 bg-amber-950/10' : 'bg-amber-50/30 border-slate-100'}`}>
-                                                <td className="px-5 py-3">
-                                                    <div className="flex items-center gap-3 pl-4">
-                                                        <span className="text-sm">🥪</span>
-                                                        <span className={`text-[10px] font-black uppercase tracking-widest ${isDark ? 'text-amber-400/80' : 'text-amber-700/80'}`}>
-                                                            Expense: {exp.description || 'General'}
-                                                        </span>
+                                                        <span className="text-[10px] text-slate-500 font-bold">(₹{fmt(mode.raw || 0)} - ₹{fmt(modeBreakdown.totalExpenses)})</span>
                                                     </div>
-                                                </td>
-                                                <td className="px-5 py-3 text-right">
-                                                    <div className="flex items-center justify-end gap-4">
-                                                        <span className="font-black text-amber-500 text-xs">- ₹{fmt(exp.amount)}</span>
-                                                        <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                                                            <button
-                                                                onClick={() => handleOpenEdit(exp)}
-                                                                className="p-1 hover:bg-blue-500/20 rounded text-blue-400 transition-colors"
-                                                                title="Edit"
-                                                            >
-                                                                ✏️
-                                                            </button>
-                                                            <button
-                                                                onClick={() => handleDeleteExpense(exp.id)}
-                                                                className="p-1 hover:bg-red-500/20 rounded text-red-400 transition-colors"
-                                                                title="Delete"
-                                                            >
-                                                                🗑️
-                                                            </button>
-                                                        </div>
-                                                    </div>
-                                                </td>
-                                                <td className="px-5 py-3 text-right"></td>
-                                            </tr>
-                                        ))}
-
-                                        {/* ── TOTAL Row ── */}
-                                        <tr key="net-total-row" className={`font-black ${isDark ? 'bg-blue-900/20' : 'bg-blue-50/80'} border-t-2 ${isDark ? 'border-blue-500/30' : 'border-blue-200'}`}>
-                                            <td className={`px-5 py-5 text-sm uppercase tracking-widest ${isDark ? 'text-blue-400' : 'text-blue-700'}`}>Net Total Collected</td>
-                                            <td className={`px-5 py-5 text-right text-xl ${isDark ? 'text-white' : 'text-slate-900'}`}>₹{fmt(modeBreakdown.total)}</td>
-                                            <td className="px-5 py-5 text-right"><span className="text-[10px] text-slate-400 uppercase tracking-tighter">100% Share</span></td>
+                                                ) : (
+                                                    <span className={isDark ? 'text-white' : 'text-slate-900 text-base'}>₹{fmt(mode.amount)}</span>
+                                                )}
+                                            </td>
+                                            <td className="px-5 py-4 text-right font-black text-slate-400">
+                                                {mode.percent}%
+                                            </td>
                                         </tr>
-                                    </tbody>
-                                </table>
+                                    ))}
+
+                                    {/* ── INDIVIDUAL EXPENSES ── */}
+                                    {expenses.map((exp, eIdx) => (
+                                        <tr key={`exp-${exp.id || eIdx}`} className={`border-t border-dashed group ${isDark ? 'border-white/5 bg-amber-950/10' : 'bg-amber-50/30 border-slate-100'}`}>
+                                            <td className="px-5 py-3">
+                                                <div className="flex items-center gap-3 pl-4">
+                                                    <span className="text-sm">🥪</span>
+                                                    <span className={`text-[10px] font-black uppercase tracking-widest ${isDark ? 'text-amber-400/80' : 'text-amber-700/80'}`}>
+                                                        Expense: {exp.description || 'General'}
+                                                    </span>
+                                                </div>
+                                            </td>
+                                            <td className="px-5 py-3 text-right">
+                                                <div className="flex items-center justify-end gap-4">
+                                                    <span className="font-black text-amber-500 text-xs">- ₹{fmt(exp.amount)}</span>
+                                                    <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                                                        <button 
+                                                            onClick={() => handleOpenEdit(exp)}
+                                                            className="p-1 hover:bg-blue-500/20 rounded text-blue-400 transition-colors"
+                                                            title="Edit"
+                                                        >
+                                                            ✏️
+                                                        </button>
+                                                        <button 
+                                                            onClick={() => handleDeleteExpense(exp.id)}
+                                                            className="p-1 hover:bg-red-500/20 rounded text-red-400 transition-colors"
+                                                            title="Delete"
+                                                        >
+                                                            🗑️
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                            </td>
+                                            <td className="px-5 py-3 text-right"></td>
+                                        </tr>
+                                    ))}
+
+                                    {/* ── TOTAL Row ── */}
+                                    <tr key="net-total-row" className={`font-black ${isDark ? 'bg-blue-900/20' : 'bg-blue-50/80'} border-t-2 ${isDark ? 'border-blue-500/30' : 'border-blue-200'}`}>
+                                        <td className={`px-5 py-5 text-sm uppercase tracking-widest ${isDark ? 'text-blue-400' : 'text-blue-700'}`}>Net Total Collected</td>
+                                        <td className={`px-5 py-5 text-right text-xl ${isDark ? 'text-white' : 'text-slate-900'}`}>₹{fmt(modeBreakdown.total)}</td>
+                                        <td className="px-5 py-5 text-right"><span className="text-[10px] text-slate-400 uppercase tracking-tighter">100% Share</span></td>
+                                    </tr>
+                                </tbody>
+                            </table>
                             </div>
                         </div>
                     )}
