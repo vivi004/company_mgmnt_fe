@@ -570,19 +570,53 @@ const AdminCollections = ({ theme, orderLines, isAdmin: propsIsAdmin }: Props) =
                                                     </button>
                                                 </div>
                                             </div>
-                                            <div className="grid grid-cols-2 gap-2 text-[11px]">
-                                                <div><span className="text-slate-400">Prev Bal:</span> <span className="font-bold">₹{fmt(row.old_balance)}</span></div>
-                                                <div className="text-right"><span className="text-slate-400">Today Bill:</span> <span className="font-bold">₹{fmt(row.todays_bill_amount)}</span></div>
-                                                <div><span className="text-slate-400">Collected:</span> <span className="font-bold text-green-500">₹{fmt(collected)}</span></div>
+                                            <div className="grid grid-cols-2 gap-x-4 gap-y-3.5 text-[11px] border-t border-slate-100/50 dark:border-white/5 pt-3">
+                                                {/* Prev Bal */}
+                                                <div>
+                                                    <span className="text-slate-400">Prev Bal:</span>{' '}
+                                                    <span className="font-bold text-slate-700 dark:text-slate-300">₹{fmt(row.old_balance)}</span>
+                                                </div>
+                                                {/* Today's Bill */}
                                                 <div className="text-right">
-                                                    <span className="text-slate-400">Adjust:</span> 
-                                                    <span className={`font-bold ${(row.manual_adjustments + (row.discount_payment || 0)) !== 0 ? ((row.manual_adjustments + (row.discount_payment || 0)) > 0 ? 'text-blue-500' : 'text-amber-500') : ''}`}>₹{fmt(row.manual_adjustments + (row.discount_payment || 0))}</span>
-                                                    <div className="flex justify-end mt-1">{renderModeBadges(row.manual_cash, row.manual_upi, row.manual_cheque, row.manual_pos, row.pending_transactions.filter(t => (t.category || t.type || '').toUpperCase() === 'MANUAL_ADJUST'), row.discount_adjustment)}</div>
-                                                 </div>
-                                                <div><span className="text-slate-400">Upcoming:</span> <span className="font-bold text-purple-500">₹{fmt(row.future_bills)}</span></div>
-                                                <div className="text-right"><span className="text-slate-400 text-xs font-black uppercase">Total:</span> <span className="font-black text-red-500 text-sm">₹{fmt(row.total_balance)}</span></div>
+                                                    <span className="text-slate-400">Today Bill:</span>{' '}
+                                                    <span className="font-bold text-slate-900 dark:text-slate-100">₹{fmt(row.todays_bill_amount)}</span>
+                                                </div>
+
+                                                {/* Collected & its badges */}
+                                                <div className="flex flex-col gap-1.5">
+                                                    <div>
+                                                        <span className="text-slate-400">Collected:</span>{' '}
+                                                        <span className="font-bold text-green-500">₹{fmt(collected)}</span>
+                                                    </div>
+                                                    <div className="flex flex-wrap gap-1">
+                                                        {renderModeBadges(row.cash_collected, row.upi_collected, row.cheque_collected, 0, row.pending_transactions.filter(t => (t.category || t.type || '').toUpperCase() === 'PAYMENT'), row.discount_payment)}
+                                                    </div>
+                                                </div>
+
+                                                {/* Adjust & its badges */}
+                                                <div className="flex flex-col gap-1.5 items-end">
+                                                    <div className="text-right">
+                                                        <span className="text-slate-400">Adjust:</span>{' '}
+                                                        <span className={`font-bold ${(row.manual_adjustments + (row.discount_payment || 0)) !== 0 ? ((row.manual_adjustments + (row.discount_payment || 0)) > 0 ? 'text-blue-500' : 'text-amber-500') : 'text-slate-700 dark:text-slate-300'}`}>
+                                                            ₹{fmt(row.manual_adjustments + (row.discount_payment || 0))}
+                                                        </span>
+                                                    </div>
+                                                    <div className="flex flex-wrap gap-1 justify-end">
+                                                        {renderModeBadges(row.manual_cash, row.manual_upi, row.manual_cheque, row.manual_pos, row.pending_transactions.filter(t => (t.category || t.type || '').toUpperCase() === 'MANUAL_ADJUST'), row.discount_adjustment)}
+                                                    </div>
+                                                </div>
+
+                                                {/* Upcoming */}
+                                                <div>
+                                                    <span className="text-slate-400">Upcoming:</span>{' '}
+                                                    <span className="font-bold text-purple-500">₹{fmt(row.future_bills)}</span>
+                                                </div>
+                                                {/* Total Balance */}
+                                                <div className="text-right">
+                                                    <span className="text-slate-400 text-xs font-black uppercase">Total:</span>{' '}
+                                                    <span className="font-black text-red-500 text-sm ml-1">₹{fmt(row.total_balance)}</span>
+                                                </div>
                                             </div>
-                                            <div>{renderModeBadges(row.cash_collected, row.upi_collected, row.cheque_collected, 0, row.pending_transactions.filter(t => (t.category || t.type || '').toUpperCase() === 'PAYMENT'), row.discount_payment)}</div>
                                         </div>
                                     );
                                 })
