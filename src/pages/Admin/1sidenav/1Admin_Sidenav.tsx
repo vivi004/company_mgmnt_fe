@@ -40,37 +40,7 @@ const AdminSidenav = ({ activeTab, setActiveTab, companyName, requestCount, olRe
             </div>
 
             <nav className="flex-grow px-4 space-y-2 overflow-y-auto hide-scrollbar pb-6">
-                <button
-                    onClick={() => setActiveTab("manage")}
-                    className={`w-full flex items-center space-x-4 px-5 py-4 rounded-2xl transition-all duration-300 group ${activeTab === 'manage' ? 'bg-blue-600 text-white shadow-xl shadow-blue-600/30' : 'text-slate-400 hover:bg-white/10 hover:text-white'}`}
-                >
-                    <div className={`p-2 rounded-xl border ${activeTab === 'manage' ? 'bg-white/20 border-white/30' : 'bg-slate-800 border-slate-700'} group-hover:scale-110 transition-transform`}>
-                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
-                        </svg>
-                    </div>
-                    <span className="font-bold tracking-tight">Manage Team</span>
-                </button>
-
-                <button
-                    onClick={() => setActiveTab("requests")}
-                    className={`w-full flex items-center justify-between px-5 py-4 rounded-2xl transition-all duration-300 group ${activeTab === 'requests' ? 'bg-blue-600 text-white shadow-xl shadow-blue-600/30' : 'text-slate-400 hover:bg-white/10 hover:text-white'}`}
-                >
-                    <div className="flex items-center space-x-4">
-                        <div className={`p-2 rounded-xl border ${activeTab === 'requests' ? 'bg-white/20 border-white/30' : 'bg-slate-800 border-slate-700'} group-hover:scale-110 transition-transform`}>
-                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                            </svg>
-                        </div>
-                        <span className="font-bold tracking-tight">Staff Requests</span>
-                    </div>
-                    {(requestCount + olRequestCount) > 0 && (
-                        <span className="bg-red-500 text-white text-[10px] font-black px-2 py-0.5 rounded-full animate-bounce">
-                            {requestCount + olRequestCount}
-                        </span>
-                    )}
-                </button>
-
+                {/* 1. Order Lines */}
                 <button
                     onClick={() => setActiveTab("order-lines")}
                     className={`w-full flex items-center justify-between px-5 py-4 rounded-2xl transition-all duration-300 group ${activeTab === 'order-lines' ? 'bg-blue-600 text-white shadow-xl shadow-blue-600/30' : 'text-slate-400 hover:bg-white/10 hover:text-white'}`}
@@ -91,18 +61,7 @@ const AdminSidenav = ({ activeTab, setActiveTab, companyName, requestCount, olRe
                     )}
                 </button>
 
-                <button
-                    onClick={() => setActiveTab("collections")}
-                    className={`w-full flex items-center space-x-4 px-5 py-4 rounded-2xl transition-all duration-300 group ${activeTab === 'collections' ? 'bg-blue-600 text-white shadow-xl shadow-blue-600/30' : 'text-slate-400 hover:bg-white/10 hover:text-white'}`}
-                >
-                    <div className={`p-2 rounded-xl border ${activeTab === 'collections' ? 'bg-white/20 border-white/30' : 'bg-slate-800 border-slate-700'} group-hover:scale-110 transition-transform`}>
-                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z" />
-                        </svg>
-                    </div>
-                    <span className="font-bold tracking-tight">Today Collection</span>
-                </button>
-
+                {/* 2. Bills */}
                 <button
                     onClick={() => setActiveTab("bills")}
                     className={`w-full flex items-center justify-between px-5 py-4 rounded-2xl transition-all duration-300 group ${activeTab === 'bills' ? 'bg-blue-600 text-white shadow-xl shadow-blue-600/30' : 'text-slate-400 hover:bg-white/10 hover:text-white'}`}
@@ -122,6 +81,20 @@ const AdminSidenav = ({ activeTab, setActiveTab, companyName, requestCount, olRe
                     )}
                 </button>
 
+                {/* 3. Today Collection */}
+                <button
+                    onClick={() => setActiveTab("collections")}
+                    className={`w-full flex items-center space-x-4 px-5 py-4 rounded-2xl transition-all duration-300 group ${activeTab === 'collections' ? 'bg-blue-600 text-white shadow-xl shadow-blue-600/30' : 'text-slate-400 hover:bg-white/10 hover:text-white'}`}
+                >
+                    <div className={`p-2 rounded-xl border ${activeTab === 'collections' ? 'bg-white/20 border-white/30' : 'bg-slate-800 border-slate-700'} group-hover:scale-110 transition-transform`}>
+                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z" />
+                        </svg>
+                    </div>
+                    <span className="font-bold tracking-tight">Today Collection</span>
+                </button>
+
+                {/* 4. Bill Check */}
                 <button
                     onClick={() => setActiveTab("bill-check")}
                     className={`w-full flex items-center justify-between px-5 py-4 rounded-2xl transition-all duration-300 group ${activeTab === 'bill-check' ? 'bg-blue-600 text-white shadow-xl shadow-blue-600/30' : 'text-slate-400 hover:bg-white/10 hover:text-white'}`}
@@ -141,6 +114,21 @@ const AdminSidenav = ({ activeTab, setActiveTab, companyName, requestCount, olRe
                     )}
                 </button>
 
+                {/* 5. System Settings */}
+                <button
+                    onClick={() => setActiveTab("settings")}
+                    className={`w-full flex items-center space-x-4 px-5 py-4 rounded-2xl transition-all duration-300 group ${activeTab === 'settings' ? 'bg-blue-600 text-white shadow-xl shadow-blue-600/30' : 'text-slate-400 hover:bg-white/10 hover:text-white'}`}
+                >
+                    <div className={`p-2 rounded-xl border ${activeTab === 'settings' ? 'bg-white/20 border-white/30' : 'bg-slate-800 border-slate-700'} group-hover:scale-110 transition-transform`}>
+                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                        </svg>
+                    </div>
+                    <span className="font-bold tracking-tight">System Settings</span>
+                </button>
+
+                {/* 6. Sales */}
                 <button
                     onClick={() => setActiveTab("sales")}
                     className={`w-full flex items-center space-x-4 px-5 py-4 rounded-2xl transition-all duration-300 group ${activeTab === 'sales' ? 'bg-blue-600 text-white shadow-xl shadow-blue-600/30' : 'text-slate-400 hover:bg-white/10 hover:text-white'}`}
@@ -153,17 +141,37 @@ const AdminSidenav = ({ activeTab, setActiveTab, companyName, requestCount, olRe
                     <span className="font-bold tracking-tight">Sales</span>
                 </button>
 
+                {/* 7. Staff Requests */}
                 <button
-                    onClick={() => setActiveTab("settings")}
-                    className={`w-full flex items-center space-x-4 px-5 py-4 rounded-2xl transition-all duration-300 group ${activeTab === 'settings' ? 'bg-blue-600 text-white shadow-xl shadow-blue-600/30' : 'text-slate-400 hover:bg-white/10 hover:text-white'}`}
+                    onClick={() => setActiveTab("requests")}
+                    className={`w-full flex items-center justify-between px-5 py-4 rounded-2xl transition-all duration-300 group ${activeTab === 'requests' ? 'bg-blue-600 text-white shadow-xl shadow-blue-600/30' : 'text-slate-400 hover:bg-white/10 hover:text-white'}`}
                 >
-                    <div className={`p-2 rounded-xl border ${activeTab === 'settings' ? 'bg-white/20 border-white/30' : 'bg-slate-800 border-slate-700'} group-hover:scale-110 transition-transform`}>
+                    <div className="flex items-center space-x-4">
+                        <div className={`p-2 rounded-xl border ${activeTab === 'requests' ? 'bg-white/20 border-white/30' : 'bg-slate-800 border-slate-700'} group-hover:scale-110 transition-transform`}>
+                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                            </svg>
+                        </div>
+                        <span className="font-bold tracking-tight">Staff Requests</span>
+                    </div>
+                    {(requestCount + olRequestCount) > 0 && (
+                        <span className="bg-red-500 text-white text-[10px] font-black px-2 py-0.5 rounded-full animate-bounce">
+                            {requestCount + olRequestCount}
+                        </span>
+                    )}
+                </button>
+
+                {/* 8. Manage Team */}
+                <button
+                    onClick={() => setActiveTab("manage")}
+                    className={`w-full flex items-center space-x-4 px-5 py-4 rounded-2xl transition-all duration-300 group ${activeTab === 'manage' ? 'bg-blue-600 text-white shadow-xl shadow-blue-600/30' : 'text-slate-400 hover:bg-white/10 hover:text-white'}`}
+                >
+                    <div className={`p-2 rounded-xl border ${activeTab === 'manage' ? 'bg-white/20 border-white/30' : 'bg-slate-800 border-slate-700'} group-hover:scale-110 transition-transform`}>
                         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
                         </svg>
                     </div>
-                    <span className="font-bold tracking-tight">System Settings</span>
+                    <span className="font-bold tracking-tight">Manage Team</span>
                 </button>
             </nav>
 

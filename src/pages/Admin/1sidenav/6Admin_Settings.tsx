@@ -25,6 +25,24 @@ interface SettingsProps {
     handleRefreshInvoiceSettings?: () => Promise<void>;
 }
 
+// Declare Card globally to prevent React from unmounting its DOM subtree on every state change
+const Card = ({ children, theme }: { children: React.ReactNode; theme: string }) => (
+    <div className={`p-5 sm:p-8 rounded-[32px] sm:rounded-[40px] border transition-all ${theme === 'dark' ? 'bg-slate-900 border-white/5 shadow-2xl shadow-indigo-500/5 hover:border-white/10' : 'bg-white border-slate-100 shadow-xl shadow-slate-200/40 hover:border-slate-300'}`}>
+        {children}
+    </div>
+);
+
+// Declare SectionHeader globally to preserve its reference across parent renders
+const SectionHeader = ({ icon, title, subtitle, colorClass, theme }: { icon: string; title: string; subtitle: string; colorClass: string; theme: string }) => (
+    <div className="flex items-center space-x-4 sm:space-x-5 mb-6 sm:mb-8">
+        <div className={`w-12 h-12 sm:w-14 sm:h-14 ${colorClass} rounded-[18px] sm:rounded-[20px] flex items-center justify-center text-xl sm:text-2xl shadow-xl bg-opacity-10 shrink-0`}>{icon}</div>
+        <div className="min-w-0">
+            <h3 className={`text-lg sm:text-xl font-black italic tracking-tighter truncate ${theme === 'dark' ? 'text-white' : 'text-slate-900'}`}>{title}</h3>
+            <p className="text-slate-500 font-bold text-[9px] sm:text-[10px] uppercase tracking-widest truncate">{subtitle}</p>
+        </div>
+    </div>
+);
+
 const AdminSettings = ({
     theme, setTheme, companyName, setCompanyName,
     lastSynced, isSyncing,
@@ -149,31 +167,13 @@ const AdminSettings = ({
         }
     };
 
-    const SectionHeader = ({ icon, title, subtitle, colorClass }: any) => (
-        <div className="flex items-center space-x-4 sm:space-x-5 mb-6 sm:mb-8">
-            <div className={`w-12 h-12 sm:w-14 sm:h-14 ${colorClass} rounded-[18px] sm:rounded-[20px] flex items-center justify-center text-xl sm:text-2xl shadow-xl bg-opacity-10 shrink-0`}>{icon}</div>
-            <div className="min-w-0">
-                <h3 className={`text-lg sm:text-xl font-black italic tracking-tighter truncate ${theme === 'dark' ? 'text-white' : 'text-slate-900'}`}>{title}</h3>
-                <p className="text-slate-500 font-bold text-[9px] sm:text-[10px] uppercase tracking-widest truncate">{subtitle}</p>
-            </div>
-        </div>
-    );
-
-    const Card = ({ children }: any) => (
-        <div className={`p-5 sm:p-8 rounded-[32px] sm:rounded-[40px] border transition-all ${theme === 'dark' ? 'bg-slate-900 border-white/5 shadow-2xl shadow-indigo-500/5 hover:border-white/10' : 'bg-white border-slate-100 shadow-xl shadow-slate-200/40 hover:border-slate-300'}`}>
-            {children}
-        </div>
-    );
-
-
-
     return (
         <div className="animate-in zoom-in-95 fade-in duration-500 pb-20 max-w-[1400px] mx-auto">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 sm:gap-8 lg:gap-10">
 
                 {/* Profile Image card */}
-                <Card>
-                    <SectionHeader icon="📸" title="Administrator Identity" subtitle="Personalize Your Presence" colorClass="bg-emerald-600 text-emerald-500 shadow-emerald-500/40" />
+                <Card theme={theme}>
+                    <SectionHeader icon="📸" title="Administrator Identity" subtitle="Personalize Your Presence" colorClass="bg-emerald-600 text-emerald-500 shadow-emerald-500/40" theme={theme} />
                     <div className="flex flex-col md:flex-row items-center gap-8">
                         <div
                             className="relative group cursor-pointer"
@@ -222,8 +222,8 @@ const AdminSettings = ({
                 </Card>
 
                 {/* Visual Experience */}
-                <Card>
-                    <SectionHeader icon="🎨" title="Visual Experience" subtitle="Appearance & Interface" colorClass="bg-indigo-600 text-indigo-500 shadow-indigo-500/40" />
+                <Card theme={theme}>
+                    <SectionHeader icon="🎨" title="Visual Experience" subtitle="Appearance & Interface" colorClass="bg-indigo-600 text-indigo-500 shadow-indigo-500/40" theme={theme} />
                     <div className="grid grid-cols-2 gap-4">
                         <button onClick={() => setTheme('light')}
                             className={`p-6 rounded-[30px] border-4 flex flex-col items-center justify-center space-y-3 transition-all ${theme === 'light' ? 'bg-blue-600 border-white shadow-2xl shadow-blue-500/50 scale-105' : 'bg-slate-50 border-slate-100 hover:border-slate-200 opacity-60'}`}>
@@ -238,24 +238,10 @@ const AdminSettings = ({
                     </div>
                 </Card>
 
-                {/* Company Branding */}
-                <Card>
-                    <SectionHeader icon="🏢" title="Profile Management" subtitle="Global Branding Assets" colorClass="bg-blue-600 text-blue-500 shadow-blue-500/40" />
-                    <div className="space-y-6">
-                        <div className="space-y-2">
-                            <label className={`text-[10px] font-black italic px-2 uppercase tracking-widest ${theme === 'dark' ? 'text-slate-400' : 'text-slate-500'}`}>Organization Name</label>
-                            <div className="relative group">
-                                <input type="text" value={companyName} onChange={e => setCompanyName(e.target.value)}
-                                    className={`w-full px-6 py-4 rounded-[20px] font-black text-lg border transition-all focus:outline-none focus:ring-4 ${theme === 'dark' ? 'bg-slate-800 border-white/10 text-white focus:ring-blue-500/20 focus:border-blue-500' : 'bg-slate-50 border-slate-200 text-slate-900 focus:ring-blue-600/10 focus:border-blue-600'}`} />
-                            </div>
-                        </div>
-                        <p className="text-xs font-bold text-slate-500 italic">Changing the organization name will instantly reflect across the dashboard header.</p>
-                    </div>
-                </Card>
 
                 {/* Data Sync & APIs */}
-                <Card>
-                    <SectionHeader icon="🔄" title="Data Synchronization" subtitle="Manage Google Sheets API" colorClass="bg-emerald-600 text-emerald-500 shadow-emerald-500/40" />
+                <Card theme={theme}>
+                    <SectionHeader icon="🔄" title="Data Synchronization" subtitle="Manage Google Sheets API" colorClass="bg-emerald-600 text-emerald-500 shadow-emerald-500/40" theme={theme} />
                     <div className="space-y-8">
                         <div className={`p-6 rounded-[24px] border flex items-center justify-between ${theme === 'dark' ? 'bg-slate-800/50 border-white/5' : 'bg-slate-50 border-slate-100'}`}>
                             <div>
@@ -283,8 +269,8 @@ const AdminSettings = ({
                 </Card>
 
                 {/* Ledger & Bookkeeping */}
-                <Card>
-                    <SectionHeader icon="📊" title="Ledger & Bookkeeping" subtitle="Track Every Rupee" colorClass="bg-blue-600 text-blue-500 shadow-blue-500/40" />
+                <Card theme={theme}>
+                    <SectionHeader icon="📊" title="Ledger & Bookkeeping" subtitle="Track Every Rupee" colorClass="bg-blue-600 text-blue-500 shadow-blue-500/40" theme={theme} />
                     <div className="space-y-6">
                         <div className="flex flex-col gap-4">
                             <a
@@ -312,8 +298,8 @@ const AdminSettings = ({
                 </Card>
 
                 {/* Manual Bill Generation */}
-                <Card>
-                    <SectionHeader icon="🧾" title="Manual Bill Generation" subtitle="Create Ad-Hoc Bills" colorClass="bg-pink-600 text-pink-500 shadow-pink-500/40" />
+                <Card theme={theme}>
+                    <SectionHeader icon="🧾" title="Manual Bill Generation" subtitle="Create Ad-Hoc Bills" colorClass="bg-pink-600 text-pink-500 shadow-pink-500/40" theme={theme} />
                     <div className="space-y-4">
                         <div className="space-y-1">
                             <label className={`text-[10px] font-black italic px-2 uppercase tracking-widest ${theme === 'dark' ? 'text-slate-400' : 'text-slate-500'}`}>Area / Village Name</label>
@@ -342,8 +328,8 @@ const AdminSettings = ({
                     </div>
                 </Card>
 
-                <Card>
-                    <SectionHeader icon="📋" title="Invoice Format" subtitle="Set Starting Bill Number" colorClass="bg-violet-600 text-violet-500 shadow-violet-500/40" />
+                <Card theme={theme}>
+                    <SectionHeader icon="📋" title="Invoice Format" subtitle="Set Starting Bill Number" colorClass="bg-violet-600 text-violet-500 shadow-violet-500/40" theme={theme} />
                     <div className="space-y-6">
                         <div className="space-y-3">
                             <label className={`text-[10px] font-black italic px-2 uppercase tracking-widest ${theme === 'dark' ? 'text-slate-400' : 'text-slate-500'}`}>Next Invoice Number</label>
@@ -390,8 +376,8 @@ const AdminSettings = ({
                 </Card>
 
                 {/* Motor Vehicle Management */}
-                <Card>
-                    <SectionHeader icon="🚚" title="Motor Vehicles" subtitle="Manage Transport Fleet" colorClass="bg-amber-600 text-amber-500 shadow-amber-500/40" />
+                <Card theme={theme}>
+                    <SectionHeader icon="🚚" title="Motor Vehicles" subtitle="Manage Transport Fleet" colorClass="bg-amber-600 text-amber-500 shadow-amber-500/40" theme={theme} />
                     <div className="space-y-6">
                         <div className="flex flex-col sm:flex-row gap-3">
                             <input
@@ -434,14 +420,10 @@ const AdminSettings = ({
                     </div>
                 </Card>
 
-
-
-
-
                 {/* Security & Access */}
                 <div className="md:col-span-2">
-                    <Card>
-                        <SectionHeader icon="🛡️" title="Security & Access" subtitle="Global Session Control" colorClass="bg-red-600 text-red-500 shadow-red-500/40" />
+                    <Card theme={theme}>
+                        <SectionHeader icon="🛡️" title="Security & Access" subtitle="Global Session Control" colorClass="bg-red-600 text-red-500 shadow-red-500/40" theme={theme} />
                         <div className="flex flex-col md:flex-row items-center justify-between gap-6">
                             <p className="text-xs font-bold text-slate-500 italic max-w-xl text-center md:text-left">
                                 Revoke all active staff sessions across all mobile devices. This will force every staff member to log in again immediately. Use this for emergency lockouts or shift resets.
@@ -458,8 +440,8 @@ const AdminSettings = ({
 
                 {/* Development Tools - FOR DEVELOPMENT USE ONLY */}
                 <div className="md:col-span-2">
-                    <Card>
-                        <SectionHeader icon="🛠️" title="Development Tools" subtitle="Temporary Development Use" colorClass="bg-amber-600 text-amber-500 shadow-amber-500/40" />
+                    <Card theme={theme}>
+                        <SectionHeader icon="🛠️" title="Development Tools" subtitle="Temporary Development Use" colorClass="bg-amber-600 text-amber-500 shadow-amber-500/40" theme={theme} />
                         <div className="flex flex-col md:flex-row items-center justify-between gap-6">
                             <div className="space-y-2 text-center md:text-left">
                                 <p className="text-xs font-black text-amber-500 uppercase tracking-widest">⚠️ Danger Zone</p>
