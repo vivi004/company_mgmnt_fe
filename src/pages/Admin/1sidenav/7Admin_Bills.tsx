@@ -302,7 +302,10 @@ const AdminBills: React.FC<Props> = ({ bills, theme, onDeleteBill, onEditBill, s
                                                             </div>
                                                             <div className="col-span-3">
                                                                 <div className="flex items-center gap-2">
-                                                                    <p className={`font-black text-sm ${isDark ? 'text-white' : 'text-slate-900'}`}>{bill.shopName}</p>
+                                                                    <p className={`font-black text-sm ${isDark ? 'text-white' : 'text-slate-900'}`}>
+                                                                        {bill.shopName}
+                                                                        {bill.specificArea && bills.filter(b => b.shopName.trim().toLowerCase() === bill.shopName.trim().toLowerCase()).length > 1 ? ` (${bill.specificArea})` : ''}
+                                                                    </p>
                                                                     {bill.isEditedPrice && (
                                                                         <span className="text-[8px] font-black uppercase tracking-widest text-red-500 bg-red-500/10 px-1.5 py-0.5 rounded border border-red-500/20 shrink-0">Edited Price</span>
                                                                     )}
@@ -369,7 +372,10 @@ const AdminBills: React.FC<Props> = ({ bills, theme, onDeleteBill, onEditBill, s
                                                                     <span className={`text-xs font-black shrink-0 ${isDark ? 'text-blue-400' : 'text-blue-600'}`}>
                                                                         #{bill.invoiceNo}
                                                                     </span>
-                                                                    <p className={`font-black text-sm truncate ${isDark ? 'text-white' : 'text-slate-900'}`}>{bill.shopName}</p>
+                                                                    <p className={`font-black text-sm truncate ${isDark ? 'text-white' : 'text-slate-900'}`}>
+                                                                        {bill.shopName}
+                                                                        {bill.specificArea && bills.filter(b => b.shopName.trim().toLowerCase() === bill.shopName.trim().toLowerCase()).length > 1 ? ` (${bill.specificArea})` : ''}
+                                                                    </p>
                                                                     {bill.isEditedPrice && (
                                                                         <span className="text-[8px] font-black uppercase tracking-widest text-red-500 bg-red-500/10 px-1.5 py-0.5 rounded border border-red-500/20 shrink-0">Edited Price</span>
                                                                     )}

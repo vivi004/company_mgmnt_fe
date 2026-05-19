@@ -271,13 +271,19 @@ const ShopManager = ({ orderLineId, villageName, theme, onBack, type, handleRefr
         }
     };
 
+    const getDisplayShopName = (shop: any) => {
+        if (!shop) return '';
+        const isDup = shops.filter(s => s.shop_name.trim().toLowerCase() === shop.shop_name.trim().toLowerCase()).length > 1;
+        return isDup && shop.owner_name ? `${shop.shop_name} (${shop.owner_name})` : shop.shop_name;
+    };
+
     // Sub-view rendering
     if (selectedShop && showBill) {
         // If currentBillId exists, look up the snapshot rates from the API/context if possible,
         // but since we just placed the order, we can snapshot the current cart rates here for the immediate display view.
         return (
             <Bills
-                shopName={selectedShop.shop_name}
+                shopName={getDisplayShopName(selectedShop)}
                 villageName={villageName}
                 theme={theme}
                 invoiceNo={invoiceNo}
@@ -310,7 +316,7 @@ const ShopManager = ({ orderLineId, villageName, theme, onBack, type, handleRefr
             <>
                 <ToastContainer toasts={toasts} removeToast={removeToast} />
                 <ReviewOrder
-                    shopName={selectedShop.shop_name}
+                    shopName={getDisplayShopName(selectedShop)}
                     villageName={villageName}
                     theme={theme}
                     cart={cart}
@@ -332,7 +338,7 @@ const ShopManager = ({ orderLineId, villageName, theme, onBack, type, handleRefr
             <>
                 <ToastContainer toasts={toasts} removeToast={removeToast} />
                 <UnifiedOrderingView
-                    shopName={selectedShop.shop_name}
+                    shopName={getDisplayShopName(selectedShop)}
                     theme={theme}
                     cart={cart}
                     rates={currentRates}
@@ -537,7 +543,10 @@ const ShopManager = ({ orderLineId, villageName, theme, onBack, type, handleRefr
 
                                     <div className="flex-grow min-w-0">
                                         <div className="flex items-start justify-between gap-2">
-                                            <p className={`font-black text-base sm:text-lg leading-tight break-words ${isDark ? 'text-white' : 'text-slate-900'}`}>{shop.shop_name}</p>
+                                            <p className={`font-black text-base sm:text-lg leading-tight break-words ${isDark ? 'text-white' : 'text-slate-900'}`}>
+                                                {shop.shop_name}
+                                                {shops.filter(s => s.shop_name.trim().toLowerCase() === shop.shop_name.trim().toLowerCase()).length > 1 && shop.owner_name ? ` (${shop.owner_name})` : ''}
+                                            </p>
                                             {shop.has_order_today && (
                                                 <span className="px-1.5 py-0.5 bg-emerald-500 text-white text-[8px] font-black uppercase tracking-widest rounded-md shrink-0 mt-0.5">
                                                     Order Taken
