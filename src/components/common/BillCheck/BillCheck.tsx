@@ -90,7 +90,8 @@ const BillCheck = ({ theme, type, userProfileName, onUnverifiedCountChange }: Pr
                 invoiceNo: b.invoice_no || b.invoiceNo,
                 createdBy: b.created_by || b.createdBy,
                 phone: b.phone || '',
-                phone2: b.phone2 || ''
+                phone2: b.phone2 || '',
+                isEditedPrice: Boolean(b.is_edited_price || b.isEditedPrice)
             }));
             setUnverifiedBills(mapped);
             if (onUnverifiedCountChange) {
@@ -418,6 +419,9 @@ const BillCheck = ({ theme, type, userProfileName, onUnverifiedCountChange }: Pr
                                             <span className={`px-2 sm:px-2.5 py-0.5 sm:py-1 rounded-lg text-[9px] sm:text-[10px] font-black uppercase tracking-widest border ${isDark ? 'bg-slate-800 border-white/10 text-slate-300' : 'bg-white border-slate-200 text-slate-600'}`}>
                                                 INV-{bill.invoiceNo}
                                             </span>
+                                            {bill.isEditedPrice && (
+                                                <span className="text-[8px] font-black uppercase tracking-widest text-red-500 bg-red-500/10 px-1.5 py-0.5 rounded border border-red-500/20">Edited Price</span>
+                                            )}
                                         </div>
                                         <p className="text-[10px] sm:text-xs font-bold text-slate-500 uppercase tracking-widest">{bill.villageName}</p>
 
