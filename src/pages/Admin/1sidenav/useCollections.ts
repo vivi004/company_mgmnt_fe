@@ -7,6 +7,7 @@ export interface DailyCollection {
     shop_id: number;
     shop_name: string;
     village_name: string;
+    owner_name?: string;
     order_line_id: number;
     order_line_name: string;
     collection_date: string;

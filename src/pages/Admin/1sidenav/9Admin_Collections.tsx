@@ -391,7 +391,9 @@ const AdminCollections = ({ theme, orderLines, isAdmin: propsIsAdmin }: Props) =
                                                 <td className="px-5 py-3.5">
                                                     <div className="flex flex-col">
                                                         <div className="flex items-center gap-2">
-                                                            <span className={`font-black ${isDark ? 'text-white' : 'text-slate-900'}`}>{row.shop_name}</span>
+                                                            <span className={`font-black ${isDark ? 'text-white' : 'text-slate-900'}`}>
+                                                                {row.shop_name} {row.owner_name && row.owner_name.trim() ? `(${row.owner_name.trim()})` : ''}
+                                                            </span>
                                                             {row.pending_transactions.length > 0 && (
                                                                 <span className="px-1.5 py-0.5 rounded-md bg-amber-500 text-white text-[8px] font-black uppercase tracking-widest animate-bounce shadow-lg shadow-amber-500/40">
                                                                     Needs Approval
@@ -464,7 +466,7 @@ const AdminCollections = ({ theme, orderLines, isAdmin: propsIsAdmin }: Props) =
                                     <div key={row.id} className="p-4 space-y-2">
                                         <div className="flex items-center justify-between">
                                             <span className={`font-black text-sm ${isDark ? 'text-white' : 'text-slate-900'}`}>
-                                                {idx + 1}. {row.shop_name}
+                                                {idx + 1}. {row.shop_name} {row.owner_name && row.owner_name.trim() ? `(${row.owner_name.trim()})` : ''}
                                                 {row.pending_transactions.length > 0 && (
                                                     <span className="ml-2 px-1.5 py-0.5 rounded-md bg-amber-500 text-white text-[8px] font-black uppercase tracking-widest animate-pulse shadow-lg shadow-amber-500/40">
                                                         Needs Approval
