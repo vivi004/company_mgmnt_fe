@@ -260,7 +260,7 @@ const AdminSettings = ({
                             </div>
                         </div>
                         <a href="https://docs.google.com/spreadsheets/d/1gSE3fMAzka_eIlIU2sFR4xC4_IxJTeHAgJkp5YQCSvM/edit" target="_blank" rel="noreferrer"
-                            className={`block text-center px-6 py-4 rounded-[20px] text-xs font-black uppercase tracking-widest transition-all border ${theme === 'dark' ? 'bg-slate-800 border-white/10 text-slate-300 hover:text-emerald-400' : 'bg-white border-slate-200 text-slate-600 hover:text-emerald-600 shadow-sm'}`}>
+                            className="block text-center px-6 py-4 rounded-[20px] text-xs font-black uppercase tracking-widest transition-all bg-emerald-600 hover:bg-emerald-700 text-white shadow-lg shadow-emerald-600/20 hover:-translate-y-0.5 active:scale-95">
                             ↗ Open Master Price Sheet
                         </a>
                     </div>

@@ -33,6 +33,34 @@ const AdminCollections = ({ theme, orderLines, isAdmin: propsIsAdmin }: Props) =
         handleApprove, handleReject
     } = useShopActions(showToast, () => refresh(), selectedDate);
 
+    // Search query filter state
+    const [searchQuery, setSearchQuery] = useState('');
+
+    // Dynamic filtered list based on query matching shop name or owner name
+    const filteredCollections = collections.filter(row => 
+        (row.shop_name || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
+        (row.owner_name || '').toLowerCase().includes(searchQuery.toLowerCase())
+    );
+
+    // Summing totals specifically for the filtered set to display at the bottom of the table
+    const filteredTotals = filteredCollections.reduce((acc, row) => {
+        const collected = row.cash_collected + row.upi_collected + row.cheque_collected + (row.discount_payment || 0);
+        acc.totalOldBalance += row.old_balance;
+        acc.todaysBillAmount += row.todays_bill_amount;
+        acc.amountCollected += collected;
+        acc.totalManualAdjust += (row.manual_adjustments + (row.discount_payment || 0));
+        acc.totalFutureBills += row.future_bills;
+        acc.totalBalance += row.total_balance;
+        return acc;
+    }, {
+        totalOldBalance: 0,
+        todaysBillAmount: 0,
+        amountCollected: 0,
+        totalManualAdjust: 0,
+        totalFutureBills: 0,
+        totalBalance: 0
+    });
+
     // Expense Modal State
     const [showExpModal, setShowExpModal] = useState(false);
     const [editingExpId, setEditingExpId] = useState<number | null>(null);
@@ -361,8 +389,34 @@ const AdminCollections = ({ theme, orderLines, isAdmin: propsIsAdmin }: Props) =
                 <>
                     {/* ═══════ TABLE 1: Main Collection Table ═══════ */}
                     <div className={`rounded-2xl border overflow-hidden mb-6 ${isDark ? 'bg-slate-900/50 border-white/5' : 'bg-white border-slate-100 shadow-sm'}`}>
-                        <div className={`px-5 py-4 border-b ${isDark ? 'border-white/5' : 'border-slate-100'}`}>
+                        <div className={`px-5 py-4 border-b flex flex-col sm:flex-row sm:items-center justify-between gap-4 ${isDark ? 'border-white/5' : 'border-slate-100'}`}>
                             <h3 className={`text-sm font-black uppercase tracking-widest ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>📋 Collection Details</h3>
+                            <div className="relative max-w-md w-full sm:w-80">
+                                <span className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400 dark:text-slate-500">
+                                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                                    </svg>
+                                </span>
+                                <input
+                                    type="text"
+                                    value={searchQuery}
+                                    onChange={(e) => setSearchQuery(e.target.value)}
+                                    placeholder="Search by shop or owner name..."
+                                    className={`w-full pl-10 pr-4 py-2 text-xs font-bold rounded-xl border focus:ring-4 outline-none transition-all ${isDark 
+                                        ? 'bg-slate-800 border-white/10 text-white placeholder-slate-500 focus:ring-blue-500/20 focus:border-blue-500' 
+                                        : 'bg-slate-50 border-slate-200 text-slate-900 placeholder-slate-400 focus:ring-blue-500/10 focus:border-blue-500 shadow-inner'}`}
+                                />
+                                {searchQuery && (
+                                    <button
+                                        onClick={() => setSearchQuery('')}
+                                        className="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-colors"
+                                    >
+                                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M6 18L18 6M6 6l12 12" />
+                                        </svg>
+                                    </button>
+                                )}
+                            </div>
                         </div>
 
                         {/* Desktop Table */}
@@ -381,78 +435,86 @@ const AdminCollections = ({ theme, orderLines, isAdmin: propsIsAdmin }: Props) =
                                     </tr>
                                 </thead>
                                 <tbody className={`divide-y ${isDark ? 'divide-white/5' : 'divide-slate-100'}`}>
-                                    {collections.map((row, idx) => {
-                                        const collected = row.cash_collected + row.upi_collected + row.cheque_collected + (row.discount_payment || 0);
-                                        const actionShop = { id: row.shop_id, shop_name: row.shop_name, balance: row.total_balance, village_name: row.village_name };
+                                    {filteredCollections.length === 0 ? (
+                                        <tr>
+                                            <td colSpan={8} className="text-center py-12 text-slate-400 dark:text-slate-500 font-black tracking-wider uppercase text-xs">
+                                                🔍 No matching shops found for "{searchQuery}"
+                                            </td>
+                                        </tr>
+                                    ) : (
+                                        filteredCollections.map((row, idx) => {
+                                            const collected = row.cash_collected + row.upi_collected + row.cheque_collected + (row.discount_payment || 0);
+                                            const actionShop = { id: row.shop_id, shop_name: row.shop_name, balance: row.total_balance, village_name: row.village_name };
 
-                                        return (
-                                            <tr key={row.id} className={`transition-all duration-200 group ${isDark ? 'hover:bg-white/5' : 'hover:bg-slate-50'}`}>
-                                                <td className={`px-5 py-3.5 font-bold ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>{idx + 1}</td>
-                                                <td className="px-5 py-3.5">
-                                                    <div className="flex flex-col">
-                                                        <div className="flex items-center gap-2">
-                                                            <span className={`font-black ${isDark ? 'text-white' : 'text-slate-900'}`}>
-                                                                {row.shop_name} {row.owner_name && row.owner_name.trim() ? `(${row.owner_name.trim()})` : ''}
-                                                            </span>
-                                                            {row.pending_transactions.length > 0 && (
-                                                                <span className="px-1.5 py-0.5 rounded-md bg-amber-500 text-white text-[8px] font-black uppercase tracking-widest animate-bounce shadow-lg shadow-amber-500/40">
-                                                                    Needs Approval
+                                            return (
+                                                <tr key={row.id} className={`transition-all duration-200 group ${isDark ? 'hover:bg-white/5' : 'hover:bg-slate-50'}`}>
+                                                    <td className={`px-5 py-3.5 font-bold ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>{idx + 1}</td>
+                                                    <td className="px-5 py-3.5">
+                                                        <div className="flex flex-col">
+                                                            <div className="flex items-center gap-2">
+                                                                <span className={`font-black ${isDark ? 'text-white' : 'text-slate-900'}`}>
+                                                                    {row.shop_name} {row.owner_name && row.owner_name.trim() ? `(${row.owner_name.trim()})` : ''}
                                                                 </span>
-                                                            )}
+                                                                {row.pending_transactions.length > 0 && (
+                                                                    <span className="px-1.5 py-0.5 rounded-md bg-amber-500 text-white text-[8px] font-black uppercase tracking-widest animate-bounce shadow-lg shadow-amber-500/40">
+                                                                        Needs Approval
+                                                                    </span>
+                                                                )}
+                                                            </div>
+                                                            <div className="flex items-center gap-2 mt-1.5 opacity-0 group-hover:opacity-100 transition-opacity">
+                                                                <button 
+                                                                    onClick={() => { setSelectedShop(actionShop); setShowPaymentModal(true); }}
+                                                                    className="px-2 py-0.5 rounded-md bg-emerald-500/10 text-emerald-600 text-[10px] font-black uppercase tracking-tighter hover:bg-emerald-500 hover:text-white transition-all"
+                                                                >
+                                                                    Collect ₹
+                                                                </button>
+                                                                <button 
+                                                                    onClick={() => { setSelectedShop(actionShop); setShowAdjustModal(true); }}
+                                                                    className="px-2 py-0.5 rounded-md bg-blue-500/10 text-blue-600 text-[10px] font-black uppercase tracking-tighter hover:bg-blue-500 hover:text-white transition-all"
+                                                                >
+                                                                    Adjust ±
+                                                                </button>
+                                                                <button 
+                                                                    onClick={() => fetchLedger(actionShop)}
+                                                                    className="px-2 py-0.5 rounded-md bg-slate-500/10 text-slate-600 text-[10px] font-black uppercase tracking-tighter hover:bg-slate-500 hover:text-white transition-all"
+                                                                >
+                                                                    Ledger 👁
+                                                                </button>
+                                                            </div>
                                                         </div>
-                                                        <div className="flex items-center gap-2 mt-1.5 opacity-0 group-hover:opacity-100 transition-opacity">
-                                                            <button 
-                                                                onClick={() => { setSelectedShop(actionShop); setShowPaymentModal(true); }}
-                                                                className="px-2 py-0.5 rounded-md bg-emerald-500/10 text-emerald-600 text-[10px] font-black uppercase tracking-tighter hover:bg-emerald-500 hover:text-white transition-all"
-                                                            >
-                                                                Collect ₹
-                                                            </button>
-                                                            <button 
-                                                                onClick={() => { setSelectedShop(actionShop); setShowAdjustModal(true); }}
-                                                                className="px-2 py-0.5 rounded-md bg-blue-500/10 text-blue-600 text-[10px] font-black uppercase tracking-tighter hover:bg-blue-500 hover:text-white transition-all"
-                                                            >
-                                                                Adjust ±
-                                                            </button>
-                                                            <button 
-                                                                onClick={() => fetchLedger(actionShop)}
-                                                                className="px-2 py-0.5 rounded-md bg-slate-500/10 text-slate-600 text-[10px] font-black uppercase tracking-tighter hover:bg-slate-500 hover:text-white transition-all"
-                                                            >
-                                                                Ledger 👁
-                                                            </button>
+                                                    </td>
+                                                    <td className={`px-5 py-3.5 text-right font-bold ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>₹{fmt(row.old_balance)}</td>
+                                                    <td className={`px-5 py-3.5 text-right font-bold ${isDark ? 'text-white' : 'text-slate-900'}`}>₹{fmt(row.todays_bill_amount)}</td>
+                                                    <td className="px-5 py-3.5 text-right">
+                                                        <div className={`font-black ${collected > 0 ? 'text-green-500' : isDark ? 'text-slate-500' : 'text-slate-400'}`}>₹{fmt(collected)}</div>
+                                                        <div className="flex justify-end mt-1">{renderModeBadges(row.cash_collected, row.upi_collected, row.cheque_collected, 0, row.pending_transactions.filter(t => (t.category || t.type || '').toUpperCase() === 'PAYMENT'), row.discount_payment)}</div>
+                                                    </td>
+                                                    <td className={`px-5 py-3.5 text-right`}>
+                                                        <div className={`font-bold ${(row.manual_adjustments + (row.discount_payment || 0)) !== 0 ? ((row.manual_adjustments + (row.discount_payment || 0)) > 0 ? 'text-blue-500' : 'text-amber-500') : isDark ? 'text-slate-600' : 'text-slate-300'}`}>
+                                                            {(row.manual_adjustments + (row.discount_payment || 0)) !== 0 ? `₹${fmt(row.manual_adjustments + (row.discount_payment || 0))}` : '—'}
                                                         </div>
-                                                    </div>
-                                                </td>
-                                                <td className={`px-5 py-3.5 text-right font-bold ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>₹{fmt(row.old_balance)}</td>
-                                                <td className={`px-5 py-3.5 text-right font-bold ${isDark ? 'text-white' : 'text-slate-900'}`}>₹{fmt(row.todays_bill_amount)}</td>
-                                                <td className="px-5 py-3.5 text-right">
-                                                    <div className={`font-black ${collected > 0 ? 'text-green-500' : isDark ? 'text-slate-500' : 'text-slate-400'}`}>₹{fmt(collected)}</div>
-                                                    <div className="flex justify-end mt-1">{renderModeBadges(row.cash_collected, row.upi_collected, row.cheque_collected, 0, row.pending_transactions.filter(t => (t.category || t.type || '').toUpperCase() === 'PAYMENT'), row.discount_payment)}</div>
-                                                </td>
-                                                <td className={`px-5 py-3.5 text-right`}>
-                                                    <div className={`font-bold ${(row.manual_adjustments + (row.discount_payment || 0)) !== 0 ? ((row.manual_adjustments + (row.discount_payment || 0)) > 0 ? 'text-blue-500' : 'text-amber-500') : isDark ? 'text-slate-600' : 'text-slate-300'}`}>
-                                                        {(row.manual_adjustments + (row.discount_payment || 0)) !== 0 ? `₹${fmt(row.manual_adjustments + (row.discount_payment || 0))}` : '—'}
-                                                    </div>
-                                                    <div className="flex justify-end mt-1">{renderModeBadges(row.manual_cash, row.manual_upi, row.manual_cheque, row.manual_pos, row.pending_transactions.filter(t => (t.category || t.type || '').toUpperCase() === 'MANUAL_ADJUST'), row.discount_adjustment)}</div>
-                                                </td>
-                                                <td className={`px-5 py-3.5 text-right font-bold ${row.future_bills !== 0 ? 'text-purple-500' : isDark ? 'text-slate-600' : 'text-slate-300'}`}>
-                                                    {row.future_bills !== 0 ? `₹${fmt(row.future_bills)}` : '—'}
-                                                </td>
-                                                <td className={`px-5 py-3.5 text-right font-black ${row.total_balance > 0 ? 'text-red-500' : 'text-green-500'}`}>
-                                                    ₹{fmt(row.total_balance)}
-                                                </td>
-                                            </tr>
-                                        );
-                                    })}
+                                                        <div className="flex justify-end mt-1">{renderModeBadges(row.manual_cash, row.manual_upi, row.manual_cheque, row.manual_pos, row.pending_transactions.filter(t => (t.category || t.type || '').toUpperCase() === 'MANUAL_ADJUST'), row.discount_adjustment)}</div>
+                                                    </td>
+                                                    <td className={`px-5 py-3.5 text-right font-bold ${row.future_bills !== 0 ? 'text-purple-500' : isDark ? 'text-slate-600' : 'text-slate-300'}`}>
+                                                        {row.future_bills !== 0 ? `₹${fmt(row.future_bills)}` : '—'}
+                                                    </td>
+                                                    <td className={`px-5 py-3.5 text-right font-black ${row.total_balance > 0 ? 'text-red-500' : 'text-green-500'}`}>
+                                                        ₹{fmt(row.total_balance)}
+                                                    </td>
+                                                </tr>
+                                            );
+                                        })
+                                    )}
                                     {/* ── TOTAL ROW ── */}
                                     <tr key="total-row" className={`border-t-2 font-black ${isDark ? 'border-blue-500/30 bg-blue-950/20' : 'border-blue-200 bg-blue-50/50'}`}>
                                         <td className="px-5 py-4"></td>
                                         <td className={`px-5 py-4 text-base uppercase tracking-wider ${isDark ? 'text-blue-400' : 'text-blue-700'}`}>Total</td>
-                                        <td className={`px-5 py-4 text-right text-base ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>₹{fmt(totals.totalOldBalance)}</td>
-                                        <td className={`px-5 py-4 text-right text-base ${isDark ? 'text-white' : 'text-slate-900'}`}>₹{fmt(totals.todaysBillAmount)}</td>
-                                        <td className={`px-5 py-4 text-right text-base ${totals.amountCollected > 0 ? 'text-green-500' : isDark ? 'text-slate-400' : 'text-slate-500'}`}>₹{fmt(totals.amountCollected)}</td>
-                                        <td className={`px-5 py-4 text-right text-base ${totals.totalManualAdjust !== 0 ? 'text-blue-400' : isDark ? 'text-slate-600' : 'text-slate-400'}`}>₹{fmt(totals.totalManualAdjust)}</td>
-                                        <td className={`px-5 py-4 text-right text-base ${ totals.totalFutureBills !== 0 ? 'text-purple-500' : isDark ? 'text-slate-600' : 'text-slate-400'}`}>₹{fmt(totals.totalFutureBills)}</td>
-                                        <td className={`px-5 py-4 text-right text-base ${totals.totalBalance > 0 ? 'text-red-500' : 'text-green-500'}`}>₹{fmt(totals.totalBalance)}</td>
+                                        <td className={`px-5 py-4 text-right text-base ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>₹{fmt(filteredTotals.totalOldBalance)}</td>
+                                        <td className={`px-5 py-4 text-right text-base ${isDark ? 'text-white' : 'text-slate-900'}`}>₹{fmt(filteredTotals.todaysBillAmount)}</td>
+                                        <td className={`px-5 py-4 text-right text-base ${filteredTotals.amountCollected > 0 ? 'text-green-500' : isDark ? 'text-slate-400' : 'text-slate-500'}`}>₹{fmt(filteredTotals.amountCollected)}</td>
+                                        <td className={`px-5 py-4 text-right text-base ${filteredTotals.totalManualAdjust !== 0 ? 'text-blue-400' : isDark ? 'text-slate-600' : 'text-slate-400'}`}>₹{fmt(filteredTotals.totalManualAdjust)}</td>
+                                        <td className={`px-5 py-4 text-right text-base ${ filteredTotals.totalFutureBills !== 0 ? 'text-purple-500' : isDark ? 'text-slate-600' : 'text-slate-400'}`}>₹{fmt(filteredTotals.totalFutureBills)}</td>
+                                        <td className={`px-5 py-4 text-right text-base ${filteredTotals.totalBalance > 0 ? 'text-red-500' : 'text-green-500'}`}>₹{fmt(filteredTotals.totalBalance)}</td>
                                     </tr>
                                 </tbody>
                             </table>
@@ -460,76 +522,82 @@ const AdminCollections = ({ theme, orderLines, isAdmin: propsIsAdmin }: Props) =
 
                         {/* Mobile Card Layout */}
                         <div className="sm:hidden divide-y divide-slate-100 dark:divide-white/5">
-                            {collections.map((row, idx) => {
-                                let collected = row.cash_collected + row.upi_collected + row.cheque_collected + (row.discount_payment || 0);
-                                return (
-                                    <div key={row.id} className="p-4 space-y-2">
-                                        <div className="flex items-center justify-between">
-                                            <span className={`font-black text-sm ${isDark ? 'text-white' : 'text-slate-900'}`}>
-                                                {idx + 1}. {row.shop_name} {row.owner_name && row.owner_name.trim() ? `(${row.owner_name.trim()})` : ''}
-                                                {row.pending_transactions.length > 0 && (
-                                                    <span className="ml-2 px-1.5 py-0.5 rounded-md bg-amber-500 text-white text-[8px] font-black uppercase tracking-widest animate-pulse shadow-lg shadow-amber-500/40">
-                                                        Needs Approval
-                                                    </span>
-                                                )}
-                                            </span>
-                                            <div className="flex items-center gap-2">
-                                                <button 
-                                                    onClick={() => {
-                                                        const s = { id: row.shop_id, shop_name: row.shop_name, balance: row.total_balance, village_name: row.village_name };
-                                                        setSelectedShop(s); setShowPaymentModal(true);
-                                                    }}
-                                                    className="w-7 h-7 rounded-lg bg-emerald-500 text-white flex items-center justify-center text-xs font-black"
-                                                >
-                                                    ₹
-                                                </button>
-                                                <button 
-                                                    onClick={() => {
-                                                        const s = { id: row.shop_id, shop_name: row.shop_name, balance: row.total_balance, village_name: row.village_name };
-                                                        setSelectedShop(s); setShowAdjustModal(true);
-                                                    }}
-                                                    className="w-7 h-7 rounded-lg bg-blue-500 text-white flex items-center justify-center text-xs font-black"
-                                                >
-                                                    ±
-                                                </button>
-                                                <button 
-                                                    onClick={() => {
-                                                        const s = { id: row.shop_id, shop_name: row.shop_name, balance: row.total_balance, village_name: row.village_name };
-                                                        fetchLedger(s);
-                                                    }}
-                                                    className="w-7 h-7 rounded-lg bg-slate-500 text-white flex items-center justify-center text-xs font-black"
-                                                >
-                                                    👁
-                                                </button>
+                            {filteredCollections.length === 0 ? (
+                                <div className="text-center py-10 text-slate-400 dark:text-slate-500 font-black tracking-wider uppercase text-xs">
+                                    🔍 No matching shops found
+                                </div>
+                            ) : (
+                                filteredCollections.map((row, idx) => {
+                                    let collected = row.cash_collected + row.upi_collected + row.cheque_collected + (row.discount_payment || 0);
+                                    return (
+                                        <div key={row.id} className="p-4 space-y-2">
+                                            <div className="flex items-center justify-between">
+                                                <span className={`font-black text-sm ${isDark ? 'text-white' : 'text-slate-900'}`}>
+                                                    {idx + 1}. {row.shop_name} {row.owner_name && row.owner_name.trim() ? `(${row.owner_name.trim()})` : ''}
+                                                    {row.pending_transactions.length > 0 && (
+                                                        <span className="ml-2 px-1.5 py-0.5 rounded-md bg-amber-500 text-white text-[8px] font-black uppercase tracking-widest animate-pulse shadow-lg shadow-amber-500/40">
+                                                            Needs Approval
+                                                        </span>
+                                                    )}
+                                                </span>
+                                                <div className="flex items-center gap-2">
+                                                    <button 
+                                                        onClick={() => {
+                                                            const s = { id: row.shop_id, shop_name: row.shop_name, balance: row.total_balance, village_name: row.village_name };
+                                                            setSelectedShop(s); setShowPaymentModal(true);
+                                                        }}
+                                                        className="w-7 h-7 rounded-lg bg-emerald-500 text-white flex items-center justify-center text-xs font-black"
+                                                    >
+                                                        ₹
+                                                    </button>
+                                                    <button 
+                                                        onClick={() => {
+                                                            const s = { id: row.shop_id, shop_name: row.shop_name, balance: row.total_balance, village_name: row.village_name };
+                                                            setSelectedShop(s); setShowAdjustModal(true);
+                                                        }}
+                                                        className="w-7 h-7 rounded-lg bg-blue-500 text-white flex items-center justify-center text-xs font-black"
+                                                    >
+                                                        ±
+                                                    </button>
+                                                    <button 
+                                                        onClick={() => {
+                                                            const s = { id: row.shop_id, shop_name: row.shop_name, balance: row.total_balance, village_name: row.village_name };
+                                                            fetchLedger(s);
+                                                        }}
+                                                        className="w-7 h-7 rounded-lg bg-slate-500 text-white flex items-center justify-center text-xs font-black"
+                                                    >
+                                                        👁
+                                                    </button>
+                                                </div>
                                             </div>
+                                            <div className="grid grid-cols-2 gap-2 text-[11px]">
+                                                <div><span className="text-slate-400">Prev Bal:</span> <span className="font-bold">₹{fmt(row.old_balance)}</span></div>
+                                                <div className="text-right"><span className="text-slate-400">Today Bill:</span> <span className="font-bold">₹{fmt(row.todays_bill_amount)}</span></div>
+                                                <div><span className="text-slate-400">Collected:</span> <span className="font-bold text-green-500">₹{fmt(collected)}</span></div>
+                                                <div className="text-right">
+                                                    <span className="text-slate-400">Adjust:</span> 
+                                                    <span className={`font-bold ${(row.manual_adjustments + (row.discount_payment || 0)) !== 0 ? ((row.manual_adjustments + (row.discount_payment || 0)) > 0 ? 'text-blue-500' : 'text-amber-500') : ''}`}>₹{fmt(row.manual_adjustments + (row.discount_payment || 0))}</span>
+                                                    <div className="flex justify-end mt-1">{renderModeBadges(row.manual_cash, row.manual_upi, row.manual_cheque, row.manual_pos, row.pending_transactions.filter(t => (t.category || t.type || '').toUpperCase() === 'MANUAL_ADJUST'), row.discount_adjustment)}</div>
+                                                 </div>
+                                                <div><span className="text-slate-400">Upcoming:</span> <span className="font-bold text-purple-500">₹{fmt(row.future_bills)}</span></div>
+                                                <div className="text-right"><span className="text-slate-400 text-xs font-black uppercase">Total:</span> <span className="font-black text-red-500 text-sm">₹{fmt(row.total_balance)}</span></div>
+                                            </div>
+                                            <div>{renderModeBadges(row.cash_collected, row.upi_collected, row.cheque_collected, 0, row.pending_transactions.filter(t => (t.category || t.type || '').toUpperCase() === 'PAYMENT'), row.discount_payment)}</div>
                                         </div>
-                                        <div className="grid grid-cols-2 gap-2 text-[11px]">
-                                            <div><span className="text-slate-400">Prev Bal:</span> <span className="font-bold">₹{fmt(row.old_balance)}</span></div>
-                                            <div className="text-right"><span className="text-slate-400">Today Bill:</span> <span className="font-bold">₹{fmt(row.todays_bill_amount)}</span></div>
-                                            <div><span className="text-slate-400">Collected:</span> <span className="font-bold text-green-500">₹{fmt(collected)}</span></div>
-                                            <div className="text-right">
-                                                <span className="text-slate-400">Adjust:</span> 
-                                                <span className={`font-bold ${(row.manual_adjustments + (row.discount_payment || 0)) !== 0 ? ((row.manual_adjustments + (row.discount_payment || 0)) > 0 ? 'text-blue-500' : 'text-amber-500') : ''}`}>₹{fmt(row.manual_adjustments + (row.discount_payment || 0))}</span>
-                                                <div className="flex justify-end mt-1">{renderModeBadges(row.manual_cash, row.manual_upi, row.manual_cheque, row.manual_pos, row.pending_transactions.filter(t => (t.category || t.type || '').toUpperCase() === 'MANUAL_ADJUST'), row.discount_adjustment)}</div>
-                                             </div>
-                                            <div><span className="text-slate-400">Upcoming:</span> <span className="font-bold text-purple-500">₹{fmt(row.future_bills)}</span></div>
-                                            <div className="text-right"><span className="text-slate-400 text-xs font-black uppercase">Total:</span> <span className="font-black text-red-500 text-sm">₹{fmt(row.total_balance)}</span></div>
-                                        </div>
-                                        <div>{renderModeBadges(row.cash_collected, row.upi_collected, row.cheque_collected, 0, row.pending_transactions.filter(t => (t.category || t.type || '').toUpperCase() === 'PAYMENT'), row.discount_payment)}</div>
-                                    </div>
-                                );
-                            })}
+                                    );
+                                })
+                            )}
                             {/* Mobile TOTAL Card */}
                             <div className={`p-4 space-y-1 ${isDark ? 'bg-blue-950/20' : 'bg-blue-50/80'}`}>
                                 <p className={`text-xs font-black uppercase tracking-widest ${isDark ? 'text-blue-400' : 'text-blue-700'}`}>Total Summary</p>
                                 <div className="grid grid-cols-2 gap-2 text-xs">
-                                    <div><span className="text-slate-500">Bill:</span> <span className="font-black">₹{fmt(totals.todaysBillAmount)}</span></div>
-                                    <div className="text-right"><span className="text-slate-500">Collected:</span> <span className="font-black">₹{fmt(totals.amountCollected)}</span></div>
-                                    <div><span className="text-slate-500">Adjust:</span> <span className="font-black">₹{fmt(totals.totalManualAdjust)}</span></div>
-                                    <div className="text-right"><span className="text-slate-500">Upcoming:</span> <span className="font-black">₹{fmt(totals.totalFutureBills)}</span></div>
+                                    <div><span className="text-slate-500">Bill:</span> <span className="font-black">₹{fmt(filteredTotals.todaysBillAmount)}</span></div>
+                                    <div className="text-right"><span className="text-slate-500">Collected:</span> <span className="font-black">₹{fmt(filteredTotals.amountCollected)}</span></div>
+                                    <div><span className="text-slate-500">Adjust:</span> <span className="font-black">₹{fmt(filteredTotals.totalManualAdjust)}</span></div>
+                                    <div className="text-right"><span className="text-slate-500">Upcoming:</span> <span className="font-black">₹{fmt(filteredTotals.totalFutureBills)}</span></div>
                                     <div className="col-span-2 text-center mt-2 border-t border-blue-200/50 pt-2">
                                         <span className="text-slate-500 font-black uppercase tracking-tighter">Total Balance:</span> 
-                                        <span className="font-black text-lg ml-2 text-red-500">₹{fmt(totals.totalBalance)}</span>
+                                        <span className="font-black text-lg ml-2 text-red-500">₹{fmt(filteredTotals.totalBalance)}</span>
                                     </div>
                                 </div>
                             </div>
