@@ -231,13 +231,18 @@ export const useAdminDashboardData = () => {
     const fetchInvoiceSettings = async () => {
         try {
             const res = await api().get('/api/settings/invoice');
-            const { next_invoice_no, last_invoice_no, ledger_sheet_url } = res.data;
+            const { next_invoice_no, last_invoice_no, ledger_sheet_url, last_sheet_sync_time } = res.data;
             setNextInvoiceNo(next_invoice_no);
             setLastInvoiceNo(last_invoice_no);
             setLedgerSheetUrl(ledger_sheet_url || "");
             localStorage.setItem('nextInvoiceNo', String(next_invoice_no));
             localStorage.setItem('lastInvoiceNo', String(last_invoice_no));
             localStorage.setItem('ledgerSheetUrl', ledger_sheet_url || "");
+            
+            if (last_sheet_sync_time) {
+                setLastSynced(last_sheet_sync_time);
+                localStorage.setItem('lastSynced', last_sheet_sync_time);
+            }
         } catch (err) {
             console.error('Could not load invoice settings from backend, using localStorage fallback.');
         }
@@ -292,6 +297,12 @@ export const useAdminDashboardData = () => {
                 const now = new Date().toLocaleString('en-IN', { hour12: true, timeZone: 'Asia/Kolkata' });
                 setLastSynced(now);
                 localStorage.setItem('lastSynced', now);
+                // Persist the manual synchronization timestamp to the global database settings
+                try {
+                    await api().put('/api/settings/invoice', { last_sheet_sync_time: now });
+                } catch (dbErr) {
+                    console.error('Failed to sync manual fetch timestamp to database:', dbErr);
+                }
                 showToast("Product rates merged locally to Web dashboard!", "success");
             } else {
                 showToast(result.error || "Google Sheets Sync Failed", "error");
