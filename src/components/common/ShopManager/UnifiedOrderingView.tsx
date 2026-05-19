@@ -474,10 +474,24 @@ const UnifiedOrderingView: React.FC<Props> = ({ shopName, theme, cart, rates, up
               ))}
             </div>
             {filtered.length > 0 ? (
-              <div className="text-center py-6">
+              <div className="text-center py-6 flex flex-col items-center gap-6">
                 <span className={`inline-block text-xs uppercase tracking-widest px-5 py-2 rounded-full border shadow-sm ${isDark ? 'bg-slate-800 text-slate-400 border-white/10' : 'bg-white text-gray-400 border-gray-100'}`}>
                   {filtered.length} items · End of List
                 </span>
+                {totalItems > 0 && (
+                  <div className={`w-full max-w-xl px-5 py-4 rounded-2xl flex items-center justify-between shadow-xl border transition-all animate-in fade-in slide-in-from-bottom-4 ${isDark ? 'bg-slate-800 border-blue-500/50 shadow-blue-900/20' : 'bg-white border-blue-200 shadow-blue-500/10'}`}>
+                    <div className="flex flex-col text-left">
+                      <span className={`text-[10px] font-black uppercase tracking-widest ${isDark ? 'text-slate-400' : 'text-blue-500'}`}>Current Order</span>
+                      <span className={`text-lg font-black ${isDark ? 'text-white' : 'text-slate-900'}`}>{totalItems} Items</span>
+                    </div>
+                    <button
+                      onClick={() => onReviewOrder(hasEditedPrice)}
+                      className="px-6 sm:px-10 py-3 rounded-xl font-black text-xs sm:text-sm uppercase tracking-widest transition-all bg-blue-600 text-white shadow-xl shadow-blue-600/30 hover:bg-blue-700 active:scale-95"
+                    >
+                      Review Order →
+                    </button>
+                  </div>
+                )}
               </div>
             ) : (
               <div className="flex flex-col items-center justify-center py-20 text-center">
