@@ -104,7 +104,7 @@ const AdminBillsEditModal: React.FC<AdminBillsEditModalProps> = ({
                                 if (isVariant) {
                                     // Derive rate from base product's editRate × multiplier
                                     // Multiplier = variant's static price / base product's static price
-                                    const baseId = isBoxVariant ? p.id.slice(0, -4) : p.id.slice(0, -4);
+                                    const baseId = p.id.slice(0, -4);
                                     // Find the base product to get its static price
                                     const allBase = getAllProducts();
                                     const baseProduct = allBase.find(b => b.id === baseId);
