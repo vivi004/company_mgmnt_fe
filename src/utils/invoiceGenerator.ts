@@ -197,11 +197,11 @@ ${itemRows}
 <!-- Total -->
 <tr style="font-weight:bold;">
     <td style="${B}"></td>
-    <td style="${B}text-align:right;">Total</td>
-    <td style="${B}text-align:center;">${totalQty}</td>
+    <td style="${B}text-align:right;font-size:14px;">Total</td>
+    <td style="${B}text-align:center;font-size:14px;">${totalQty}</td>
     <td style="${B}"></td>
     <td style="${B}"></td>
-    <td style="${B}text-align:right;font-size:16px;font-weight:bold;">&#8377; ${totalAmt.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</td>
+    <td style="${B}text-align:right;font-size:20px;font-weight:bold;">&#8377; ${totalAmt.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</td>
 </tr>
 
 <!-- Amount + Declaration in ONE full-width cell; E.&O.E floated right (no internal column line) -->
