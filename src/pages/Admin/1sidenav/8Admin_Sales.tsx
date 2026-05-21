@@ -58,10 +58,12 @@ const AdminSales = ({ theme }: Props) => {
             </div>
 
             {/* Summary Cards */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
-                {card('Total Sales', fmt(data.summary.totalSales), `${state.startDate} — ${state.endDate}`, '💰', 'blue')}
-                {card('Total Orders', data.summary.totalOrders.toString(), 'Verified invoices', '📦', 'emerald')}
-                {card('Avg Order Value', fmt(data.summary.avgValue), 'Per invoice average', '📊', 'violet')}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-5">
+                {card('Gross Sales', fmt(data.summary.totalSales), `${state.startDate} — ${state.endDate}`, '💰', 'blue')}
+                {card('Total Returns', fmt(data.summary.totalReturns), 'Product returns value', '↩️', 'amber')}
+                {card('Net Sales', fmt(data.summary.netSales), 'Gross minus returns', '💵', 'emerald')}
+                {card('Total Orders', data.summary.totalOrders.toString(), 'Verified invoices', '📦', 'blue')}
+                {card('Avg Order Value', fmt(data.summary.avgValue), 'Net per invoice', '📊', 'violet')}
                 {card('Best Staff', data.summary.bestStaff?.name || '—', data.summary.bestStaff ? fmt(data.summary.bestStaff.amount) : 'No data', '🏆', 'amber')}
             </div>
 
@@ -82,60 +84,66 @@ const AdminSales = ({ theme }: Props) => {
                         className={`w-full px-5 py-3 rounded-2xl border font-bold text-sm focus:outline-none focus:ring-4 ${isDark ? 'bg-white/5 border-white/10 text-white placeholder-slate-500 focus:ring-blue-500/20' : 'bg-slate-50 border-slate-200 text-slate-900 focus:ring-blue-500/10'}`} />
                 </div>
                 <div className="min-w-[180px]">
-                    <input type="number" placeholder="Min Sales ₹" value={state.minSalesFilter || ''} onChange={e => actions.setMinSalesFilter(Number(e.target.value) || 0)}
+                    <input type="number" placeholder="Min Net Sales ₹" value={state.minSalesFilter || ''} onChange={e => actions.setMinSalesFilter(Number(e.target.value) || 0)}
                         className={`w-full px-5 py-3 rounded-2xl border font-bold text-sm focus:outline-none focus:ring-4 ${isDark ? 'bg-white/5 border-white/10 text-white placeholder-slate-500 focus:ring-blue-500/20' : 'bg-slate-50 border-slate-200 text-slate-900 focus:ring-blue-500/10'}`} />
                 </div>
             </div>
 
             {state.viewMode === 'individual' && (
                 <div className={`rounded-[28px] border overflow-x-auto hide-scrollbar ${isDark ? 'bg-slate-900/50 border-white/5' : 'bg-white border-slate-100 shadow-xl'}`}>
-                    <div className="min-w-[800px]">
+                    <div className="min-w-[900px]">
                         <div className={`grid grid-cols-12 gap-2 px-6 py-4 text-[10px] font-black uppercase tracking-widest border-b ${isDark ? 'bg-slate-800/50 border-white/5 text-slate-400' : 'bg-slate-50 border-slate-100 text-slate-500'}`}>
                             <div className="col-span-1">#</div>
                             <div className="col-span-3">Staff Name</div>
-                        <div className="col-span-2 text-center cursor-pointer hover:text-blue-500" onClick={() => actions.toggleSort('orders')}>
-                            Orders {state.sortBy === 'orders' && (state.sortDir === 'desc' ? '↓' : '↑')}
+                            <div className="col-span-1 text-center cursor-pointer hover:text-blue-500" onClick={() => actions.toggleSort('orders')}>
+                                Orders {state.sortBy === 'orders' && (state.sortDir === 'desc' ? '↓' : '↑')}
+                            </div>
+                            <div className="col-span-2 text-right cursor-pointer hover:text-blue-500" onClick={() => actions.toggleSort('amount')}>
+                                Gross Sales {state.sortBy === 'amount' && (state.sortDir === 'desc' ? '↓' : '↑')}
+                            </div>
+                            <div className="col-span-1 text-right text-amber-500">Returns</div>
+                            <div className="col-span-2 text-right text-emerald-500 font-extrabold">Net Sales</div>
+                            <div className="col-span-1 text-right">Avg Order</div>
+                            <div className="col-span-1 text-right">Last Activity</div>
                         </div>
-                        <div className="col-span-2 text-right cursor-pointer hover:text-blue-500" onClick={() => actions.toggleSort('amount')}>
-                            Total Sales {state.sortBy === 'amount' && (state.sortDir === 'desc' ? '↓' : '↑')}
-                        </div>
-                        <div className="col-span-2 text-right">Avg Order</div>
-                        <div className="col-span-2 text-right">Last Sale</div>
-                    </div>
-                    {state.loading ? (
-                        <div className="py-16 text-center animate-pulse">
-                            <p className={`font-black italic ${isDark ? 'text-blue-400' : 'text-blue-600'}`}>Loading sales data...</p>
-                        </div>
-                    ) : data.staffRows.length === 0 ? (
-                        <div className="py-16 text-center">
-                            <p className="text-4xl mb-3">📊</p>
-                            <p className={`font-black italic ${isDark ? 'text-white' : 'text-slate-900'}`}>No sales data found</p>
-                            <p className="text-slate-500 text-sm mt-1">Adjust date range or filters</p>
-                        </div>
-                    ) : (
-                        data.staffRows.map((row, idx) => {
-                            const isLow = data.lowPerformers.some(l => l.name === row.name);
-                            return (
-                                <div key={row.name}
-                                    className={`grid grid-cols-12 gap-2 px-6 py-4 items-center border-b transition-all
-                                        ${isLow ? (isDark ? 'bg-red-500/5 border-red-500/10' : 'bg-red-50/50 border-red-100') : (isDark ? 'border-white/5 hover:bg-white/[0.02]' : 'border-slate-50 hover:bg-blue-50/30')}`}>
-                                    <div className={`col-span-1 font-black text-sm ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
-                                        {(state.currentPage - 1) * 10 + idx + 1}
+                        {state.loading ? (
+                            <div className="py-16 text-center animate-pulse">
+                                <p className={`font-black italic ${isDark ? 'text-blue-400' : 'text-blue-600'}`}>Loading sales data...</p>
+                            </div>
+                        ) : data.staffRows.length === 0 ? (
+                            <div className="py-16 text-center">
+                                <p className="text-4xl mb-3">📊</p>
+                                <p className={`font-black italic ${isDark ? 'text-white' : 'text-slate-900'}`}>No sales data found</p>
+                                <p className="text-slate-500 text-sm mt-1">Adjust date range or filters</p>
+                            </div>
+                        ) : (
+                            data.staffRows.map((row, idx) => {
+                                const isLow = data.lowPerformers.some(l => l.name === row.name);
+                                return (
+                                    <div key={row.name}
+                                        className={`grid grid-cols-12 gap-2 px-6 py-4 items-center border-b transition-all
+                                            ${isLow ? (isDark ? 'bg-red-500/5 border-red-500/10' : 'bg-red-50/50 border-red-100') : (isDark ? 'border-white/5 hover:bg-white/[0.02]' : 'border-slate-50 hover:bg-blue-50/30')}`}>
+                                        <div className={`col-span-1 font-black text-sm ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
+                                            {(state.currentPage - 1) * 10 + idx + 1}
+                                        </div>
+                                        <div className="col-span-3">
+                                            <p className={`font-black ${isDark ? 'text-white' : 'text-slate-900'}`}>{row.name}</p>
+                                            {isLow && <span className="text-[10px] font-bold text-red-500 uppercase tracking-widest">Low Performer</span>}
+                                        </div>
+                                        <div className={`col-span-1 text-center font-black ${isDark ? 'text-blue-400' : 'text-blue-600'}`}>{row.totalOrders}</div>
+                                        <div className={`col-span-2 text-right font-black ${isDark ? 'text-slate-300' : 'text-slate-700'}`}>{fmt(row.totalAmount)}</div>
+                                        <div className={`col-span-1 text-right font-bold text-sm text-amber-500`}>
+                                            {row.returnsAmount > 0 ? `-${fmt(row.returnsAmount)}` : '—'}
+                                        </div>
+                                        <div className={`col-span-2 text-right font-black text-lg ${isDark ? 'text-emerald-400' : 'text-emerald-600'}`}>{fmt(row.netAmount)}</div>
+                                        <div className={`col-span-1 text-right font-bold text-sm ${isDark ? 'text-slate-300' : 'text-slate-600'}`}>{fmt(row.avgOrderValue)}</div>
+                                        <div className={`col-span-1 text-right text-sm font-medium ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
+                                            {new Date(row.lastSaleDate + 'T00:00:00').toLocaleDateString('en-IN', { day: '2-digit', month: 'short', timeZone: 'Asia/Kolkata' })}
+                                        </div>
                                     </div>
-                                    <div className="col-span-3">
-                                        <p className={`font-black ${isDark ? 'text-white' : 'text-slate-900'}`}>{row.name}</p>
-                                        {isLow && <span className="text-[10px] font-bold text-red-500 uppercase tracking-widest">Low Performer</span>}
-                                    </div>
-                                    <div className={`col-span-2 text-center font-black ${isDark ? 'text-blue-400' : 'text-blue-600'}`}>{row.totalOrders}</div>
-                                    <div className={`col-span-2 text-right font-black text-lg ${isDark ? 'text-white' : 'text-slate-900'}`}>{fmt(row.totalAmount)}</div>
-                                    <div className={`col-span-2 text-right font-bold text-sm ${isDark ? 'text-slate-300' : 'text-slate-600'}`}>{fmt(row.avgOrderValue)}</div>
-                                    <div className={`col-span-2 text-right text-sm font-medium ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
-                                        {new Date(row.lastSaleDate + 'T00:00:00').toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric', timeZone: 'Asia/Kolkata' })}
-                                    </div>
-                                </div>
-                            );
-                        })
-                    )}
+                                );
+                            })
+                        )}
                         {state.totalPages > 1 && (
                             <div className={`flex items-center justify-between px-6 py-4 ${isDark ? 'bg-slate-800/50' : 'bg-slate-50'}`}>
                                 <button onClick={() => actions.setCurrentPage(Math.max(1, state.currentPage - 1))} disabled={state.currentPage === 1}
@@ -152,22 +160,39 @@ const AdminSales = ({ theme }: Props) => {
             {/* Overall Summary (Overall View) */}
             {state.viewMode === 'overall' && (
                 <div className={`p-8 rounded-[28px] border space-y-6 ${isDark ? 'bg-slate-900/50 border-white/5' : 'bg-white border-slate-100 shadow-xl'}`}>
-                    <h3 className={`text-2xl font-black italic tracking-tight ${isDark ? 'text-white' : 'text-slate-900'}`}>Daily Sales Summary</h3>
+                    <h3 className={`text-2xl font-black italic tracking-tight ${isDark ? 'text-white' : 'text-slate-900'}`}>Daily Sales & Returns Summary</h3>
                     {data.dailyData.length === 0 ? (
                         <p className="text-slate-500 italic">No daily data available</p>
                     ) : (
-                        <div className={`rounded-2xl p-4 border ${isDark ? 'bg-slate-800/50 border-white/5' : 'bg-slate-50 border-slate-100'}`}>
-                            {data.dailyData.map(d => (
-                                <div key={d.date} className={`flex justify-between items-center py-3 border-b last:border-0 ${isDark ? 'border-white/5' : 'border-slate-100'}`}>
-                                    <span className={`font-bold ${isDark ? 'text-slate-300' : 'text-slate-700'}`}>
-                                        {new Date(d.date + 'T00:00:00').toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric', weekday: 'short', timeZone: 'Asia/Kolkata' })}
-                                    </span>
-                                    <div className="flex gap-6">
-                                        <span className={`font-bold text-sm ${isDark ? 'text-blue-400' : 'text-blue-600'}`}>{d.orderCount} orders</span>
-                                        <span className={`font-black ${isDark ? 'text-white' : 'text-slate-900'}`}>{fmt(d.totalAmount)}</span>
-                                    </div>
+                        <div className={`rounded-2xl p-4 border overflow-x-auto ${isDark ? 'bg-slate-800/50 border-white/5' : 'bg-slate-50 border-slate-100'}`}>
+                            <div className="min-w-[700px]">
+                                <div className={`grid grid-cols-12 gap-2 pb-2 text-[10px] font-black uppercase tracking-widest border-b ${isDark ? 'border-white/5 text-slate-500' : 'border-slate-100 text-slate-400'}`}>
+                                    <div className="col-span-3">Date</div>
+                                    <div className="col-span-2 text-center">Orders</div>
+                                    <div className="col-span-2 text-right">Gross Sales</div>
+                                    <div className="col-span-2 text-right text-amber-500">Returns</div>
+                                    <div className="col-span-3 text-right text-emerald-500">Net Sales</div>
                                 </div>
-                            ))}
+                                {data.dailyData.map(d => (
+                                    <div key={d.date} className={`grid grid-cols-12 gap-2 py-3 items-center border-b last:border-0 ${isDark ? 'border-white/5' : 'border-slate-100'}`}>
+                                        <div className={`col-span-3 font-bold ${isDark ? 'text-slate-300' : 'text-slate-700'}`}>
+                                            {new Date(d.date + 'T00:00:00').toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric', weekday: 'short', timeZone: 'Asia/Kolkata' })}
+                                        </div>
+                                        <div className={`col-span-2 text-center font-bold text-sm ${isDark ? 'text-blue-400' : 'text-blue-600'}`}>
+                                            {d.orderCount} orders
+                                        </div>
+                                        <div className={`col-span-2 text-right font-bold ${isDark ? 'text-slate-400' : 'text-slate-600'}`}>
+                                            {fmt(d.totalAmount)}
+                                        </div>
+                                        <div className={`col-span-2 text-right font-bold text-amber-500`}>
+                                            {d.returnsAmount > 0 ? `-${fmt(d.returnsAmount)}` : '—'}
+                                        </div>
+                                        <div className={`col-span-3 text-right font-black text-lg ${isDark ? 'text-emerald-400' : 'text-emerald-600'}`}>
+                                            {fmt(d.netAmount)}
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
                         </div>
                     )}
                 </div>
@@ -177,39 +202,47 @@ const AdminSales = ({ theme }: Props) => {
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 {/* Bar Chart: Sales Per Staff */}
                 <div className={`p-6 rounded-[28px] border ${isDark ? 'bg-slate-900/50 border-white/5' : 'bg-white border-slate-100 shadow-xl'}`}>
-                    <h3 className={`text-xl font-black italic tracking-tight mb-6 ${isDark ? 'text-white' : 'text-slate-900'}`}>Sales Per Staff</h3>
+                    <h3 className={`text-xl font-black italic tracking-tight mb-6 ${isDark ? 'text-white' : 'text-slate-900'}`}>Sales Per Staff (Gross vs Net)</h3>
                     {data.allStaffRows.length === 0 ? (
                         <p className="text-slate-500 italic text-center py-10">No data</p>
                     ) : (
                         <ResponsiveContainer width="100%" height={300}>
-                            <BarChart data={data.allStaffRows.map(r => ({ name: r.name.split(' ')[0], sales: Math.round(r.totalAmount) }))}>
+                            <BarChart data={data.allStaffRows.map(r => ({ name: r.name.split(' ')[0], gross: Math.round(r.totalAmount), net: Math.round(r.netAmount) }))}>
                                 <CartesianGrid strokeDasharray="3 3" stroke={isDark ? '#334155' : '#e2e8f0'} />
                                 <XAxis dataKey="name" tick={{ fill: isDark ? '#94a3b8' : '#64748b', fontSize: 11, fontWeight: 700 }} />
                                 <YAxis tick={{ fill: isDark ? '#94a3b8' : '#64748b', fontSize: 11 }} />
                                 <Tooltip contentStyle={{ background: isDark ? '#1e293b' : '#fff', border: '1px solid ' + (isDark ? '#334155' : '#e2e8f0'), borderRadius: 12, fontWeight: 700 }}
-                                    formatter={(value: any) => ['₹' + Number(value).toLocaleString('en-IN'), 'Sales']} />
-                                <Bar dataKey="sales" fill="#3b82f6" radius={[8, 8, 0, 0]} />
+                                    formatter={(value: any, name: any) => ['₹' + Number(value).toLocaleString('en-IN'), name === 'gross' ? 'Gross Sales' : 'Net Sales']} />
+                                <Legend />
+                                <Bar dataKey="gross" fill="#3b82f6" radius={[6, 6, 0, 0]} name="Gross Sales" />
+                                <Bar dataKey="net" fill="#10b981" radius={[6, 6, 0, 0]} name="Net Sales" />
                             </BarChart>
                         </ResponsiveContainer>
                     )}
                 </div>
 
-                {/* Line Chart: Sales Trend */}
+                {/* Line Chart: Sales & Returns Trend */}
                 <div className={`p-6 rounded-[28px] border ${isDark ? 'bg-slate-900/50 border-white/5' : 'bg-white border-slate-100 shadow-xl'}`}>
-                    <h3 className={`text-xl font-black italic tracking-tight mb-6 ${isDark ? 'text-white' : 'text-slate-900'}`}>Sales Trend</h3>
+                    <h3 className={`text-xl font-black italic tracking-tight mb-6 ${isDark ? 'text-white' : 'text-slate-900'}`}>Sales & Returns Trend</h3>
                     {data.dailyData.length === 0 ? (
                         <p className="text-slate-500 italic text-center py-10">No data</p>
                     ) : (
                         <ResponsiveContainer width="100%" height={300}>
-                            <LineChart data={data.dailyData.map(d => ({ date: d.date.slice(5), amount: Math.round(d.totalAmount), orders: d.orderCount }))}>
+                            <LineChart data={data.dailyData.map(d => ({ date: d.date.slice(5), amount: Math.round(d.totalAmount), netAmount: Math.round(d.netAmount), returns: Math.round(d.returnsAmount), orders: d.orderCount }))}>
                                 <CartesianGrid strokeDasharray="3 3" stroke={isDark ? '#334155' : '#e2e8f0'} />
                                 <XAxis dataKey="date" tick={{ fill: isDark ? '#94a3b8' : '#64748b', fontSize: 10, fontWeight: 700 }} />
                                 <YAxis tick={{ fill: isDark ? '#94a3b8' : '#64748b', fontSize: 11 }} />
                                 <Tooltip contentStyle={{ background: isDark ? '#1e293b' : '#fff', border: '1px solid ' + (isDark ? '#334155' : '#e2e8f0'), borderRadius: 12, fontWeight: 700 }}
-                                    formatter={(value: any, name: any) => [name === 'amount' ? '₹' + Number(value).toLocaleString('en-IN') : value, name === 'amount' ? 'Sales' : 'Orders']} />
+                                    formatter={(value: any, name: any) => {
+                                        if (name === 'Gross Sales' || name === 'Net Sales' || name === 'Returns') {
+                                            return ['₹' + Number(value).toLocaleString('en-IN'), name];
+                                        }
+                                        return [value, name];
+                                    }} />
                                 <Legend />
-                                <Line type="monotone" dataKey="amount" stroke="#3b82f6" strokeWidth={3} dot={{ fill: '#3b82f6', r: 4 }} name="Sales (₹)" />
-                                <Line type="monotone" dataKey="orders" stroke="#10b981" strokeWidth={2} dot={{ fill: '#10b981', r: 3 }} name="Orders" />
+                                <Line type="monotone" dataKey="amount" stroke="#3b82f6" strokeWidth={3} dot={{ fill: '#3b82f6', r: 4 }} name="Gross Sales" />
+                                <Line type="monotone" dataKey="netAmount" stroke="#10b981" strokeWidth={3} dot={{ fill: '#10b981', r: 4 }} name="Net Sales" />
+                                <Line type="monotone" dataKey="returns" stroke="#f59e0b" strokeWidth={2} dot={{ fill: '#f59e0b', r: 3 }} name="Returns" />
                             </LineChart>
                         </ResponsiveContainer>
                     )}
@@ -218,9 +251,9 @@ const AdminSales = ({ theme }: Props) => {
 
             {/* Leaderboard + Comparison */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                {/* Top 5 Leaderboard */}
+                {/* Top 5 Leaderboard (Net Sales) */}
                 <div className={`p-6 rounded-[28px] border ${isDark ? 'bg-slate-900/50 border-white/5' : 'bg-white border-slate-100 shadow-xl'}`}>
-                    <h3 className={`text-xl font-black italic tracking-tight mb-6 ${isDark ? 'text-white' : 'text-slate-900'}`}>🏆 Top 5 Staff</h3>
+                    <h3 className={`text-xl font-black italic tracking-tight mb-6 ${isDark ? 'text-white' : 'text-slate-900'}`}>🏆 Top 5 Staff (Net Sales)</h3>
                     {data.top5Staff.length === 0 ? (
                         <p className="text-slate-500 italic">No data</p>
                     ) : (
@@ -235,7 +268,10 @@ const AdminSales = ({ theme }: Props) => {
                                         <p className={`font-black ${isDark ? 'text-white' : 'text-slate-900'}`}>{s.name}</p>
                                         <p className="text-xs text-slate-500 font-bold">{s.totalOrders} orders</p>
                                     </div>
-                                    <p className={`font-black text-lg ${isDark ? 'text-blue-400' : 'text-blue-600'}`}>{fmt(s.totalAmount)}</p>
+                                    <div className="text-right">
+                                        <p className={`font-black text-base sm:text-lg ${isDark ? 'text-emerald-400' : 'text-emerald-600'}`}>{fmt(s.netAmount)}</p>
+                                        {s.returnsAmount > 0 && <p className="text-[10px] font-bold text-amber-500">Gross: {fmt(s.totalAmount)}</p>}
+                                    </div>
                                 </div>
                             ))}
                         </div>
@@ -266,21 +302,23 @@ const AdminSales = ({ theme }: Props) => {
                             <div className={`flex-1 text-center p-4 rounded-2xl ${isDark ? 'bg-blue-500/10' : 'bg-blue-50'}`}>
                                 <p className="text-xs font-black text-slate-500 uppercase tracking-widest mb-1">Staff A</p>
                                 <p className={`font-black text-base sm:text-lg break-words ${isDark ? 'text-white' : 'text-slate-900'}`}>{data.comparisonData[0].name}</p>
-                                <p className={`font-black mt-2 text-sm sm:text-base ${isDark ? 'text-blue-400' : 'text-blue-600'}`}>{fmt(data.comparisonData[0].totalAmount)}</p>
+                                <p className={`font-black mt-2 text-sm sm:text-base ${isDark ? 'text-emerald-400' : 'text-emerald-600'}`}>Net: {fmt(data.comparisonData[0].netAmount)}</p>
+                                <p className="text-[10px] text-slate-500 font-bold">Gross: {fmt(data.comparisonData[0].totalAmount)}</p>
                                 <p className="text-xs text-slate-500 font-bold">{data.comparisonData[0].totalOrders} orders</p>
                             </div>
                             {/* DIFF */}
                             <div className="flex sm:flex-col items-center justify-center gap-2 py-2 sm:py-4 px-2">
-                                <p className="text-[10px] font-black uppercase tracking-widest text-slate-500">Diff</p>
-                                <p className={`font-black text-base sm:text-lg text-center ${data.comparisonData[0].totalAmount >= data.comparisonData[1].totalAmount ? 'text-emerald-500' : 'text-red-500'}`}>
-                                    {data.comparisonData[0].totalAmount >= data.comparisonData[1].totalAmount ? '+' : ''}{fmt(data.comparisonData[0].totalAmount - data.comparisonData[1].totalAmount)}
+                                <p className="text-[10px] font-black uppercase tracking-widest text-slate-500">Net Diff</p>
+                                <p className={`font-black text-base sm:text-lg text-center ${data.comparisonData[0].netAmount >= data.comparisonData[1].netAmount ? 'text-emerald-500' : 'text-red-500'}`}>
+                                    {data.comparisonData[0].netAmount >= data.comparisonData[1].netAmount ? '+' : ''}{fmt(data.comparisonData[0].netAmount - data.comparisonData[1].netAmount)}
                                 </p>
                             </div>
                             {/* Staff B */}
                             <div className={`flex-1 text-center p-4 rounded-2xl ${isDark ? 'bg-emerald-500/10' : 'bg-emerald-50'}`}>
                                 <p className="text-xs font-black text-slate-500 uppercase tracking-widest mb-1">Staff B</p>
                                 <p className={`font-black text-base sm:text-lg break-words ${isDark ? 'text-white' : 'text-slate-900'}`}>{data.comparisonData[1].name}</p>
-                                <p className={`font-black mt-2 text-sm sm:text-base ${isDark ? 'text-emerald-400' : 'text-emerald-600'}`}>{fmt(data.comparisonData[1].totalAmount)}</p>
+                                <p className={`font-black mt-2 text-sm sm:text-base ${isDark ? 'text-emerald-400' : 'text-emerald-600'}`}>Net: {fmt(data.comparisonData[1].netAmount)}</p>
+                                <p className="text-[10px] text-slate-500 font-bold">Gross: {fmt(data.comparisonData[1].totalAmount)}</p>
                                 <p className="text-xs text-slate-500 font-bold">{data.comparisonData[1].totalOrders} orders</p>
                             </div>
                         </div>

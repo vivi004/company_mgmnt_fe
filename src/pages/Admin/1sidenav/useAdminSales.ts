@@ -15,17 +15,32 @@ interface RawBill {
     status: string;
 }
 
+export interface RawReturn {
+    id: number;
+    shop_id: number;
+    product_name: string;
+    amount: number;
+    created_by: string;
+    return_date: string;
+    shop_name: string;
+    village_name: string;
+}
+
 export interface StaffRow {
     name: string;
     totalOrders: number;
-    totalAmount: number;
+    totalAmount: number; // Gross Sales
+    returnsAmount: number; // Total Returns
+    netAmount: number; // Net Sales
     avgOrderValue: number;
     lastSaleDate: string;
 }
 
 export interface DailyData {
     date: string;
-    totalAmount: number;
+    totalAmount: number; // Gross Sales
+    returnsAmount: number; // Total Returns
+    netAmount: number; // Net Sales
     orderCount: number;
 }
 
@@ -46,6 +61,7 @@ function getMonthStartLocal(): string {
 
 export const useAdminSales = () => {
     const [bills, setBills] = useState<RawBill[]>([]);
+    const [returns, setReturns] = useState<RawReturn[]>([]);
     const [loading, setLoading] = useState(false);
     const [startDate, setStartDate] = useState(getMonthStartLocal());
     const [endDate, setEndDate] = useState(getTodayLocal());
@@ -64,27 +80,49 @@ export const useAdminSales = () => {
     const fetchSalesData = useCallback(async () => {
         setLoading(true);
         try {
-            let billsData: RawBill[];
-            try {
-                // Try the new date-range endpoint first
-                const res = await api().get('/api/bills/date-range', {
-                    params: { startDate, endDate }
-                });
-                billsData = res.data;
-            } catch {
-                // Fallback: use existing /api/bills and filter client-side
-                const res = await api().get('/api/bills');
-                const allBills: RawBill[] = res.data;
-                billsData = allBills.filter(b => {
-                    if (b.status !== 'Verified') return false;
-                    const d = new Date(b.bill_date);
-                    const localDate = new Date(d.getTime() - d.getTimezoneOffset() * 60000).toISOString().split('T')[0];
-                    if (startDate && localDate < startDate) return false;
-                    if (endDate && localDate > endDate) return false;
-                    return true;
-                });
-            }
+            let billsData: RawBill[] = [];
+            let returnsData: RawReturn[] = [];
+
+            // Concurrently fetch bills and returns within the selected date range
+            const fetchBillsPromise = (async () => {
+                try {
+                    const res = await api().get('/api/bills/date-range', {
+                        params: { startDate, endDate }
+                    });
+                    return res.data;
+                } catch {
+                    // Fallback: use existing /api/bills and filter client-side
+                    const res = await api().get('/api/bills');
+                    const allBills: RawBill[] = res.data;
+                    return allBills.filter(b => {
+                        if (b.status !== 'Verified') return false;
+                        const d = new Date(b.bill_date);
+                        const localDate = new Date(d.getTime() - d.getTimezoneOffset() * 60000).toISOString().split('T')[0];
+                        if (startDate && localDate < startDate) return false;
+                        if (endDate && localDate > endDate) return false;
+                        return true;
+                    });
+                }
+            })();
+
+            const fetchReturnsPromise = (async () => {
+                try {
+                    const res = await api().get('/api/collections/returns', {
+                        params: { startDate, endDate }
+                    });
+                    return res.data || [];
+                } catch (err) {
+                    console.error('Error fetching returns for date range:', err);
+                    return [];
+                }
+            })();
+
+            const [bData, rData] = await Promise.all([fetchBillsPromise, fetchReturnsPromise]);
+            billsData = bData;
+            returnsData = rData;
+
             setBills(billsData);
+            setReturns(returnsData);
             setCurrentPage(1);
         } catch (err) {
             console.error('Error fetching sales data:', err);
@@ -107,46 +145,69 @@ export const useAdminSales = () => {
         })),
     [bills]);
 
+    // Staff rows
+    const allStaffRows = useMemo((): StaffRow[] => {
+        const map: Record<string, { orders: number; grossAmount: number; returnsAmount: number; lastDate: string }> = {};
+        
+        billsWithTotals.forEach(b => {
+            if (!map[b.staffName]) {
+                map[b.staffName] = { orders: 0, grossAmount: 0, returnsAmount: 0, lastDate: b.localDate };
+            }
+            map[b.staffName].orders += 1;
+            map[b.staffName].grossAmount += b.total;
+            if (b.localDate > map[b.staffName].lastDate) map[b.staffName].lastDate = b.localDate;
+        });
+
+        returns.forEach(r => {
+            const staffName = r.created_by || 'Staff';
+            const returnDateLocal = (() => {
+                const d = new Date(r.return_date);
+                return new Date(d.getTime() - d.getTimezoneOffset() * 60000).toISOString().split('T')[0];
+            })();
+            if (!map[staffName]) {
+                map[staffName] = { orders: 0, grossAmount: 0, returnsAmount: 0, lastDate: returnDateLocal };
+            }
+            map[staffName].returnsAmount += Number(r.amount);
+            if (returnDateLocal > map[staffName].lastDate) map[staffName].lastDate = returnDateLocal;
+        });
+
+        return Object.entries(map).map(([name, d]) => {
+            const netAmount = Math.max(0, d.grossAmount - d.returnsAmount);
+            return {
+                name,
+                totalOrders: d.orders,
+                totalAmount: d.grossAmount,
+                returnsAmount: d.returnsAmount,
+                netAmount: netAmount,
+                avgOrderValue: d.orders > 0 ? netAmount / d.orders : 0,
+                lastSaleDate: d.lastDate
+            };
+        });
+    }, [billsWithTotals, returns]);
+
     // Summary cards
     const summary = useMemo(() => {
-        const totalSales = billsWithTotals.reduce((s, b) => s + b.total, 0);
+        const totalSales = billsWithTotals.reduce((s, b) => s + b.total, 0); // Gross
+        const totalReturns = returns.reduce((s, r) => s + Number(r.amount), 0); // Returns
+        const netSales = Math.max(0, totalSales - totalReturns); // Net
         const totalOrders = billsWithTotals.length;
-        const avgValue = totalOrders > 0 ? totalSales / totalOrders : 0;
+        const avgValue = totalOrders > 0 ? netSales / totalOrders : 0;
 
         const staffTotals: Record<string, number> = {};
-        billsWithTotals.forEach(b => {
-            staffTotals[b.staffName] = (staffTotals[b.staffName] || 0) + b.total;
+        allStaffRows.forEach(b => {
+            staffTotals[b.name] = b.netAmount;
         });
         const bestStaff = Object.entries(staffTotals).sort((a, b) => b[1] - a[1])[0];
 
         return {
             totalSales,
+            totalReturns,
+            netSales,
             totalOrders,
             avgValue,
             bestStaff: bestStaff ? { name: bestStaff[0], amount: bestStaff[1] } : null
         };
-    }, [billsWithTotals]);
-
-    // Staff rows
-    const allStaffRows = useMemo((): StaffRow[] => {
-        const map: Record<string, { orders: number; amount: number; lastDate: string }> = {};
-        billsWithTotals.forEach(b => {
-            if (!map[b.staffName]) {
-                map[b.staffName] = { orders: 0, amount: 0, lastDate: b.localDate };
-            }
-            map[b.staffName].orders += 1;
-            map[b.staffName].amount += b.total;
-            if (b.localDate > map[b.staffName].lastDate) map[b.staffName].lastDate = b.localDate;
-        });
-
-        return Object.entries(map).map(([name, d]) => ({
-            name,
-            totalOrders: d.orders,
-            totalAmount: d.amount,
-            avgOrderValue: d.orders > 0 ? d.amount / d.orders : 0,
-            lastSaleDate: d.lastDate
-        }));
-    }, [billsWithTotals]);
+    }, [billsWithTotals, returns, allStaffRows]);
 
     // Filtered + sorted staff rows
     const staffRows = useMemo(() => {
@@ -156,11 +217,11 @@ export const useAdminSales = () => {
             rows = rows.filter(r => r.name.toLowerCase().includes(q));
         }
         if (minSalesFilter > 0) {
-            rows = rows.filter(r => r.totalAmount >= minSalesFilter);
+            rows = rows.filter(r => r.netAmount >= minSalesFilter);
         }
         rows.sort((a, b) => {
-            const valA = sortBy === 'amount' ? a.totalAmount : a.totalOrders;
-            const valB = sortBy === 'amount' ? b.totalAmount : b.totalOrders;
+            const valA = sortBy === 'amount' ? a.netAmount : a.totalOrders;
+            const valB = sortBy === 'amount' ? b.netAmount : b.totalOrders;
             return sortDir === 'desc' ? valB - valA : valA - valB;
         });
         return rows;
@@ -174,29 +235,46 @@ export const useAdminSales = () => {
 
     const totalPages = Math.ceil(staffRows.length / pageSize);
 
-    // Daily data for line chart
+    // Daily data for charts and overall trends list
     const dailyData = useMemo((): DailyData[] => {
-        const map: Record<string, { amount: number; count: number }> = {};
+        const map: Record<string, { grossAmount: number; returnsAmount: number; count: number }> = {};
+        
         billsWithTotals.forEach(b => {
-            if (!map[b.localDate]) map[b.localDate] = { amount: 0, count: 0 };
-            map[b.localDate].amount += b.total;
+            if (!map[b.localDate]) map[b.localDate] = { grossAmount: 0, returnsAmount: 0, count: 0 };
+            map[b.localDate].grossAmount += b.total;
             map[b.localDate].count += 1;
         });
-        return Object.entries(map)
-            .map(([date, d]) => ({ date, totalAmount: d.amount, orderCount: d.count }))
-            .sort((a, b) => a.date.localeCompare(b.date));
-    }, [billsWithTotals]);
 
-    // Top 5 staff
+        returns.forEach(r => {
+            const returnDateLocal = (() => {
+                const d = new Date(r.return_date);
+                return new Date(d.getTime() - d.getTimezoneOffset() * 60000).toISOString().split('T')[0];
+            })();
+            if (!map[returnDateLocal]) map[returnDateLocal] = { grossAmount: 0, returnsAmount: 0, count: 0 };
+            map[returnDateLocal].returnsAmount += Number(r.amount);
+        });
+
+        return Object.entries(map)
+            .map(([date, d]) => ({
+                date,
+                totalAmount: d.grossAmount,
+                returnsAmount: d.returnsAmount,
+                netAmount: Math.max(0, d.grossAmount - d.returnsAmount),
+                orderCount: d.count
+            }))
+            .sort((a, b) => a.date.localeCompare(b.date));
+    }, [billsWithTotals, returns]);
+
+    // Top 5 staff based on Net Sales
     const top5Staff = useMemo(() =>
-        [...allStaffRows].sort((a, b) => b.totalAmount - a.totalAmount).slice(0, 5),
+        [...allStaffRows].sort((a, b) => b.netAmount - a.netAmount).slice(0, 5),
     [allStaffRows]);
 
-    // Low performers (bottom 20% or below avg)
+    // Low performers (bottom 20% or below avg, based on Net Sales)
     const lowPerformers = useMemo(() => {
         if (allStaffRows.length === 0) return [];
-        const avg = allStaffRows.reduce((s, r) => s + r.totalAmount, 0) / allStaffRows.length;
-        return allStaffRows.filter(r => r.totalAmount < avg * 0.5);
+        const avg = allStaffRows.reduce((s, r) => s + r.netAmount, 0) / allStaffRows.length;
+        return allStaffRows.filter(r => r.netAmount < avg * 0.5);
     }, [allStaffRows]);
 
     // Staff comparison
@@ -211,13 +289,13 @@ export const useAdminSales = () => {
     // Unique staff names
     const staffNames = useMemo(() => allStaffRows.map(r => r.name), [allStaffRows]);
 
-    // Export CSV
+    // Export CSV (adjusted to include returns & net sales)
     const exportCSV = useCallback(() => {
-        const headers = ['Staff Name', 'Total Orders', 'Total Sales', 'Avg Order Value', 'Last Sale Date'];
+        const headers = ['Staff Name', 'Total Orders', 'Gross Sales', 'Returns', 'Net Sales', 'Avg Order Value', 'Last Sale Date'];
         const csvRows = [headers.join(',')];
         staffRows.forEach(r => {
             csvRows.push([
-                `"${r.name}"`, r.totalOrders, r.totalAmount.toFixed(2), r.avgOrderValue.toFixed(2), r.lastSaleDate
+                `"${r.name}"`, r.totalOrders, r.totalAmount.toFixed(2), r.returnsAmount.toFixed(2), r.netAmount.toFixed(2), r.avgOrderValue.toFixed(2), r.lastSaleDate
             ].join(','));
         });
         const blob = new Blob([csvRows.join('\n')], { type: 'text/csv' });
@@ -230,11 +308,13 @@ export const useAdminSales = () => {
         showToast('CSV exported successfully', 'success');
     }, [staffRows, startDate, endDate]);
 
-    // Export PDF
+    // Export PDF (adjusted to include returns & net sales)
     const exportPDF = useCallback(() => {
         const w = window.open('', '_blank');
         if (!w) return;
-        const totalSales = staffRows.reduce((s, r) => s + r.totalAmount, 0);
+        const totalSales = staffRows.reduce((s, r) => s + r.totalAmount, 0); // Gross
+        const totalReturns = staffRows.reduce((s, r) => s + r.returnsAmount, 0); // Returns
+        const netSales = Math.max(0, totalSales - totalReturns); // Net
         const totalOrders = staffRows.reduce((s, r) => s + r.totalOrders, 0);
         const html = `
         <html><head><title>Sales Report</title>
@@ -248,12 +328,14 @@ export const useAdminSales = () => {
         <h1>NISHA OIL MILL — Sales Report</h1>
         <h3>${startDate} to ${endDate}</h3>
         <div class="summary">
-            <div class="card"><h4>Total Sales</h4><p>₹${totalSales.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</p></div>
+            <div class="card"><h4>Gross Sales</h4><p>₹${totalSales.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</p></div>
+            <div class="card"><h4>Total Returns</h4><p>₹${totalReturns.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</p></div>
+            <div class="card"><h4>Net Sales</h4><p>₹${netSales.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</p></div>
             <div class="card"><h4>Total Orders</h4><p>${totalOrders}</p></div>
-            <div class="card"><h4>Avg Order Value</h4><p>₹${totalOrders > 0 ? (totalSales / totalOrders).toLocaleString('en-IN', { minimumFractionDigits: 2 }) : '0.00'}</p></div>
+            <div class="card"><h4>Avg Order Value</h4><p>₹${totalOrders > 0 ? (netSales / totalOrders).toLocaleString('en-IN', { minimumFractionDigits: 2 }) : '0.00'}</p></div>
         </div>
-        <table><thead><tr><th>#</th><th>Staff Name</th><th>Total Orders</th><th>Total Sales (₹)</th><th>Avg Order (₹)</th><th>Last Sale</th></tr></thead>
-        <tbody>${staffRows.map((r, i) => `<tr><td>${i + 1}</td><td>${r.name}</td><td>${r.totalOrders}</td><td>${r.totalAmount.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</td><td>${r.avgOrderValue.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</td><td>${r.lastSaleDate}</td></tr>`).join('')}
+        <table><thead><tr><th>#</th><th>Staff Name</th><th>Total Orders</th><th>Gross Sales (₹)</th><th>Returns (₹)</th><th>Net Sales (₹)</th><th>Avg Order (₹)</th><th>Last Sale</th></tr></thead>
+        <tbody>${staffRows.map((r, i) => `<tr><td>${i + 1}</td><td>${r.name}</td><td>${r.totalOrders}</td><td>${r.totalAmount.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</td><td>${r.returnsAmount.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</td><td>${r.netAmount.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</td><td>${r.avgOrderValue.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</td><td>${r.lastSaleDate}</td></tr>`).join('')}
         </tbody></table></body></html>`;
         w.document.write(html);
         w.document.close();
@@ -267,7 +349,7 @@ export const useAdminSales = () => {
 
     return {
         state: {
-            bills: billsWithTotals, loading, startDate, endDate, searchQuery, minSalesFilter,
+            bills: billsWithTotals, returns, loading, startDate, endDate, searchQuery, minSalesFilter,
             sortBy, sortDir, viewMode, compareStaff, currentPage, totalPages, toasts
         },
         data: { summary, staffRows: paginatedStaffRows, allStaffRows: staffRows, dailyData, top5Staff, lowPerformers, comparisonData, staffNames },
