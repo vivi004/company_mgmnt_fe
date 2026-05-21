@@ -50,12 +50,13 @@ function getCategoryForProductId(pid: string, products: any[]): string {
 }
 
 export function generateLoadingSheet(bills: Bill[], dateStr: string, vehicleNo: string = '') {
+    const sortedBills = [...bills].sort((a, b) => a.invoiceNo - b.invoiceNo);
     const allProducts = getAllProducts();
     const productMap = new Map(allProducts.map(p => [p.id, p]));
 
     const aggregated: Record<string, { qty: number; rates: number[] }> = {};
 
-    bills.forEach(bill => {
+    sortedBills.forEach(bill => {
         const customRates = bill.customRates || {};
         Object.entries(bill.cart).forEach(([pid, qty]) => {
             if (qty <= 0) return;
@@ -169,7 +170,7 @@ export function generateLoadingSheet(bills: Bill[], dateStr: string, vehicleNo: 
         groups.push({ categoryName: catName, items, totalQty, totalUnit: primaryUnit, totalAmount });
     });
 
-    const shopLines: ShopLine[] = bills.map((bill, i) => {
+    const shopLines: ShopLine[] = sortedBills.map((bill, i) => {
         const total = getCartItems(bill.cart, bill.customRates).reduce((sum, item) => sum + (item.price * item.quantity), 0);
         return {
             sno: i + 1,
