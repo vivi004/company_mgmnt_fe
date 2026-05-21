@@ -63,6 +63,15 @@ export const invoiceHTML = (bill: Bill, vehicleNo: string = '') => {
         if (it.id === 'vs-gn-500ml-box' || it.id === 'vs-gn-1l-box') {
             desc = desc.replace(/\s*BOX$/i, '');
         }
+
+        // Renames Box sizes strictly for the Invoice layout
+        desc = desc.replace('1 BOX (50X100ML)', '100ML BOX');
+        desc = desc.replace('1 BOX (25X200ML)', '200ML BOX');
+        desc = desc.replace('1 BOX (20X500ML)', '500ML BOX');
+        desc = desc.replace('1 BOX (10X1L)', '1LTR BOX');
+        desc = desc.replace('1 BOX (5X2L)', '2LTR BOX');
+        desc = desc.replace('1 LTR (10X100ML)', '100ML');
+        desc = desc.replace('1 LTR (5X200ML)', '200ML');
         let u = (it.unit || 'NOS').toUpperCase();
         if (it.id === 'vs-gn-500ml-box' || it.id === 'vs-gn-1l-box' || it.id.endsWith('-box')) {
             u = 'BOX';

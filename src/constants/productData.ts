@@ -251,7 +251,7 @@ export function getAllProducts(): Product[] {
             expanded.push({
                 ...product,
                 id: p.id + '_ltr',
-                size: '1 LTR (2x500ml)',
+                size: '500 ML',
                 price: effectivePrice * 2,
                 unit: 'LTR'
             });

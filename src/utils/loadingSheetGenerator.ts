@@ -100,6 +100,15 @@ export function generateLoadingSheet(bills: Bill[], dateStr: string, vehicleNo: 
         if (pid === 'vs-gn-500ml-box' || pid === 'vs-gn-1l-box') {
             description = description.replace(/\s*BOX$/i, '');
         }
+
+        // Renames Box sizes strictly for the Loading Sheet view only
+        description = description.replace('1 BOX (50X100ML)', '100ML BOX');
+        description = description.replace('1 BOX (25X200ML)', '200ML BOX');
+        description = description.replace('1 BOX (20X500ML)', '500ML BOX');
+        description = description.replace('1 BOX (10X1L)', '1LTR BOX');
+        description = description.replace('1 BOX (5X2L)', '2LTR BOX');
+        description = description.replace('1 LTR (10X100ML)', '100ML');
+        description = description.replace('1 LTR (5X200ML)', '200ML');
         let displayUnit = (product.unit || 'NOS').toUpperCase();
 
         if (pid === 'vs-gn-500ml-box' || pid === 'vs-gn-1l-box' || pid.endsWith('-box')) {
