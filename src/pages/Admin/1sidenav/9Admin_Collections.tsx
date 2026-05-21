@@ -4,6 +4,8 @@ import { useShopActions } from '../../../hooks/useShopActions';
 import ShopActionModals from '../../../components/common/ShopModals/ShopActionModals';
 import type { OrderLine } from '../../../types/DashboardTypes';
 import { useToast, ToastContainer } from '../../../components/Toast';
+import { getAuthAxios } from '../../../utils/apiClient';
+import { getAllProducts } from '../../../constants/productData';
 
 interface Props {
     theme: string;
@@ -20,7 +22,7 @@ const AdminCollections = ({ theme, orderLines, isAdmin: propsIsAdmin }: Props) =
         selectedOlId, setSelectedOlId,
         collections, loading,
         totals, modeBreakdown,
-        refresh, addExpense, updateExpense, deleteExpense, expenses
+        refresh, addExpense, updateExpense, deleteExpense, expenses, recordProductReturn
     } = useCollections(orderLines);
 
     const { toasts, showToast, removeToast } = useToast();
@@ -49,6 +51,7 @@ const AdminCollections = ({ theme, orderLines, isAdmin: propsIsAdmin }: Props) =
         acc.todaysBillAmount += row.todays_bill_amount;
         acc.amountCollected += collected;
         acc.totalManualAdjust += (row.manual_adjustments + (row.discount_payment || 0));
+        acc.totalReturnAmount += row.return_amount;
         acc.totalFutureBills += row.future_bills;
         acc.totalBalance += row.total_balance;
         return acc;
@@ -57,6 +60,7 @@ const AdminCollections = ({ theme, orderLines, isAdmin: propsIsAdmin }: Props) =
         todaysBillAmount: 0,
         amountCollected: 0,
         totalManualAdjust: 0,
+        totalReturnAmount: 0,
         totalFutureBills: 0,
         totalBalance: 0
     });
@@ -67,6 +71,57 @@ const AdminCollections = ({ theme, orderLines, isAdmin: propsIsAdmin }: Props) =
     const [expAmount, setExpAmount] = useState('');
     const [expDesc, setExpDesc] = useState('');
     const [savingExp, setSavingExp] = useState(false);
+
+    // Product Return Modal State
+    const [showReturnModal, setShowReturnModal] = useState(false);
+    const [returnProductName, setReturnProductName] = useState('');
+    const [returnAmount, setReturnAmount] = useState('');
+    const [submittingReturn, setSubmittingReturn] = useState(false);
+
+    // Overall Returns Modal State
+    const [showOverallReturnsModal, setShowOverallReturnsModal] = useState(false);
+    const [overallReturns, setOverallReturns] = useState<any[]>([]);
+    const [loadingOverallReturns, setLoadingOverallReturns] = useState(false);
+
+    const handleOpenReturnModal = (shop: any) => {
+        setSelectedShop(shop);
+        setReturnProductName('');
+        setReturnAmount('');
+        setShowReturnModal(true);
+    };
+
+    const handleSaveProductReturn = async () => {
+        const amt = parseFloat(returnAmount);
+        if (!returnProductName.trim()) return alert('Please enter product name');
+        if (isNaN(amt) || amt <= 0) return alert('Please enter a valid amount');
+        if (!selectedShop) return;
+        setSubmittingReturn(true);
+        try {
+            await recordProductReturn(selectedShop.id, returnProductName.trim(), amt);
+            showToast('Product return recorded successfully', 'success');
+            setShowReturnModal(false);
+            setSelectedShop(null);
+            setReturnProductName('');
+            setReturnAmount('');
+        } catch (err: any) {
+            showToast(err.response?.data?.error || 'Failed to record product return', 'error');
+        } finally {
+            setSubmittingReturn(false);
+        }
+    };
+
+    const handleOpenOverallReturns = async () => {
+        setShowOverallReturnsModal(true);
+        setLoadingOverallReturns(true);
+        try {
+            const res = await getAuthAxios().get(`/api/collections/returns?date=${selectedDate}`);
+            setOverallReturns(res.data || []);
+        } catch (err) {
+            showToast('Failed to fetch returns data', 'error');
+        } finally {
+            setLoadingOverallReturns(false);
+        }
+    };
 
     // Safety timeout for expense saving (unstick buttons)
     useEffect(() => {
@@ -294,10 +349,11 @@ const AdminCollections = ({ theme, orderLines, isAdmin: propsIsAdmin }: Props) =
             </div>
 
             {/* ── Summary Cards ── */}
-            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-7 gap-3 sm:gap-4 mb-6">
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-8 gap-3 sm:gap-4 mb-6">
                 {[
                     { label: 'Billed Today', value: `₹${fmt(totals.todaysBillAmount)}`, icon: '🧾', color: 'blue' },
                     { label: 'Collected', value: `₹${fmt(totals.amountCollected)}`, icon: '💰', color: 'green' },
+                    { label: 'Returns', value: `₹${fmt(totals.totalReturnAmount || 0)}`, icon: '↩', color: 'amber' },
                     { label: 'Upcoming Bills', value: `₹${fmt(totals.totalFutureBills)}`, icon: '📅', color: totals.totalFutureBills > 0 ? 'purple' : 'slate' },
                     { label: 'Discounts', value: `₹${fmt(modeBreakdown.discount || 0)}`, icon: '🏷️', color: 'amber' },
                     { label: 'Manual Adj', value: `₹${fmt(totals.totalManualAdjust)}`, icon: '⚙️', color: totals.totalManualAdjust === 0 ? 'slate' : totals.totalManualAdjust > 0 ? 'blue' : 'amber' },
@@ -390,7 +446,15 @@ const AdminCollections = ({ theme, orderLines, isAdmin: propsIsAdmin }: Props) =
                     {/* ═══════ TABLE 1: Main Collection Table ═══════ */}
                     <div className={`rounded-2xl border overflow-hidden mb-6 ${isDark ? 'bg-slate-900/50 border-white/5' : 'bg-white border-slate-100 shadow-sm'}`}>
                         <div className={`px-5 py-4 border-b flex flex-col sm:flex-row sm:items-center justify-between gap-4 ${isDark ? 'border-white/5' : 'border-slate-100'}`}>
-                            <h3 className={`text-sm font-black uppercase tracking-widest ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>📋 Collection Details</h3>
+                            <div className="flex flex-wrap items-center gap-3">
+                                <h3 className={`text-sm font-black uppercase tracking-widest ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>📋 Collection Details</h3>
+                                <button
+                                    onClick={handleOpenOverallReturns}
+                                    className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all border shadow flex items-center gap-1.5 hover:scale-105 active:scale-95 ${isDark ? 'bg-slate-800 border-white/10 text-amber-400 hover:bg-slate-700 shadow-slate-900/40' : 'bg-amber-50 border-amber-200 text-amber-700 hover:bg-amber-100 shadow-sm'}`}
+                                >
+                                    ↩ View Return Products
+                                </button>
+                            </div>
                             <div className="relative max-w-md w-full sm:w-80">
                                 <span className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400 dark:text-slate-500">
                                     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -428,6 +492,7 @@ const AdminCollections = ({ theme, orderLines, isAdmin: propsIsAdmin }: Props) =
                                         <th className="text-left px-5 py-3">Shop Name</th>
                                         <th className="text-right px-5 py-3">Prev Bal</th>
                                         <th className="text-right px-5 py-3">Today's Bill</th>
+                                        <th className="text-right px-5 py-3">Returns</th>
                                         <th className="text-right px-5 py-3">Collected</th>
                                         <th className="text-right px-5 py-3">Manual Adjust</th>
                                         <th className="text-right px-5 py-3">Upcoming</th>
@@ -437,7 +502,7 @@ const AdminCollections = ({ theme, orderLines, isAdmin: propsIsAdmin }: Props) =
                                 <tbody className={`divide-y ${isDark ? 'divide-white/5' : 'divide-slate-100'}`}>
                                     {filteredCollections.length === 0 ? (
                                         <tr>
-                                            <td colSpan={8} className="text-center py-12 text-slate-400 dark:text-slate-500 font-black tracking-wider uppercase text-xs">
+                                            <td colSpan={9} className="text-center py-12 text-slate-400 dark:text-slate-500 font-black tracking-wider uppercase text-xs">
                                                 🔍 No matching shops found for "{searchQuery}"
                                             </td>
                                         </tr>
@@ -475,6 +540,12 @@ const AdminCollections = ({ theme, orderLines, isAdmin: propsIsAdmin }: Props) =
                                                                     Adjust ±
                                                                 </button>
                                                                 <button 
+                                                                    onClick={() => handleOpenReturnModal(actionShop)}
+                                                                    className="px-2 py-0.5 rounded-md bg-amber-500/10 text-amber-600 text-[10px] font-black uppercase tracking-tighter hover:bg-amber-500 hover:text-white transition-all"
+                                                                >
+                                                                    Return ↩
+                                                                </button>
+                                                                <button 
                                                                     onClick={() => fetchLedger(actionShop)}
                                                                     className="px-2 py-0.5 rounded-md bg-slate-500/10 text-slate-600 text-[10px] font-black uppercase tracking-tighter hover:bg-slate-500 hover:text-white transition-all"
                                                                 >
@@ -485,6 +556,7 @@ const AdminCollections = ({ theme, orderLines, isAdmin: propsIsAdmin }: Props) =
                                                     </td>
                                                     <td className={`px-5 py-3.5 text-right font-bold ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>₹{fmt(row.old_balance)}</td>
                                                     <td className={`px-5 py-3.5 text-right font-bold ${isDark ? 'text-white' : 'text-slate-900'}`}>₹{fmt(row.todays_bill_amount)}</td>
+                                                    <td className={`px-5 py-3.5 text-right font-bold text-amber-500`}>₹{fmt(row.return_amount || 0)}</td>
                                                     <td className="px-5 py-3.5 text-right">
                                                         <div className={`font-black ${collected > 0 ? 'text-green-500' : isDark ? 'text-slate-500' : 'text-slate-400'}`}>₹{fmt(collected)}</div>
                                                         <div className="flex justify-end mt-1">{renderModeBadges(row.cash_collected, row.upi_collected, row.cheque_collected, 0, row.pending_transactions.filter(t => (t.category || t.type || '').toUpperCase() === 'PAYMENT'), row.discount_payment)}</div>
@@ -511,6 +583,7 @@ const AdminCollections = ({ theme, orderLines, isAdmin: propsIsAdmin }: Props) =
                                         <td className={`px-5 py-4 text-base uppercase tracking-wider ${isDark ? 'text-blue-400' : 'text-blue-700'}`}>Total</td>
                                         <td className={`px-5 py-4 text-right text-base ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>₹{fmt(filteredTotals.totalOldBalance)}</td>
                                         <td className={`px-5 py-4 text-right text-base ${isDark ? 'text-white' : 'text-slate-900'}`}>₹{fmt(filteredTotals.todaysBillAmount)}</td>
+                                        <td className={`px-5 py-4 text-right text-base text-amber-500`}>₹{fmt(filteredTotals.totalReturnAmount)}</td>
                                         <td className={`px-5 py-4 text-right text-base ${filteredTotals.amountCollected > 0 ? 'text-green-500' : isDark ? 'text-slate-400' : 'text-slate-500'}`}>₹{fmt(filteredTotals.amountCollected)}</td>
                                         <td className={`px-5 py-4 text-right text-base ${filteredTotals.totalManualAdjust !== 0 ? 'text-blue-400' : isDark ? 'text-slate-600' : 'text-slate-400'}`}>₹{fmt(filteredTotals.totalManualAdjust)}</td>
                                         <td className={`px-5 py-4 text-right text-base ${ filteredTotals.totalFutureBills !== 0 ? 'text-purple-500' : isDark ? 'text-slate-600' : 'text-slate-400'}`}>₹{fmt(filteredTotals.totalFutureBills)}</td>
@@ -562,6 +635,16 @@ const AdminCollections = ({ theme, orderLines, isAdmin: propsIsAdmin }: Props) =
                                                     <button 
                                                         onClick={() => {
                                                             const s = { id: row.shop_id, shop_name: row.shop_name, balance: row.total_balance, village_name: row.village_name };
+                                                            handleOpenReturnModal(s);
+                                                        }}
+                                                        className="w-7 h-7 rounded-lg bg-amber-500 text-white flex items-center justify-center text-xs font-black"
+                                                        title="Product Return"
+                                                    >
+                                                        ↩
+                                                    </button>
+                                                    <button 
+                                                        onClick={() => {
+                                                            const s = { id: row.shop_id, shop_name: row.shop_name, balance: row.total_balance, village_name: row.village_name };
                                                             fetchLedger(s);
                                                         }}
                                                         className="w-7 h-7 rounded-lg bg-slate-500 text-white flex items-center justify-center text-xs font-black"
@@ -574,11 +657,14 @@ const AdminCollections = ({ theme, orderLines, isAdmin: propsIsAdmin }: Props) =
                                                 <div><span className="text-slate-400">Prev Bal:</span> <span className="font-bold">₹{fmt(row.old_balance)}</span></div>
                                                 <div className="text-right"><span className="text-slate-400">Today Bill:</span> <span className="font-bold">₹{fmt(row.todays_bill_amount)}</span></div>
                                                 
-                                                <div><span className="text-slate-400">Collected:</span> <span className="font-bold text-green-500">₹{fmt(collected)}</span></div>
-                                                <div className="text-right">
+                                                <div><span className="text-slate-400">Returns:</span> <span className="font-bold text-amber-500">₹{fmt(row.return_amount || 0)}</span></div>
+                                                <div className="text-right"><span className="text-slate-400">Collected:</span> <span className="font-bold text-green-500">₹{fmt(collected)}</span></div>
+                                                
+                                                <div>
                                                     <span className="text-slate-400">Adjust:</span> 
-                                                    <span className={`font-bold ${(row.manual_adjustments + (row.discount_payment || 0)) !== 0 ? ((row.manual_adjustments + (row.discount_payment || 0)) > 0 ? 'text-blue-500' : 'text-amber-500') : ''}`}>₹{fmt(row.manual_adjustments + (row.discount_payment || 0))}</span>
+                                                    <span className={`font-bold ml-1 ${(row.manual_adjustments + (row.discount_payment || 0)) !== 0 ? ((row.manual_adjustments + (row.discount_payment || 0)) > 0 ? 'text-blue-500' : 'text-amber-500') : ''}`}>₹{fmt(row.manual_adjustments + (row.discount_payment || 0))}</span>
                                                 </div>
+                                                <div className="text-right"><span className="text-slate-400">Upcoming:</span> <span className="font-bold text-purple-500">₹{fmt(row.future_bills)}</span></div>
 
                                                 {/* Mode breakdown badges aligned correctly and cleanly */}
                                                 <div className="col-span-2 mt-1 space-y-1.5 border-t border-slate-100/50 dark:border-white/5 pt-2">
@@ -600,9 +686,8 @@ const AdminCollections = ({ theme, orderLines, isAdmin: propsIsAdmin }: Props) =
                                                     )}
                                                 </div>
                                                 
-                                                <div className="col-span-2 border-t border-slate-100/30 dark:border-white/5 pt-2 flex items-center justify-between">
-                                                    <div><span className="text-slate-400">Upcoming:</span> <span className="font-bold text-purple-500">₹{fmt(row.future_bills)}</span></div>
-                                                    <div className="text-right"><span className="text-slate-400 text-xs font-black uppercase">Total:</span> <span className="font-black text-red-500 text-sm ml-1.5">₹{fmt(row.total_balance)}</span></div>
+                                                <div className="col-span-2 border-t border-slate-100/30 dark:border-white/5 pt-2 flex items-center justify-end">
+                                                    <div><span className="text-slate-400 text-xs font-black uppercase">Total:</span> <span className="font-black text-red-500 text-sm ml-1.5">₹{fmt(row.total_balance)}</span></div>
                                                 </div>
                                             </div>
                                         </div>
@@ -614,9 +699,10 @@ const AdminCollections = ({ theme, orderLines, isAdmin: propsIsAdmin }: Props) =
                                 <p className={`text-xs font-black uppercase tracking-widest ${isDark ? 'text-blue-400' : 'text-blue-700'}`}>Total Summary</p>
                                 <div className="grid grid-cols-2 gap-2 text-xs">
                                     <div><span className="text-slate-500">Bill:</span> <span className="font-black">₹{fmt(filteredTotals.todaysBillAmount)}</span></div>
-                                    <div className="text-right"><span className="text-slate-500">Collected:</span> <span className="font-black">₹{fmt(filteredTotals.amountCollected)}</span></div>
-                                    <div><span className="text-slate-500">Adjust:</span> <span className="font-black">₹{fmt(filteredTotals.totalManualAdjust)}</span></div>
-                                    <div className="text-right"><span className="text-slate-500">Upcoming:</span> <span className="font-black">₹{fmt(filteredTotals.totalFutureBills)}</span></div>
+                                    <div className="text-right"><span className="text-slate-500">Returns:</span> <span className="font-black text-amber-500">₹{fmt(filteredTotals.totalReturnAmount)}</span></div>
+                                    <div><span className="text-slate-500">Collected:</span> <span className="font-black">₹{fmt(filteredTotals.amountCollected)}</span></div>
+                                    <div className="text-right"><span className="text-slate-500">Adjust:</span> <span className="font-black">₹{fmt(filteredTotals.totalManualAdjust)}</span></div>
+                                    <div><span className="text-slate-500">Upcoming:</span> <span className="font-black">₹{fmt(filteredTotals.totalFutureBills)}</span></div>
                                     <div className="col-span-2 text-center mt-2 border-t border-blue-200/50 pt-2">
                                         <span className="text-slate-500 font-black uppercase tracking-tighter">Total Balance:</span> 
                                         <span className="font-black text-lg ml-2 text-red-500">₹{fmt(filteredTotals.totalBalance)}</span>
@@ -784,6 +870,138 @@ const AdminCollections = ({ theme, orderLines, isAdmin: propsIsAdmin }: Props) =
                 handleApprove={handleApprove}
                 handleReject={handleReject}
             />
+
+            {/* ── Product Return Modal ── */}
+            {showReturnModal && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+                    <div className="absolute inset-0 bg-slate-950/80 backdrop-blur-sm" onClick={() => { setShowReturnModal(false); setSelectedShop(null); }} />
+                    <div className={`relative w-full max-w-md rounded-3xl border shadow-2xl overflow-hidden transition-all transform animate-in zoom-in-95 duration-200 ${isDark ? 'bg-slate-900 border-white/10' : 'bg-white border-slate-100'}`}>
+                        <div className="p-6 border-b border-white/5 bg-gradient-to-r from-amber-500/10 to-transparent">
+                            <h3 className={`text-xl font-black tracking-tighter ${isDark ? 'text-white' : 'text-slate-900'}`}>
+                                ↩ RECORD PRODUCT RETURN
+                            </h3>
+                            <p className="text-xs font-bold text-slate-500 uppercase mt-1 tracking-widest">
+                                {selectedShop?.shop_name}
+                            </p>
+                        </div>
+                        <div className="p-6 space-y-4">
+                            <div>
+                                <label className="block text-[10px] font-black uppercase tracking-widest text-slate-500 mb-1.5">Product Name</label>
+                                <input
+                                    type="text"
+                                    list="return-products"
+                                    value={returnProductName}
+                                    onChange={(e) => setReturnProductName(e.target.value)}
+                                    placeholder="Search or type product name..."
+                                    className={`w-full px-4 py-3 rounded-xl border font-bold text-sm focus:ring-2 outline-none transition-all ${isDark ? 'bg-slate-800 border-white/5 text-white focus:ring-amber-500/50' : 'bg-slate-50 border-slate-200 text-slate-900 focus:ring-amber-500/20'}`}
+                                />
+                                <datalist id="return-products">
+                                    {Array.from(new Set(getAllProducts().map(p => `${p.brand} ${p.name} ${p.size}`))).map(option => (
+                                        <option key={option} value={option} />
+                                    ))}
+                                </datalist>
+                            </div>
+                            <div>
+                                <label className="block text-[10px] font-black uppercase tracking-widest text-slate-500 mb-1.5">Return Value (₹)</label>
+                                <input
+                                    type="number"
+                                    value={returnAmount}
+                                    onChange={(e) => setReturnAmount(e.target.value)}
+                                    placeholder="0.00"
+                                    className={`w-full px-4 py-3 rounded-xl border font-black text-lg focus:ring-2 outline-none transition-all ${isDark ? 'bg-slate-800 border-white/5 text-white focus:ring-amber-500/50' : 'bg-slate-50 border-slate-200 text-slate-900 focus:ring-amber-500/20'}`}
+                                />
+                            </div>
+                        </div>
+                        <div className="p-6 flex gap-3">
+                            <button
+                                onClick={() => { setShowReturnModal(false); setSelectedShop(null); }}
+                                className={`flex-1 px-6 py-3 rounded-xl font-black text-xs uppercase tracking-widest transition-all ${isDark ? 'bg-slate-800 text-slate-400 hover:text-white hover:bg-slate-700' : 'bg-slate-100 text-slate-500 hover:bg-slate-200 hover:text-slate-700'}`}
+                            >
+                                Cancel
+                            </button>
+                            <button
+                                onClick={handleSaveProductReturn}
+                                disabled={submittingReturn}
+                                className={`flex-1 px-6 py-3 rounded-xl font-black text-xs uppercase tracking-widest transition-all bg-amber-600 text-white hover:bg-amber-500 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg shadow-amber-500/30`}
+                            >
+                                {submittingReturn ? 'Submitting...' : 'Save Return'}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* ── Overall Returns Modal ── */}
+            {showOverallReturnsModal && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+                    <div className="absolute inset-0 bg-slate-950/80 backdrop-blur-sm" onClick={() => setShowOverallReturnsModal(false)} />
+                    <div className={`relative w-full max-w-2xl rounded-3xl border shadow-2xl overflow-hidden transition-all transform animate-in zoom-in-95 duration-200 ${isDark ? 'bg-slate-900 border-white/10' : 'bg-white border-slate-100'}`}>
+                        <div className="p-6 border-b border-white/5 bg-gradient-to-r from-amber-500/10 to-transparent flex items-center justify-between">
+                            <div>
+                                <h3 className={`text-xl font-black tracking-tighter ${isDark ? 'text-white' : 'text-slate-900'}`}>
+                                    ↩ RETURNED PRODUCTS SUMMARY
+                                </h3>
+                                <p className="text-xs font-bold text-slate-500 uppercase mt-1 tracking-widest">
+                                    Date: {selectedDate.split('-').reverse().join('-')}
+                                </p>
+                            </div>
+                            <button 
+                                onClick={() => setShowOverallReturnsModal(false)}
+                                className={`w-8 h-8 rounded-full flex items-center justify-center transition-colors ${isDark ? 'hover:bg-white/10 text-white' : 'hover:bg-slate-100 text-slate-600'}`}
+                            >
+                                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M6 18L18 6M6 6l12 12" /></svg>
+                            </button>
+                        </div>
+                        <div className="p-6 max-h-[400px] overflow-y-auto">
+                            {loadingOverallReturns ? (
+                                <div className="flex items-center justify-center py-12">
+                                    <div className="w-8 h-8 border-4 border-amber-500 border-t-transparent rounded-full animate-spin" />
+                                </div>
+                            ) : overallReturns.length === 0 ? (
+                                <div className="text-center py-12 text-slate-400 dark:text-slate-500 font-bold uppercase text-xs tracking-wider">
+                                    ↩ No products returned on this date
+                                </div>
+                            ) : (
+                                <div className="overflow-hidden border rounded-xl dark:border-white/5">
+                                    <table className="w-full text-sm text-left">
+                                        <thead>
+                                            <tr className={`text-[10px] font-black uppercase tracking-widest ${isDark ? 'bg-slate-800/50 text-slate-400' : 'bg-slate-50 text-slate-500'}`}>
+                                                <th className="px-4 py-3">Shop</th>
+                                                <th className="px-4 py-3">Product Name</th>
+                                                <th className="px-4 py-3 text-right">Amount</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody className={`divide-y ${isDark ? 'divide-white/5' : 'divide-slate-100'}`}>
+                                            {overallReturns.map((item, idx) => (
+                                                <tr key={item.id || idx} className={isDark ? 'text-slate-300' : 'text-slate-700'}>
+                                                    <td className="px-4 py-3 font-bold">{item.shop_name}</td>
+                                                    <td className="px-4 py-3">{item.product_name}</td>
+                                                    <td className="px-4 py-3 text-right font-black text-amber-500">₹{fmt(item.amount)}</td>
+                                                </tr>
+                                            ))}
+                                            <tr className={`font-black ${isDark ? 'bg-amber-950/20' : 'bg-amber-50/50'} border-t-2 ${isDark ? 'border-amber-500/20' : 'border-amber-200'}`}>
+                                                <td colSpan={2} className="px-4 py-3 uppercase tracking-wider text-xs">Total Returns</td>
+                                                <td className="px-4 py-3 text-right text-base text-amber-600 dark:text-amber-400">
+                                                    ₹{fmt(overallReturns.reduce((sum, item) => sum + (parseFloat(item.amount) || 0), 0))}
+                                                </td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            )}
+                        </div>
+                        <div className="p-6 bg-slate-50 dark:bg-slate-900/50 border-t dark:border-white/5 flex justify-end">
+                            <button
+                                onClick={() => setShowOverallReturnsModal(false)}
+                                className={`px-6 py-2.5 rounded-xl font-black text-xs uppercase tracking-widest transition-all ${isDark ? 'bg-slate-800 text-slate-400 hover:text-white hover:bg-slate-700' : 'bg-slate-100 text-slate-500 hover:bg-slate-200 hover:text-slate-700'}`}
+                            >
+                                Close
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
             <ToastContainer toasts={toasts} removeToast={removeToast} />
         </div>
     );

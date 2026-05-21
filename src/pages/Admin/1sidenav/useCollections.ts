@@ -16,6 +16,7 @@ export interface DailyCollection {
     upi_collected: number;
     cheque_collected: number;
     manual_adjustments: number;
+    return_amount: number;
     future_bills: number;
     past_bills: number;
     old_balance: number;
@@ -82,6 +83,7 @@ export const useCollections = (orderLines: OrderLine[]) => {
                 upi_collected: parseFloat(row.upi_collected) || 0,
                 cheque_collected: parseFloat(row.cheque_collected) || 0,
                 manual_adjustments: parseFloat(row.manual_adjustments) || 0,
+                return_amount: parseFloat(row.return_amount) || 0,
                 manual_cash: parseFloat(row.manual_cash) || 0,
                 manual_upi: parseFloat(row.manual_upi) || 0,
                 manual_cheque: parseFloat(row.manual_cheque) || 0,
@@ -161,12 +163,13 @@ export const useCollections = (orderLines: OrderLine[]) => {
                         ? acc.todaysBillBalance + Math.max(0, row.todays_bill_amount - rowCollected)
                         : acc.todaysBillBalance,
                     totalManualAdjust: acc.totalManualAdjust + ((row.manual_adjustments || 0) + (row.discount_payment || 0)),
+                    totalReturnAmount: acc.totalReturnAmount + (row.return_amount || 0),
                     totalFutureBills: acc.totalFutureBills + (row.future_bills || 0),
                     totalBalance: acc.totalBalance + row.total_balance,
                     totalOldBalance: acc.totalOldBalance + (row.old_balance || 0),
                 };
             },
-            { amountCollected: 0, todaysBillAmount: 0, todaysBillBalance: 0, totalManualAdjust: 0, totalFutureBills: 0, totalBalance: 0, totalOldBalance: 0 }
+            { amountCollected: 0, todaysBillAmount: 0, todaysBillBalance: 0, totalManualAdjust: 0, totalReturnAmount: 0, totalFutureBills: 0, totalBalance: 0, totalOldBalance: 0 }
         );
     }, [collections]);
 
@@ -211,6 +214,21 @@ export const useCollections = (orderLines: OrderLine[]) => {
         };
     }, [collections, expenses]);
 
+    const recordProductReturn = async (shopId: number, productName: string, amount: number) => {
+        if (!selectedDate) return;
+        try {
+            await api().post(`/api/shops/${shopId}/product-return`, {
+                product_name: productName,
+                amount,
+                collection_date: selectedDate
+            });
+            await fetchCollections();
+        } catch (err) {
+            console.error('Failed to record product return:', err);
+            throw err;
+        }
+    };
+
     return {
         selectedDate,
         setSelectedDate,
@@ -224,6 +242,7 @@ export const useCollections = (orderLines: OrderLine[]) => {
         refresh: fetchCollections,
         addExpense,
         updateExpense,
-        deleteExpense
+        deleteExpense,
+        recordProductReturn
     };
 };

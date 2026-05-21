@@ -25,7 +25,7 @@ interface Props {
     // Payment
     showPaymentModal: boolean;
     setShowPaymentModal: (show: boolean) => void;
-    paymentData: { amount: string; dualCashAmount: string; dualUpiAmount: string; method: string; upiApp: string; description: string };
+    paymentData: { amount: string; method: string; upiApp: string; description: string };
     setPaymentData: (data: any) => void;
     submittingPayment: boolean;
     handleCollectPayment: (e: React.FormEvent) => void;
@@ -299,56 +299,25 @@ const ShopActionModals: React.FC<Props> = (props) => {
                             </button>
                         </div>
                         <form onSubmit={handleCollectPayment} className="space-y-6">
-                            {paymentData.method !== 'Dual Mode' ? (
-                                <div>
-                                    <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-2 mb-2 block">Amount to Collect (₹)</label>
-                                    <input
-                                        required
-                                        type="number"
-                                        step="0.01"
-                                        autoFocus
-                                        value={paymentData.amount}
-                                        onChange={e => setPaymentData({ ...paymentData, amount: e.target.value })}
-                                        className={`w-full rounded-2xl px-6 py-5 text-2xl font-black border focus:outline-none focus:ring-4
-                                            ${isDark ? 'bg-slate-800 border-white/10 text-emerald-400 focus:ring-emerald-500/20' : 'bg-slate-50 border-emerald-100 text-emerald-600 focus:ring-emerald-600/10'}`}
-                                        placeholder="0.00"
-                                    />
-                                </div>
-                            ) : (
-                                <div className="grid grid-cols-2 gap-3 animate-in fade-in slide-in-from-top-2 duration-300">
-                                    <div>
-                                        <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-2 mb-2 block">Cash Amount (₹)</label>
-                                        <input
-                                            required
-                                            type="number"
-                                            step="0.01"
-                                            value={paymentData.dualCashAmount}
-                                            onChange={e => setPaymentData({ ...paymentData, dualCashAmount: e.target.value })}
-                                            className={`w-full rounded-xl px-4 py-3 font-black border focus:outline-none
-                                                ${isDark ? 'bg-slate-800 border-white/10 text-white' : 'bg-slate-50 border-slate-100 text-slate-900'}`}
-                                            placeholder="0.00"
-                                        />
-                                    </div>
-                                    <div>
-                                        <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-2 mb-2 block">UPI Amount (₹)</label>
-                                        <input
-                                            required
-                                            type="number"
-                                            step="0.01"
-                                            value={paymentData.dualUpiAmount}
-                                            onChange={e => setPaymentData({ ...paymentData, dualUpiAmount: e.target.value })}
-                                            className={`w-full rounded-xl px-4 py-3 font-black border focus:outline-none
-                                                ${isDark ? 'bg-slate-800 border-white/10 text-white' : 'bg-slate-50 border-slate-100 text-slate-900'}`}
-                                            placeholder="0.00"
-                                        />
-                                    </div>
-                                </div>
-                            )}
+                            <div>
+                                <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-2 mb-2 block">Amount to Collect (₹)</label>
+                                <input
+                                    required
+                                    type="number"
+                                    step="0.01"
+                                    autoFocus
+                                    value={paymentData.amount}
+                                    onChange={e => setPaymentData({ ...paymentData, amount: e.target.value })}
+                                    className={`w-full rounded-2xl px-6 py-5 text-2xl font-black border focus:outline-none focus:ring-4
+                                        ${isDark ? 'bg-slate-800 border-white/10 text-emerald-400 focus:ring-emerald-500/20' : 'bg-slate-50 border-emerald-100 text-emerald-600 focus:ring-emerald-600/10'}`}
+                                    placeholder="0.00"
+                                />
+                            </div>
 
                             <div>
                                 <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-2 mb-3 block">Payment Method</label>
-                                <div className="grid grid-cols-2 sm:grid-cols-5 gap-2">
-                                    {(['Cash', 'UPI', 'Cheque', 'Dual Mode', 'Discount'] as const).map((m) => (
+                                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                                    {(['Cash', 'UPI', 'Cheque', 'Discount'] as const).map((m) => (
                                         <button
                                             key={m}
                                             type="button"

@@ -28,8 +28,6 @@ export const useShopActions = (showToast: (msg: string, type: any) => void, onSu
     const [showPaymentModal, setShowPaymentModal] = useState(false);
     const [paymentData, setPaymentData] = useState({ 
         amount: '', 
-        dualCashAmount: '',
-        dualUpiAmount: '',
         method: 'Cash', 
         upiApp: 'PhonePe', 
         description: '' 
@@ -123,11 +121,7 @@ export const useShopActions = (showToast: (msg: string, type: any) => void, onSu
         try {
             const storedUser = JSON.parse(localStorage.getItem('user') || '{}');
             const userName = storedUser.first_name ? `${storedUser.first_name} ${storedUser.last_name || ''}`.trim() : 'Admin';
-            
             let amount = parseFloat(paymentData.amount);
-            if (paymentData.method === 'Dual Mode') {
-                amount = (parseFloat(paymentData.dualCashAmount) || 0) + (parseFloat(paymentData.dualUpiAmount) || 0);
-            }
 
             if (isNaN(amount) || amount <= 0) {
                 showToast('Please enter a valid amount', 'error');
@@ -144,14 +138,6 @@ export const useShopActions = (showToast: (msg: string, type: any) => void, onSu
             let description = paymentData.description;
             if (paymentData.method === 'UPI') {
                 method = paymentData.upiApp;
-            } else if (paymentData.method === 'Dual Mode') {
-                const cashAmt = parseFloat(paymentData.dualCashAmount) || 0;
-                const upiAmt = parseFloat(paymentData.dualUpiAmount) || 0;
-                amount = cashAmt + upiAmt;
-                method = `Cash + ${paymentData.upiApp}`;
-                if (!description) {
-                    description = `Split Payment: Cash (₹${cashAmt}) + ${paymentData.upiApp} (₹${upiAmt})`;
-                }
             } else if (paymentData.method === 'Discount') {
                 method = 'Discount';
                 if (!description) {
@@ -159,8 +145,8 @@ export const useShopActions = (showToast: (msg: string, type: any) => void, onSu
                 }
             }
 
-            const cash_amount = paymentData.method === 'Dual Mode' ? parseFloat(paymentData.dualCashAmount) || 0 : (paymentData.method === 'Cash' ? amount : 0);
-            const upi_amount = paymentData.method === 'Dual Mode' ? parseFloat(paymentData.dualUpiAmount) || 0 : (paymentData.method === 'UPI' ? amount : 0);
+            const cash_amount = paymentData.method === 'Cash' ? amount : 0;
+            const upi_amount = paymentData.method === 'UPI' ? amount : 0;
             const cheque_amount = paymentData.method === 'Cheque' ? amount : 0;
 
             await api().post(`/api/shops/${selectedShop.id}/collect-payment`, {
@@ -176,7 +162,7 @@ export const useShopActions = (showToast: (msg: string, type: any) => void, onSu
             showToast('Payment recorded!', 'success');
             setShowPaymentModal(false);
             setSelectedShop(null);
-            setPaymentData({ amount: '', dualCashAmount: '', dualUpiAmount: '', method: 'Cash', upiApp: 'PhonePe', description: '' });
+            setPaymentData({ amount: '', method: 'Cash', upiApp: 'PhonePe', description: '' });
             if (onSuccess) onSuccess();
         } catch (err: any) {
             showToast(err.response?.data?.error || 'Failed to record payment', 'error');
