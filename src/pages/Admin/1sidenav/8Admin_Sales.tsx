@@ -2,6 +2,7 @@ import { useEffect } from 'react';
 import { useAdminSales } from './useAdminSales';
 import { ToastContainer } from '../../../components/Toast';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, LineChart, Line, Legend } from 'recharts';
+import ShopSalesAnalysis from './ShopSalesAnalysis';
 
 interface Props { theme: string; }
 
@@ -83,15 +84,23 @@ const AdminSales = ({ theme }: Props) => {
                         className={`px-5 py-2.5 text-xs font-black uppercase tracking-widest transition-all ${state.viewMode === 'overall' ? 'bg-blue-600 text-white' : isDark ? 'bg-slate-800 text-slate-400 hover:bg-slate-700' : 'bg-slate-50 text-slate-500 hover:bg-slate-100'}`}>
                         Overall
                     </button>
+                    <button onClick={() => actions.setViewMode('shops')}
+                        className={`px-5 py-2.5 text-xs font-black uppercase tracking-widest transition-all ${state.viewMode === 'shops' ? 'bg-blue-600 text-white' : isDark ? 'bg-slate-800 text-slate-400 hover:bg-slate-700' : 'bg-slate-50 text-slate-500 hover:bg-slate-100'}`}>
+                        Shops
+                    </button>
                 </div>
-                <div className="flex-1 min-w-[200px]">
-                    <input type="text" placeholder="Search staff..." value={state.searchQuery} onChange={e => actions.setSearchQuery(e.target.value)}
-                        className={`w-full px-5 py-3 rounded-2xl border font-bold text-sm focus:outline-none focus:ring-4 ${isDark ? 'bg-white/5 border-white/10 text-white placeholder-slate-500 focus:ring-blue-500/20' : 'bg-slate-50 border-slate-200 text-slate-900 focus:ring-blue-500/10'}`} />
-                </div>
-                <div className="min-w-[180px]">
-                    <input type="number" placeholder="Min Net Sales ₹" value={state.minSalesFilter || ''} onChange={e => actions.setMinSalesFilter(Number(e.target.value) || 0)}
-                        className={`w-full px-5 py-3 rounded-2xl border font-bold text-sm focus:outline-none focus:ring-4 ${isDark ? 'bg-white/5 border-white/10 text-white placeholder-slate-500 focus:ring-blue-500/20' : 'bg-slate-50 border-slate-200 text-slate-900 focus:ring-blue-500/10'}`} />
-                </div>
+                {state.viewMode === 'individual' && (
+                    <>
+                        <div className="flex-1 min-w-[200px]">
+                            <input type="text" placeholder="Search staff..." value={state.searchQuery} onChange={e => actions.setSearchQuery(e.target.value)}
+                                className={`w-full px-5 py-3 rounded-2xl border font-bold text-sm focus:outline-none focus:ring-4 ${isDark ? 'bg-white/5 border-white/10 text-white placeholder-slate-500 focus:ring-blue-500/20' : 'bg-slate-50 border-slate-200 text-slate-900 focus:ring-blue-500/10'}`} />
+                        </div>
+                        <div className="min-w-[180px]">
+                            <input type="number" placeholder="Min Net Sales ₹" value={state.minSalesFilter || ''} onChange={e => actions.setMinSalesFilter(Number(e.target.value) || 0)}
+                                className={`w-full px-5 py-3 rounded-2xl border font-bold text-sm focus:outline-none focus:ring-4 ${isDark ? 'bg-white/5 border-white/10 text-white placeholder-slate-500 focus:ring-blue-500/20' : 'bg-slate-50 border-slate-200 text-slate-900 focus:ring-blue-500/10'}`} />
+                        </div>
+                    </>
+                )}
             </div>
 
             {state.viewMode === 'individual' && (
@@ -203,9 +212,18 @@ const AdminSales = ({ theme }: Props) => {
                 </div>
             )}
 
+            {state.viewMode === 'shops' && (
+                <ShopSalesAnalysis 
+                    bills={state.bills}
+                    returns={state.returns}
+                    isDark={isDark}
+                />
+            )}
+
             {/* Charts */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                {/* Bar Chart: Sales Per Staff */}
+            {state.viewMode !== 'shops' && (
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    {/* Bar Chart: Sales Per Staff */}
                 <div className={`p-6 rounded-[28px] border ${isDark ? 'bg-slate-900/50 border-white/5' : 'bg-white border-slate-100 shadow-xl'}`}>
                     <h3 className={`text-xl font-black italic tracking-tight mb-6 ${isDark ? 'text-white' : 'text-slate-900'}`}>Sales Per Staff (Gross vs Net)</h3>
                     {data.allStaffRows.length === 0 ? (
@@ -253,9 +271,11 @@ const AdminSales = ({ theme }: Props) => {
                     )}
                 </div>
             </div>
+            )}
 
             {/* Leaderboard + Comparison */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            {state.viewMode !== 'shops' && (
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 {/* Top 5 Leaderboard (Net Sales) */}
                 <div className={`p-6 rounded-[28px] border ${isDark ? 'bg-slate-900/50 border-white/5' : 'bg-white border-slate-100 shadow-xl'}`}>
                     <h3 className={`text-xl font-black italic tracking-tight mb-6 ${isDark ? 'text-white' : 'text-slate-900'}`}>🏆 Top 5 Staff (Net Sales)</h3>
@@ -332,6 +352,7 @@ const AdminSales = ({ theme }: Props) => {
                     )}
                 </div>
             </div>
+            )}
         </div>
     );
 };

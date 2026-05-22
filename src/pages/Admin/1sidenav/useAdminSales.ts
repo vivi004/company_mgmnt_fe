@@ -3,7 +3,7 @@ import { getAuthAxios } from '../../../utils/apiClient';
 import { useToast } from '../../../components/Toast';
 import { getCartItems } from '../../../constants/productData';
 
-interface RawBill {
+export interface RawBill {
     id: number;
     shop_name: string;
     village_name: string;
@@ -11,6 +11,7 @@ interface RawBill {
     custom_rates: Record<string, number>;
     created_by: string;
     bill_date: string;
+    delivery_date?: string;
     invoice_no: number;
     status: string;
 }
@@ -69,7 +70,7 @@ export const useAdminSales = () => {
     const [minSalesFilter, setMinSalesFilter] = useState(0);
     const [sortBy, setSortBy] = useState<'amount' | 'orders'>('amount');
     const [sortDir, setSortDir] = useState<'asc' | 'desc'>('desc');
-    const [viewMode, setViewMode] = useState<'individual' | 'overall'>('individual');
+    const [viewMode, setViewMode] = useState<'individual' | 'overall' | 'shops'>('individual');
     const [compareStaff, setCompareStaff] = useState<[string, string]>(['', '']);
     const [currentPage, setCurrentPage] = useState(1);
     const pageSize = 10;
@@ -96,7 +97,8 @@ export const useAdminSales = () => {
                     const allBills: RawBill[] = res.data;
                     return allBills.filter(b => {
                         if (b.status !== 'Verified') return false;
-                        const d = new Date(b.bill_date);
+                        const dateToUse = b.delivery_date || b.bill_date;
+                        const d = new Date(dateToUse);
                         const localDate = new Date(d.getTime() - d.getTimezoneOffset() * 60000).toISOString().split('T')[0];
                         if (startDate && localDate < startDate) return false;
                         if (endDate && localDate > endDate) return false;
@@ -141,6 +143,11 @@ export const useAdminSales = () => {
             localDate: (() => {
                 const d = new Date(b.bill_date);
                 return new Date(d.getTime() - d.getTimezoneOffset() * 60000).toISOString().split('T')[0];
+            })(),
+            localDeliveryDate: (() => {
+                if (!b.delivery_date) return '';
+                const d = new Date(b.delivery_date);
+                return new Date(d.getTime() - d.getTimezoneOffset() * 60000).toISOString().split('T')[0];
             })()
         })),
     [bills]);
@@ -150,12 +157,13 @@ export const useAdminSales = () => {
         const map: Record<string, { orders: number; grossAmount: number; returnsAmount: number; lastDate: string }> = {};
         
         billsWithTotals.forEach(b => {
+            const dateToUse = b.localDeliveryDate || b.localDate;
             if (!map[b.staffName]) {
-                map[b.staffName] = { orders: 0, grossAmount: 0, returnsAmount: 0, lastDate: b.localDate };
+                map[b.staffName] = { orders: 0, grossAmount: 0, returnsAmount: 0, lastDate: dateToUse };
             }
             map[b.staffName].orders += 1;
             map[b.staffName].grossAmount += b.total;
-            if (b.localDate > map[b.staffName].lastDate) map[b.staffName].lastDate = b.localDate;
+            if (dateToUse > map[b.staffName].lastDate) map[b.staffName].lastDate = dateToUse;
         });
 
         returns.forEach(r => {
@@ -240,9 +248,10 @@ export const useAdminSales = () => {
         const map: Record<string, { grossAmount: number; returnsAmount: number; count: number }> = {};
         
         billsWithTotals.forEach(b => {
-            if (!map[b.localDate]) map[b.localDate] = { grossAmount: 0, returnsAmount: 0, count: 0 };
-            map[b.localDate].grossAmount += b.total;
-            map[b.localDate].count += 1;
+            const dateToUse = b.localDeliveryDate || b.localDate;
+            if (!map[dateToUse]) map[dateToUse] = { grossAmount: 0, returnsAmount: 0, count: 0 };
+            map[dateToUse].grossAmount += b.total;
+            map[dateToUse].count += 1;
         });
 
         returns.forEach(r => {
