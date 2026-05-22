@@ -1,15 +1,19 @@
+import React, { Suspense } from "react";
 import StaffSidenav from "./1Staff_Sidenav";
-import StaffProductRates from "./3Staff_Directory";
-import StaffOrderLines from "./4Staff_OrderLines";
-import StaffSettings from "./5Staff_Settings";
-import BillCheck from "../../../components/common/BillCheck/BillCheck";
 import { Drawer, IconButton } from "@mui/material";
 import MenuIcon from "@mui/icons-material/Menu";
 import { ToastContainer } from "../../../components/Toast";
 import { useStaffDashboardData } from './useStaffDashboardData';
 import StaffProfileModal from './Staff_ProfileModal';
 import StaffSectorModal from './Staff_SectorModal';
-import AdminCollections from "../../Admin/1sidenav/9Admin_Collections";
+import { TabLoadingFallback } from "../../../components/common/LoadingScreen";
+
+// Lazy-loaded Staff sub-tabs
+const StaffProductRates = React.lazy(() => import("./3Staff_Directory"));
+const StaffOrderLines = React.lazy(() => import("./4Staff_OrderLines"));
+const StaffSettings = React.lazy(() => import("./5Staff_Settings"));
+const BillCheck = React.lazy(() => import("../../../components/common/BillCheck/BillCheck"));
+const AdminCollections = React.lazy(() => import("../../Admin/1sidenav/9Admin_Collections"));
 
 const StaffDashboard = () => {
     const { state, actions } = useStaffDashboardData();
@@ -64,45 +68,47 @@ const StaffDashboard = () => {
 
                 <main className="flex-grow overflow-y-auto px-4 pt-14 pb-6 lg:px-10 lg:pt-8 lg:pb-10 hide-scrollbar scroll-smooth">
                     <div className="max-w-6xl mx-auto">
-                        {state.activeTab === 'product-rates' && (
-                            <StaffProductRates
-                                products={state.products}
-                                loading={state.loading}
-                                theme={state.theme}
-                            />
-                        )}
-                        {state.activeTab === 'order-lines' && (
-                            <StaffOrderLines
-                                orderLines={state.orderLines}
-                                olLoading={state.olLoading}
-                                theme={state.theme}
-                            />
-                        )}
-                        {state.activeTab === 'collections' && (
-                            <AdminCollections
-                                theme={state.theme}
-                                orderLines={state.orderLines}
-                                isAdmin={false}
-                            />
-                        )}
-                        {state.activeTab === 'bill-check' && (
-                            <BillCheck
-                                theme={state.theme}
-                                type="staff"
-                                userProfileName={state.userProfile.first_name ? `${state.userProfile.first_name} ${state.userProfile.last_name || ''}`.trim() : 'Staff'}
-                                onUnverifiedCountChange={actions.setUnverifiedCount}
-                            />
-                        )}
-                        {state.activeTab === 'settings' && (
-                            <StaffSettings
-                                theme={state.theme}
-                                setTheme={actions.setTheme}
-                                userProfile={state.userProfile}
-                                setShowModal={actions.setShowModal}
-                                profilePic={state.profilePic}
-                                setProfilePic={actions.setProfilePic}
-                            />
-                        )}
+                        <Suspense fallback={<TabLoadingFallback theme={state.theme} />}>
+                            {state.activeTab === 'product-rates' && (
+                                <StaffProductRates
+                                    products={state.products}
+                                    loading={state.loading}
+                                    theme={state.theme}
+                                />
+                            )}
+                            {state.activeTab === 'order-lines' && (
+                                <StaffOrderLines
+                                    orderLines={state.orderLines}
+                                    olLoading={state.olLoading}
+                                    theme={state.theme}
+                                />
+                            )}
+                            {state.activeTab === 'collections' && (
+                                <AdminCollections
+                                    theme={state.theme}
+                                    orderLines={state.orderLines}
+                                    isAdmin={false}
+                                />
+                            )}
+                            {state.activeTab === 'bill-check' && (
+                                <BillCheck
+                                    theme={state.theme}
+                                    type="staff"
+                                    userProfileName={state.userProfile.first_name ? `${state.userProfile.first_name} ${state.userProfile.last_name || ''}`.trim() : 'Staff'}
+                                    onUnverifiedCountChange={actions.setUnverifiedCount}
+                                />
+                            )}
+                            {state.activeTab === 'settings' && (
+                                <StaffSettings
+                                    theme={state.theme}
+                                    setTheme={actions.setTheme}
+                                    userProfile={state.userProfile}
+                                    setShowModal={actions.setShowModal}
+                                    profilePic={state.profilePic}
+                                    setProfilePic={actions.setProfilePic}
+                                />
+                            )}
+                        </Suspense>
                     </div>
                 </main>
             </div>

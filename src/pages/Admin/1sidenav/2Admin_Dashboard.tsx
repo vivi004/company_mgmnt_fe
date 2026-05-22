@@ -1,20 +1,24 @@
+import React, { Suspense } from "react";
 import AdminSidenav from "./1Admin_Sidenav";
-import AdminManageTeam from "./3Admin_Manage_Team";
-import AdminRequests from "./4Admin_Requests";
-import AdminOrderLines from "./5Admin_OrderLines";
-import AdminSettings from "./6Admin_Settings";
-import AdminBills from "./7Admin_Bills";
-import AdminSales from "./8Admin_Sales";
-import AdminCollections from "./9Admin_Collections";
-import BillCheck from "../../../components/common/BillCheck/BillCheck";
 import { Drawer, IconButton } from "@mui/material";
 import MenuIcon from "@mui/icons-material/Menu";
 import { ToastContainer } from "../../../components/Toast";
+import { TabLoadingFallback } from "../../../components/common/LoadingScreen";
 
 import AdminConfirmModal from "./Admin_ConfirmModal";
 import AdminEmployeeModal from "./Admin_EmployeeModal";
 import AdminOrderLineModal from "./Admin_OrderLineModal";
 import { useAdminDashboardData } from "./useAdminDashboardData";
+
+// Lazy-loaded Admin sub-tabs
+const AdminManageTeam = React.lazy(() => import("./3Admin_Manage_Team"));
+const AdminRequests = React.lazy(() => import("./4Admin_Requests"));
+const AdminOrderLines = React.lazy(() => import("./5Admin_OrderLines"));
+const AdminSettings = React.lazy(() => import("./6Admin_Settings"));
+const AdminBills = React.lazy(() => import("./7Admin_Bills"));
+const AdminSales = React.lazy(() => import("./8Admin_Sales"));
+const AdminCollections = React.lazy(() => import("./9Admin_Collections"));
+const BillCheck = React.lazy(() => import("../../../components/common/BillCheck/BillCheck"));
 
 const AdminDashboard = () => {
     const { state, actions } = useAdminDashboardData();
@@ -86,80 +90,82 @@ const AdminDashboard = () => {
 
                 <main className="flex-grow overflow-y-auto px-4 pt-14 pb-6 lg:px-10 lg:pt-8 lg:pb-10 hide-scrollbar scroll-smooth">
                     <div className="max-w-7xl mx-auto">
-                        {state.activeTab === 'manage' && (
-                            <AdminManageTeam
-                                employees={state.employees}
-                                loading={state.loading}
-                                theme={state.theme}
-                                billCount={state.totalBillsCount}
-                                handleEdit={actions.handleEdit}
-                                handleDelete={actions.handleDelete}
-                                handleAddNew={actions.handleAddNew}
-                            />
-                        )}
-                        {state.activeTab === 'requests' && (
-                            <AdminRequests
-                                requests={state.requests}
-                                olRequests={state.olRequests}
-                                theme={state.theme}
-                                handleApproveRequest={actions.handleApproveRequest}
-                                handleRejectRequest={actions.handleRejectRequest}
-                                handleApproveOl={actions.handleApproveOl}
-                                handleRejectOl={actions.handleRejectOl}
-                            />
-                        )}
-                        {state.activeTab === 'order-lines' && (
-                            <AdminOrderLines
-                                orderLines={state.orderLines}
-                                theme={state.theme}
-                                handleOpenOlModal={actions.handleOpenOlModal}
-                                handleDeleteOl={actions.handleDeleteOl}
-                                handleRefreshInvoiceSettings={actions.fetchInvoiceSettings}
-                            />
-                        )}
-                        {state.activeTab === 'collections' && (
-                            <AdminCollections
-                                theme={state.theme}
-                                orderLines={state.orderLines}
-                                isAdmin={true}
-                            />
-                        )}
-                        {state.activeTab === 'bills' && (
-                            <AdminBills
-                                bills={state.bills}
-                                theme={state.theme}
-                                onDeleteBill={actions.handleDeleteBill}
-                                onEditBill={actions.handleEditBill}
-                                selectedDate={state.billSelectedDate}
-                                setSelectedDate={actions.setBillSelectedDate}
-                                motorVehicles={state.motorVehicles}
-                            />
-                        )}
-                        {state.activeTab === 'bill-check' && (
-                            <BillCheck theme={state.theme} type="admin" onUnverifiedCountChange={actions.setUnverifiedCount} />
-                        )}
-                        {state.activeTab === 'sales' && (
-                            <AdminSales theme={state.theme} />
-                        )}
-                        {state.activeTab === 'settings' && (
-                            <AdminSettings
-                                theme={state.theme}
-                                setTheme={actions.setTheme}
-                                backendStatus={state.backendStatus}
-                                lastSynced={state.lastSynced}
-                                isSyncing={state.isSyncing}
-                                handleManualSync={actions.handleManualSync}
-                                handleAppSync={actions.handleAppSync}
-                                handleLogoutAllStaff={actions.handleLogoutAllStaff}
-                                nextInvoiceNo={state.nextInvoiceNo}
-                                setNextInvoiceNo={actions.setNextInvoiceNo}
-                                lastInvoiceNo={state.lastInvoiceNo}
-                                profilePic={state.profilePic}
-                                setProfilePic={actions.setProfilePic}
-                                ledgerSheetUrl={state.ledgerSheetUrl}
-                                handleSyncAllToLedger={actions.handleSyncAllToLedger}
-                            />
-                        )}
+                        <Suspense fallback={<TabLoadingFallback theme={state.theme} />}>
+                            {state.activeTab === 'manage' && (
+                                <AdminManageTeam
+                                    employees={state.employees}
+                                    loading={state.loading}
+                                    theme={state.theme}
+                                    billCount={state.totalBillsCount}
+                                    handleEdit={actions.handleEdit}
+                                    handleDelete={actions.handleDelete}
+                                    handleAddNew={actions.handleAddNew}
+                                />
+                            )}
+                            {state.activeTab === 'requests' && (
+                                <AdminRequests
+                                    requests={state.requests}
+                                    olRequests={state.olRequests}
+                                    theme={state.theme}
+                                    handleApproveRequest={actions.handleApproveRequest}
+                                    handleRejectRequest={actions.handleRejectRequest}
+                                    handleApproveOl={actions.handleApproveOl}
+                                    handleRejectOl={actions.handleRejectOl}
+                                />
+                            )}
+                            {state.activeTab === 'order-lines' && (
+                                <AdminOrderLines
+                                    orderLines={state.orderLines}
+                                    theme={state.theme}
+                                    handleOpenOlModal={actions.handleOpenOlModal}
+                                    handleDeleteOl={actions.handleDeleteOl}
+                                    handleRefreshInvoiceSettings={actions.fetchInvoiceSettings}
+                                />
+                            )}
+                            {state.activeTab === 'collections' && (
+                                <AdminCollections
+                                    theme={state.theme}
+                                    orderLines={state.orderLines}
+                                    isAdmin={true}
+                                />
+                            )}
+                            {state.activeTab === 'bills' && (
+                                <AdminBills
+                                    bills={state.bills}
+                                    theme={state.theme}
+                                    onDeleteBill={actions.handleDeleteBill}
+                                    onEditBill={actions.handleEditBill}
+                                    selectedDate={state.billSelectedDate}
+                                    setSelectedDate={actions.setBillSelectedDate}
+                                    motorVehicles={state.motorVehicles}
+                                />
+                            )}
+                            {state.activeTab === 'bill-check' && (
+                                <BillCheck theme={state.theme} type="admin" onUnverifiedCountChange={actions.setUnverifiedCount} />
+                            )}
+                            {state.activeTab === 'sales' && (
+                                <AdminSales theme={state.theme} />
+                            )}
+                            {state.activeTab === 'settings' && (
+                                <AdminSettings
+                                    theme={state.theme}
+                                    setTheme={actions.setTheme}
+                                    backendStatus={state.backendStatus}
+                                    lastSynced={state.lastSynced}
+                                    isSyncing={state.isSyncing}
+                                    handleManualSync={actions.handleManualSync}
+                                    handleAppSync={actions.handleAppSync}
+                                    handleLogoutAllStaff={actions.handleLogoutAllStaff}
+                                    nextInvoiceNo={state.nextInvoiceNo}
+                                    setNextInvoiceNo={actions.setNextInvoiceNo}
+                                    lastInvoiceNo={state.lastInvoiceNo}
+                                    profilePic={state.profilePic}
+                                    setProfilePic={actions.setProfilePic}
+                                    ledgerSheetUrl={state.ledgerSheetUrl}
+                                    handleSyncAllToLedger={actions.handleSyncAllToLedger}
+                                />
+                            )}
+                        </Suspense>
                     </div>
                 </main>
             </div>
