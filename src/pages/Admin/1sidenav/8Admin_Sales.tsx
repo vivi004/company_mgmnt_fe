@@ -11,17 +11,22 @@ const AdminSales = ({ theme }: Props) => {
 
     useEffect(() => { actions.fetchSalesData(); }, []);
 
-    const card = (title: string, value: string, sub: string, icon: string, color: string) => (
-        <div className={`p-6 rounded-[28px] border transition-all hover:-translate-y-1
-            ${isDark ? 'bg-slate-900 border-white/5' : 'bg-white border-slate-100 shadow-lg'}`}>
-            <div className="flex items-center justify-between mb-4">
-                <span className={`text-3xl p-3 rounded-2xl ${isDark ? 'bg-slate-800' : `bg-${color}-50`}`}>{icon}</span>
-                <span className={`text-[10px] font-black uppercase tracking-widest ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>{title}</span>
+    const card = (title: string, value: string, sub: string, icon: string, color: string) => {
+        const isLong = value.length > 9;
+        return (
+            <div className={`p-6 rounded-[28px] border transition-all hover:-translate-y-1 min-w-0 overflow-hidden
+                ${isDark ? 'bg-slate-900 border-white/5' : 'bg-white border-slate-100 shadow-lg'}`}>
+                <div className="flex items-center justify-between mb-4 gap-2 min-w-0">
+                    <span className={`text-3xl p-3 rounded-2xl shrink-0 ${isDark ? 'bg-slate-800' : `bg-${color}-50`}`}>{icon}</span>
+                    <span className={`text-[10px] font-black uppercase tracking-widest ${isDark ? 'text-slate-500' : 'text-slate-400'} truncate`} title={title}>{title}</span>
+                </div>
+                <p className={`font-black tracking-tight ${isLong ? 'text-lg sm:text-xl lg:text-2xl' : 'text-2xl sm:text-3xl'} ${isDark ? 'text-white' : 'text-slate-900'} truncate`} title={value}>
+                    {value}
+                </p>
+                <p className="text-sm text-slate-500 mt-1 font-medium truncate" title={sub}>{sub}</p>
             </div>
-            <p className={`text-3xl font-black tracking-tight ${isDark ? 'text-white' : 'text-slate-900'}`}>{value}</p>
-            <p className="text-sm text-slate-500 mt-1 font-medium">{sub}</p>
-        </div>
-    );
+        );
+    };
 
     const fmt = (n: number) => '₹' + n.toLocaleString('en-IN', { minimumFractionDigits: 2 });
 
@@ -58,7 +63,7 @@ const AdminSales = ({ theme }: Props) => {
             </div>
 
             {/* Summary Cards */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-5">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-6 gap-5">
                 {card('Gross Sales', fmt(data.summary.totalSales), `${state.startDate} — ${state.endDate}`, '💰', 'blue')}
                 {card('Total Returns', fmt(data.summary.totalReturns), 'Product returns value', '↩️', 'amber')}
                 {card('Net Sales', fmt(data.summary.netSales), 'Gross minus returns', '💵', 'emerald')}

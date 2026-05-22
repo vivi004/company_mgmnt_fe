@@ -349,7 +349,7 @@ const AdminCollections = ({ theme, orderLines, isAdmin: propsIsAdmin }: Props) =
             </div>
 
             {/* ── Summary Cards ── */}
-            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-8 gap-3 sm:gap-4 mb-6">
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 2xl:grid-cols-8 gap-3 sm:gap-4 mb-6">
                 {[
                     { label: 'Billed Today', value: `₹${fmt(totals.todaysBillAmount)}`, icon: '🧾', color: 'blue' },
                     { label: 'Collected', value: `₹${fmt(totals.amountCollected)}`, icon: '💰', color: 'green' },
@@ -359,18 +359,26 @@ const AdminCollections = ({ theme, orderLines, isAdmin: propsIsAdmin }: Props) =
                     { label: 'Manual Adj', value: `₹${fmt(totals.totalManualAdjust)}`, icon: '⚙️', color: totals.totalManualAdjust === 0 ? 'slate' : totals.totalManualAdjust > 0 ? 'blue' : 'amber' },
                     { label: 'Pending', value: `₹${fmt(totals.todaysBillBalance)}`, icon: '⏳', color: totals.todaysBillBalance > 0 ? 'amber' : 'green' },
                     { label: 'Shops', value: String(collections.length), icon: '🏪', color: 'purple' },
-                ].map((card) => (
-                    <div
-                        key={card.label}
-                        className={`rounded-2xl border p-4 sm:p-5 transition-all ${isDark ? 'bg-slate-900/50 border-white/5' : 'bg-white border-slate-100 shadow-sm'}`}
-                    >
-                        <div className="flex items-center gap-2 mb-2">
-                            <span className="text-lg">{card.icon}</span>
-                            <span className={`text-[10px] font-black uppercase tracking-widest ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>{card.label}</span>
+                ].map((card) => {
+                    const isLongValue = card.value.length > 9;
+                    return (
+                        <div
+                            key={card.label}
+                            className={`rounded-2xl border p-4 sm:p-5 transition-all min-w-0 overflow-hidden ${isDark ? 'bg-slate-900/50 border-white/5' : 'bg-white border-slate-100 shadow-sm'}`}
+                        >
+                            <div className="flex items-center gap-2 mb-2 min-w-0 overflow-hidden">
+                                <span className="text-lg shrink-0">{card.icon}</span>
+                                <span className={`text-[10px] font-black uppercase tracking-widest ${isDark ? 'text-slate-500' : 'text-slate-400'} truncate`} title={card.label}>{card.label}</span>
+                            </div>
+                            <p 
+                                className={`font-black tracking-tight ${isLongValue ? 'text-base sm:text-lg lg:text-xl' : 'text-xl sm:text-2xl'} ${isDark ? 'text-white' : 'text-slate-900'} truncate`}
+                                title={card.value}
+                            >
+                                {card.value}
+                            </p>
                         </div>
-                        <p className={`text-xl sm:text-2xl font-black tracking-tight ${isDark ? 'text-white' : 'text-slate-900'}`}>{card.value}</p>
-                    </div>
-                ))}
+                    );
+                })}
             </div>
 
             {/* ── Expense Modal ── */}
