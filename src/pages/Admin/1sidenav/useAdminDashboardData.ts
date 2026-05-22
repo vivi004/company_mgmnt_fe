@@ -242,23 +242,28 @@ export const useAdminDashboardData = () => {
         }
     };
 
+    const applyInvoiceSettings = (settings: any) => {
+        if (!settings) return;
+        const { next_invoice_no, last_invoice_no, ledger_sheet_url, last_sheet_sync_time } = settings;
+        setNextInvoiceNo(next_invoice_no);
+        setLastInvoiceNo(last_invoice_no);
+        setLedgerSheetUrl(ledger_sheet_url || "");
+        localStorage.setItem('nextInvoiceNo', String(next_invoice_no));
+        localStorage.setItem('lastInvoiceNo', String(last_invoice_no));
+        localStorage.setItem('ledgerSheetUrl', ledger_sheet_url || "");
+        
+        if (last_sheet_sync_time) {
+            setLastSynced(last_sheet_sync_time);
+            localStorage.setItem('lastSynced', last_sheet_sync_time);
+        }
+    };
+
     const bootstrapDashboardData = async () => {
         try {
             const res = await api().get('/api/settings/bootstrap');
             const { invoiceSettings, vehicles, unverifiedCount, totalBillsCount } = res.data;
             if (invoiceSettings) {
-                const { next_invoice_no, last_invoice_no, ledger_sheet_url, last_sheet_sync_time } = invoiceSettings;
-                setNextInvoiceNo(next_invoice_no);
-                setLastInvoiceNo(last_invoice_no);
-                setLedgerSheetUrl(ledger_sheet_url || "");
-                localStorage.setItem('nextInvoiceNo', String(next_invoice_no));
-                localStorage.setItem('lastInvoiceNo', String(last_invoice_no));
-                localStorage.setItem('ledgerSheetUrl', ledger_sheet_url || "");
-                
-                if (last_sheet_sync_time) {
-                    setLastSynced(last_sheet_sync_time);
-                    localStorage.setItem('lastSynced', last_sheet_sync_time);
-                }
+                applyInvoiceSettings(invoiceSettings);
             }
             if (vehicles) {
                 setMotorVehicles(vehicles);
@@ -279,18 +284,7 @@ export const useAdminDashboardData = () => {
     const fetchInvoiceSettings = async () => {
         try {
             const res = await api().get('/api/settings/invoice');
-            const { next_invoice_no, last_invoice_no, ledger_sheet_url, last_sheet_sync_time } = res.data;
-            setNextInvoiceNo(next_invoice_no);
-            setLastInvoiceNo(last_invoice_no);
-            setLedgerSheetUrl(ledger_sheet_url || "");
-            localStorage.setItem('nextInvoiceNo', String(next_invoice_no));
-            localStorage.setItem('lastInvoiceNo', String(last_invoice_no));
-            localStorage.setItem('ledgerSheetUrl', ledger_sheet_url || "");
-            
-            if (last_sheet_sync_time) {
-                setLastSynced(last_sheet_sync_time);
-                localStorage.setItem('lastSynced', last_sheet_sync_time);
-            }
+            applyInvoiceSettings(res.data);
         } catch (err) {
             console.error('Could not load invoice settings from backend, using localStorage fallback.');
         }
