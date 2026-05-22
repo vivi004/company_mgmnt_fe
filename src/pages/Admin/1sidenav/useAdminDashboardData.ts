@@ -9,7 +9,7 @@ export const useAdminDashboardData = () => {
     const [loading, setLoading] = useState(true);
     const [showModal, setShowModal] = useState(false);
     const [editingEmployee, setEditingEmployee] = useState<Employee | null>(null);
-    const [activeTab, setActiveTab] = useState("manage");
+    const [activeTab, setActiveTab] = useState(() => localStorage.getItem('adminActiveTab') || "manage");
     const [backendStatus, setBackendStatus] = useState("Checking...");
     const [confirmModal, setConfirmModal] = useState<{ open: boolean; message: string; onConfirm: () => void; confirmText?: string; confirmColor?: string }>({
         open: false, message: '', onConfirm: () => { }, confirmText: 'Confirm', confirmColor: 'bg-red-600'
@@ -308,7 +308,8 @@ export const useAdminDashboardData = () => {
         localStorage.setItem('adminTheme', theme);
         localStorage.setItem('nextInvoiceNo', String(nextInvoiceNo));
         localStorage.setItem('ledgerSheetUrl', ledgerSheetUrl);
-    }, [companyName, theme, nextInvoiceNo, ledgerSheetUrl]);
+        localStorage.setItem('adminActiveTab', activeTab);
+    }, [companyName, theme, nextInvoiceNo, ledgerSheetUrl, activeTab]);
 
     useEffect(() => {
         if (activeTab === 'bills' || activeTab === 'bill-check') {

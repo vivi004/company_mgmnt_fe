@@ -9,7 +9,7 @@ import { syncRatesFromSheet } from "../../../services/googleSheetSync";
 export const useStaffDashboardData = () => {
     const [products, setProducts] = useState<Product[]>([]);
     const [loading, setLoading] = useState(true);
-    const [activeTab, setActiveTab] = useState("product-rates");
+    const [activeTab, setActiveTab] = useState(() => localStorage.getItem('staffActiveTab') || "product-rates");
     const [showModal, setShowModal] = useState(false);
 
     const [theme, setTheme] = useState(() => localStorage.getItem('staffTheme') || "light");
@@ -63,7 +63,8 @@ export const useStaffDashboardData = () => {
 
     useEffect(() => {
         localStorage.setItem('staffTheme', theme);
-    }, [theme]);
+        localStorage.setItem('staffActiveTab', activeTab);
+    }, [theme, activeTab]);
 
     const checkNotifications = async () => {
         try {
