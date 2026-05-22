@@ -229,6 +229,94 @@ export const useCollections = (orderLines: OrderLine[]) => {
         }
     };
 
+    const fetchShopDayDetails = async (shopId: number, date: string) => {
+        try {
+            const res = await api().get(`/api/collections/shop-day-details?shopId=${shopId}&date=${date}`);
+            return res.data || { transactions: [], returns: [] };
+        } catch (err) {
+            console.error('Failed to fetch shop day details:', err);
+            throw err;
+        }
+    };
+
+    const updatePayment = async (txId: number, amount: number, paymentMode: string, description: string) => {
+        try {
+            await api().put(`/api/collections/transactions/${txId}/payment`, {
+                amount,
+                payment_mode: paymentMode,
+                description
+            });
+            await fetchCollections();
+        } catch (err) {
+            console.error('Failed to update payment:', err);
+            throw err;
+        }
+    };
+
+    const updateAdjustment = async (txId: number, amount: number, paymentMode: string, description: string) => {
+        try {
+            await api().put(`/api/collections/transactions/${txId}/adjustment`, {
+                amount,
+                payment_mode: paymentMode,
+                description
+            });
+            await fetchCollections();
+        } catch (err) {
+            console.error('Failed to update adjustment:', err);
+            throw err;
+        }
+    };
+
+    const deleteTransaction = async (txId: number) => {
+        try {
+            await api().delete(`/api/collections/transactions/${txId}`);
+            await fetchCollections();
+        } catch (err) {
+            console.error('Failed to delete transaction:', err);
+            throw err;
+        }
+    };
+
+    const updateReturnProduct = async (retId: number, productName: string, amount: number) => {
+        try {
+            await api().put(`/api/collections/returns/${retId}`, {
+                product_name: productName,
+                amount
+            });
+            await fetchCollections();
+        } catch (err) {
+            console.error('Failed to update return product:', err);
+            throw err;
+        }
+    };
+
+    const deleteReturnProduct = async (retId: number) => {
+        try {
+            await api().delete(`/api/collections/returns/${retId}`);
+            await fetchCollections();
+        } catch (err) {
+            console.error('Failed to delete return product:', err);
+            throw err;
+        }
+    };
+
+    const addRetroactiveTx = async (shopId: number, type: string, amount: number, paymentMode: string, description: string, date: string) => {
+        try {
+            await api().post('/api/collections/transactions/add-retroactive', {
+                shopId,
+                type,
+                amount,
+                paymentMode,
+                description,
+                date
+            });
+            await fetchCollections();
+        } catch (err) {
+            console.error('Failed to add retroactive transaction:', err);
+            throw err;
+        }
+    };
+
     return {
         selectedDate,
         setSelectedDate,
@@ -243,6 +331,13 @@ export const useCollections = (orderLines: OrderLine[]) => {
         addExpense,
         updateExpense,
         deleteExpense,
-        recordProductReturn
+        recordProductReturn,
+        fetchShopDayDetails,
+        updatePayment,
+        updateAdjustment,
+        deleteTransaction,
+        updateReturnProduct,
+        deleteReturnProduct,
+        addRetroactiveTx
     };
 };

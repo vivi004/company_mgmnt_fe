@@ -22,8 +22,13 @@ const AdminCollections = ({ theme, orderLines, isAdmin: propsIsAdmin }: Props) =
         selectedOlId, setSelectedOlId,
         collections, loading,
         totals, modeBreakdown,
-        refresh, addExpense, updateExpense, deleteExpense, expenses, recordProductReturn
+        refresh, addExpense, updateExpense, deleteExpense, expenses, recordProductReturn,
+        fetchShopDayDetails, updatePayment, updateAdjustment, deleteTransaction,
+        updateReturnProduct, deleteReturnProduct, addRetroactiveTx
     } = useCollections(orderLines);
+
+    const storedUser = JSON.parse(localStorage.getItem('user') || '{}');
+    const isAdmin = propsIsAdmin ?? (storedUser.role === 'admin' || storedUser.role === 'Admin');
 
     const { toasts, showToast, removeToast } = useToast();
 
@@ -82,6 +87,185 @@ const AdminCollections = ({ theme, orderLines, isAdmin: propsIsAdmin }: Props) =
     const [showOverallReturnsModal, setShowOverallReturnsModal] = useState(false);
     const [overallReturns, setOverallReturns] = useState<any[]>([]);
     const [loadingOverallReturns, setLoadingOverallReturns] = useState(false);
+
+    // Consolidated Ledger Edit Modal States
+    const [showLedgerEditModal, setShowLedgerEditModal] = useState(false);
+    const [ledgerEditTab, setLedgerEditTab] = useState<'PAYMENTS' | 'ADJUSTMENTS' | 'RETURNS'>('PAYMENTS');
+    const [loadingLedgerDetails, setLoadingLedgerDetails] = useState(false);
+    const [ledgerDayTxs, setLedgerDayTxs] = useState<any[]>([]);
+    const [ledgerDayReturns, setLedgerDayReturns] = useState<any[]>([]);
+
+    // Retroactive forms state
+    const [retroAmount, setRetroAmount] = useState('');
+    const [retroMode, setRetroMode] = useState('CASH');
+    const [retroDesc, setRetroDesc] = useState('');
+    const [retroProductName, setRetroProductName] = useState('');
+    const [submittingRetro, setSubmittingRetro] = useState(false);
+
+    // Inline edit state
+    const [editingItemId, setEditingItemId] = useState<number | null>(null);
+    const [editItemAmount, setEditItemAmount] = useState('');
+    const [editItemMode, setEditItemMode] = useState('');
+    const [editItemDesc, setEditItemDesc] = useState('');
+    const [editItemProdName, setEditItemProdName] = useState('');
+    const [savingItemEdit, setSavingItemEdit] = useState(false);
+
+    // Overall Returns Single Product Edit State
+    const [editingReturnProduct, setEditingReturnProduct] = useState<any | null>(null);
+    const [editRetProdName, setEditRetProdName] = useState('');
+    const [editRetProdAmount, setEditRetProdAmount] = useState('');
+    const [savingRetProdEdit, setSavingRetProdEdit] = useState(false);
+
+    const loadShopDayDetails = async (shopId: number) => {
+        setLoadingLedgerDetails(true);
+        try {
+            const details = await fetchShopDayDetails(shopId, selectedDate);
+            setLedgerDayTxs(details.transactions || []);
+            setLedgerDayReturns(details.returns || []);
+        } catch (err) {
+            showToast('Failed to load shop ledger details', 'error');
+        } finally {
+            setLoadingLedgerDetails(false);
+        }
+    };
+
+    const handleOpenLedgerEdit = async (shop: any, tab: 'PAYMENTS' | 'ADJUSTMENTS' | 'RETURNS') => {
+        setSelectedShop(shop);
+        setLedgerEditTab(tab);
+        setShowLedgerEditModal(true);
+        setRetroAmount('');
+        setRetroMode('CASH');
+        setRetroDesc('');
+        setRetroProductName('');
+        setEditingItemId(null);
+        await loadShopDayDetails(shop.id);
+    };
+
+    const handleSaveInlineTxEdit = async (tx: any) => {
+        const amt = parseFloat(editItemAmount);
+        if (isNaN(amt) || amt < 0) return alert('Please enter a valid positive amount');
+        setSavingItemEdit(true);
+        try {
+            if (tx.type === 'Payment') {
+                await updatePayment(tx.id, amt, editItemMode, editItemDesc);
+            } else if (tx.type === 'Adjustment') {
+                await updateAdjustment(tx.id, amt, editItemMode, editItemDesc);
+            }
+            showToast('Ledger entry updated successfully', 'success');
+            setEditingItemId(null);
+            if (selectedShop) await loadShopDayDetails(selectedShop.id);
+        } catch (err: any) {
+            showToast(err.response?.data?.error || 'Failed to update ledger entry', 'error');
+        } finally {
+            setSavingItemEdit(false);
+        }
+    };
+
+    const handleDeleteInlineTx = async (txId: number) => {
+        if (!window.confirm('Are you sure you want to delete this ledger entry? Balances will be recalculated.')) return;
+        try {
+            await deleteTransaction(txId);
+            showToast('Ledger entry deleted successfully', 'success');
+            if (selectedShop) await loadShopDayDetails(selectedShop.id);
+        } catch (err: any) {
+            showToast(err.response?.data?.error || 'Failed to delete ledger entry', 'error');
+        }
+    };
+
+    const handleSaveInlineReturnEdit = async (retId: number) => {
+        const amt = parseFloat(editItemAmount);
+        if (!editItemProdName.trim()) return alert('Please enter product name');
+        if (isNaN(amt) || amt <= 0) return alert('Please enter a valid amount');
+        setSavingItemEdit(true);
+        try {
+            await updateReturnProduct(retId, editItemProdName.trim(), amt);
+            showToast('Product return updated successfully', 'success');
+            setEditingItemId(null);
+            if (selectedShop) await loadShopDayDetails(selectedShop.id);
+        } catch (err: any) {
+            showToast(err.response?.data?.error || 'Failed to update product return', 'error');
+        } finally {
+            setSavingItemEdit(false);
+        }
+    };
+
+    const handleDeleteInlineReturn = async (retId: number) => {
+        if (!window.confirm('Are you sure you want to delete this product return? Balances will be recalculated.')) return;
+        try {
+            await deleteReturnProduct(retId);
+            showToast('Product return deleted successfully', 'success');
+            if (selectedShop) await loadShopDayDetails(selectedShop.id);
+        } catch (err: any) {
+            showToast(err.response?.data?.error || 'Failed to delete product return', 'error');
+        }
+    };
+
+    const handleAddRetroactive = async () => {
+        if (!selectedShop) return;
+        const amt = parseFloat(retroAmount);
+        if (isNaN(amt) || amt <= 0) return alert('Please enter a valid positive amount');
+
+        let type = 'Payment';
+        let desc = retroDesc.trim();
+        if (ledgerEditTab === 'PAYMENTS') {
+            type = 'Payment';
+            if (!desc) desc = `Retroactive Payment (${retroMode})`;
+        } else if (ledgerEditTab === 'ADJUSTMENTS') {
+            type = 'Adjustment';
+            if (!desc) desc = 'Retroactive Adjustment';
+        } else if (ledgerEditTab === 'RETURNS') {
+            type = 'Return';
+            if (!retroProductName.trim()) return alert('Please enter product name');
+            desc = `Product Return: ${retroProductName.trim()} (₹${amt})`;
+        }
+
+        setSubmittingRetro(true);
+        try {
+            await addRetroactiveTx(selectedShop.id, type, amt, retroMode, desc, selectedDate);
+            showToast('Retroactive entry recorded successfully', 'success');
+            setRetroAmount('');
+            setRetroDesc('');
+            setRetroProductName('');
+            await loadShopDayDetails(selectedShop.id);
+        } catch (err: any) {
+            showToast(err.response?.data?.error || 'Failed to record retroactive entry', 'error');
+        } finally {
+            setSubmittingRetro(false);
+        }
+    };
+
+    const handleSaveOverallReturnEdit = async () => {
+        if (!editingReturnProduct) return;
+        const amt = parseFloat(editRetProdAmount);
+        if (!editRetProdName.trim()) return alert('Please enter product name');
+        if (isNaN(amt) || amt <= 0) return alert('Please enter a valid amount');
+        setSavingRetProdEdit(true);
+        try {
+            await updateReturnProduct(editingReturnProduct.id, editRetProdName.trim(), amt);
+            showToast('Product return updated successfully', 'success');
+            // Reload overall returns list
+            const res = await getAuthAxios().get(`/api/collections/returns?date=${selectedDate}`);
+            setOverallReturns(res.data || []);
+            setEditingReturnProduct(null);
+        } catch (err: any) {
+            showToast(err.response?.data?.error || 'Failed to update product return', 'error');
+        } finally {
+            setSavingRetProdEdit(false);
+        }
+    };
+
+    const handleDeleteOverallReturn = async (id: number) => {
+        if (!window.confirm('Are you sure you want to delete this product return? Balances will be recalculated.')) return;
+        try {
+            await deleteReturnProduct(id);
+            showToast('Product return deleted successfully', 'success');
+            // Reload overall returns list
+            const res = await getAuthAxios().get(`/api/collections/returns?date=${selectedDate}`);
+            setOverallReturns(res.data || []);
+        } catch (err: any) {
+            showToast(err.response?.data?.error || 'Failed to delete product return', 'error');
+        }
+    };
 
     const handleOpenReturnModal = (shop: any) => {
         setSelectedShop(shop);
@@ -564,15 +748,50 @@ const AdminCollections = ({ theme, orderLines, isAdmin: propsIsAdmin }: Props) =
                                                     </td>
                                                     <td className={`px-5 py-3.5 text-right font-bold ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>₹{fmt(row.old_balance)}</td>
                                                     <td className={`px-5 py-3.5 text-right font-bold ${isDark ? 'text-white' : 'text-slate-900'}`}>₹{fmt(row.todays_bill_amount)}</td>
-                                                    <td className={`px-5 py-3.5 text-right font-bold text-amber-500`}>₹{fmt(row.return_amount || 0)}</td>
+                                                    <td className={`px-5 py-3.5 text-right font-bold text-amber-500`}>
+                                                        {isAdmin ? (
+                                                            <button 
+                                                                onClick={() => handleOpenLedgerEdit(actionShop, 'RETURNS')}
+                                                                className="group/edit inline-flex items-center gap-1 hover:text-amber-400 transition-colors"
+                                                                title="Click to Manage/Edit Returns"
+                                                            >
+                                                                <span>₹{fmt(row.return_amount || 0)}</span>
+                                                                <span className="opacity-0 group-hover/edit:opacity-100 transition-opacity text-xs">✏️</span>
+                                                            </button>
+                                                        ) : (
+                                                            `₹${fmt(row.return_amount || 0)}`
+                                                        )}
+                                                    </td>
                                                     <td className="px-5 py-3.5 text-right">
-                                                        <div className={`font-black ${collected > 0 ? 'text-green-500' : isDark ? 'text-slate-500' : 'text-slate-400'}`}>₹{fmt(collected)}</div>
+                                                        {isAdmin ? (
+                                                            <button
+                                                                onClick={() => handleOpenLedgerEdit(actionShop, 'PAYMENTS')}
+                                                                className="group/edit inline-flex items-center gap-1 font-black text-green-500 hover:text-green-400 transition-colors"
+                                                                title="Click to Manage/Edit Payments"
+                                                            >
+                                                                <span>₹{fmt(collected)}</span>
+                                                                <span className="opacity-0 group-hover/edit:opacity-100 transition-opacity text-xs">✏️</span>
+                                                            </button>
+                                                        ) : (
+                                                            <div className={`font-black ${collected > 0 ? 'text-green-500' : isDark ? 'text-slate-500' : 'text-slate-400'}`}>₹{fmt(collected)}</div>
+                                                        )}
                                                         <div className="flex justify-end mt-1">{renderModeBadges(row.cash_collected, row.upi_collected, row.cheque_collected, 0, row.pending_transactions.filter(t => (t.category || t.type || '').toUpperCase() === 'PAYMENT'), row.discount_payment)}</div>
                                                     </td>
                                                     <td className={`px-5 py-3.5 text-right`}>
-                                                        <div className={`font-bold ${(row.manual_adjustments + (row.discount_payment || 0)) !== 0 ? ((row.manual_adjustments + (row.discount_payment || 0)) > 0 ? 'text-blue-500' : 'text-amber-500') : isDark ? 'text-slate-600' : 'text-slate-300'}`}>
-                                                            {(row.manual_adjustments + (row.discount_payment || 0)) !== 0 ? `₹${fmt(row.manual_adjustments + (row.discount_payment || 0))}` : '—'}
-                                                        </div>
+                                                        {isAdmin ? (
+                                                            <button
+                                                                onClick={() => handleOpenLedgerEdit(actionShop, 'ADJUSTMENTS')}
+                                                                className={`group/edit inline-flex items-center gap-1 font-bold transition-colors ${(row.manual_adjustments + (row.discount_payment || 0)) !== 0 ? ((row.manual_adjustments + (row.discount_payment || 0)) > 0 ? 'text-blue-500 hover:text-blue-400' : 'text-amber-500 hover:text-amber-400') : isDark ? 'text-slate-600 hover:text-slate-500' : 'text-slate-300 hover:text-slate-400'}`}
+                                                                title="Click to Manage/Edit Adjustments"
+                                                            >
+                                                                <span>{(row.manual_adjustments + (row.discount_payment || 0)) !== 0 ? `₹${fmt(row.manual_adjustments + (row.discount_payment || 0))}` : '—'}</span>
+                                                                <span className="opacity-0 group-hover/edit:opacity-100 transition-opacity text-xs">✏️</span>
+                                                            </button>
+                                                        ) : (
+                                                            <div className={`font-bold ${(row.manual_adjustments + (row.discount_payment || 0)) !== 0 ? ((row.manual_adjustments + (row.discount_payment || 0)) > 0 ? 'text-blue-500' : 'text-amber-500') : isDark ? 'text-slate-600' : 'text-slate-300'}`}>
+                                                                {(row.manual_adjustments + (row.discount_payment || 0)) !== 0 ? `₹${fmt(row.manual_adjustments + (row.discount_payment || 0))}` : '—'}
+                                                            </div>
+                                                        )}
                                                         <div className="flex justify-end mt-1">{renderModeBadges(row.manual_cash, row.manual_upi, row.manual_cheque, row.manual_pos, row.pending_transactions.filter(t => (t.category || t.type || '').toUpperCase() === 'MANUAL_ADJUST'), row.discount_adjustment)}</div>
                                                     </td>
                                                     <td className={`px-5 py-3.5 text-right font-bold ${row.future_bills !== 0 ? 'text-purple-500' : isDark ? 'text-slate-600' : 'text-slate-300'}`}>
@@ -665,13 +884,46 @@ const AdminCollections = ({ theme, orderLines, isAdmin: propsIsAdmin }: Props) =
                                                 <div><span className="text-slate-400">Prev Bal:</span> <span className="font-bold">₹{fmt(row.old_balance)}</span></div>
                                                 <div className="text-right"><span className="text-slate-400">Today Bill:</span> <span className="font-bold">₹{fmt(row.todays_bill_amount)}</span></div>
                                                 
-                                                <div><span className="text-slate-400">Returns:</span> <span className="font-bold text-amber-500">₹{fmt(row.return_amount || 0)}</span></div>
-                                                <div className="text-right"><span className="text-slate-400">Collected:</span> <span className="font-bold text-green-500">₹{fmt(collected)}</span></div>
-                                                
                                                 <div>
-                                                    <span className="text-slate-400">Adjust:</span> 
-                                                    <span className={`font-bold ml-1 ${(row.manual_adjustments + (row.discount_payment || 0)) !== 0 ? ((row.manual_adjustments + (row.discount_payment || 0)) > 0 ? 'text-blue-500' : 'text-amber-500') : ''}`}>₹{fmt(row.manual_adjustments + (row.discount_payment || 0))}</span>
-                                                </div>
+                                                     <span className="text-slate-400">Returns:</span>{' '}
+                                                     {isAdmin ? (
+                                                         <button
+                                                             onClick={() => handleOpenLedgerEdit({ id: row.shop_id, shop_name: row.shop_name, balance: row.total_balance, village_name: row.village_name }, 'RETURNS')}
+                                                             className="font-bold text-amber-500 hover:text-amber-400"
+                                                         >
+                                                             ₹{fmt(row.return_amount || 0)} ✏️
+                                                         </button>
+                                                     ) : (
+                                                         <span className="font-bold text-amber-500">₹{fmt(row.return_amount || 0)}</span>
+                                                     )}
+                                                 </div>
+                                                 <div className="text-right">
+                                                     <span className="text-slate-400">Collected:</span>{' '}
+                                                     {isAdmin ? (
+                                                         <button
+                                                             onClick={() => handleOpenLedgerEdit({ id: row.shop_id, shop_name: row.shop_name, balance: row.total_balance, village_name: row.village_name }, 'PAYMENTS')}
+                                                             className="font-bold text-green-500 hover:text-green-400"
+                                                         >
+                                                             ₹{fmt(collected)} ✏️
+                                                         </button>
+                                                     ) : (
+                                                         <span className="font-bold text-green-500">₹{fmt(collected)}</span>
+                                                     )}
+                                                 </div>
+                                                 
+                                                 <div>
+                                                     <span className="text-slate-400">Adjust:</span>{' '}
+                                                     {isAdmin ? (
+                                                         <button
+                                                             onClick={() => handleOpenLedgerEdit({ id: row.shop_id, shop_name: row.shop_name, balance: row.total_balance, village_name: row.village_name }, 'ADJUSTMENTS')}
+                                                             className={`font-bold ml-1 ${(row.manual_adjustments + (row.discount_payment || 0)) !== 0 ? ((row.manual_adjustments + (row.discount_payment || 0)) > 0 ? 'text-blue-500 hover:text-blue-400' : 'text-amber-500 hover:text-amber-400') : 'text-slate-400'}`}
+                                                         >
+                                                             ₹{fmt(row.manual_adjustments + (row.discount_payment || 0))} ✏️
+                                                         </button>
+                                                     ) : (
+                                                         <span className={`font-bold ml-1 ${(row.manual_adjustments + (row.discount_payment || 0)) !== 0 ? ((row.manual_adjustments + (row.discount_payment || 0)) > 0 ? 'text-blue-500' : 'text-amber-500') : ''}`}>₹{fmt(row.manual_adjustments + (row.discount_payment || 0))}</span>
+                                                     )}
+                                                 </div>
                                                 <div className="text-right"><span className="text-slate-400">Upcoming:</span> <span className="font-bold text-purple-500">₹{fmt(row.future_bills)}</span></div>
 
                                                 {/* Mode breakdown badges aligned correctly and cleanly */}
@@ -984,7 +1236,33 @@ const AdminCollections = ({ theme, orderLines, isAdmin: propsIsAdmin }: Props) =
                                                 <tr key={item.id || idx} className={isDark ? 'text-slate-300' : 'text-slate-700'}>
                                                     <td className="px-4 py-3 font-bold">{item.shop_name}</td>
                                                     <td className="px-4 py-3">{item.product_name}</td>
-                                                    <td className="px-4 py-3 text-right font-black text-amber-500">₹{fmt(item.amount)}</td>
+                                                    <td className="px-4 py-3 text-right font-black text-amber-500">
+                                                        <div className="flex items-center justify-end gap-3">
+                                                            <span>₹{fmt(item.amount)}</span>
+                                                            {isAdmin && (
+                                                                <div className="flex items-center gap-1">
+                                                                    <button
+                                                                        onClick={() => {
+                                                                            setEditingReturnProduct(item);
+                                                                            setEditRetProdName(item.product_name);
+                                                                            setEditRetProdAmount(String(item.amount));
+                                                                        }}
+                                                                        className="p-1 hover:bg-blue-500/20 rounded text-blue-400 transition-colors"
+                                                                        title="Edit Return"
+                                                                    >
+                                                                        ✏️
+                                                                    </button>
+                                                                    <button
+                                                                        onClick={() => handleDeleteOverallReturn(item.id)}
+                                                                        className="p-1 hover:bg-red-500/20 rounded text-red-400 transition-colors"
+                                                                        title="Delete Return"
+                                                                    >
+                                                                        🗑️
+                                                                    </button>
+                                                                </div>
+                                                            )}
+                                                        </div>
+                                                    </td>
                                                 </tr>
                                             ))}
                                             <tr className={`font-black ${isDark ? 'bg-amber-950/20' : 'bg-amber-50/50'} border-t-2 ${isDark ? 'border-amber-500/20' : 'border-amber-200'}`}>
@@ -1004,6 +1282,517 @@ const AdminCollections = ({ theme, orderLines, isAdmin: propsIsAdmin }: Props) =
                                 className={`px-6 py-2.5 rounded-xl font-black text-xs uppercase tracking-widest transition-all ${isDark ? 'bg-slate-800 text-slate-400 hover:text-white hover:bg-slate-700' : 'bg-slate-100 text-slate-500 hover:bg-slate-200 hover:text-slate-700'}`}
                             >
                                 Close
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* ── Consolidated Shop Ledger Edit Modal (Admin-Only) ── */}
+            {showLedgerEditModal && selectedShop && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+                    <div className="absolute inset-0 bg-slate-950/80 backdrop-blur-sm" onClick={() => setShowLedgerEditModal(false)} />
+                    <div className={`relative w-full max-w-3xl rounded-3xl border shadow-2xl overflow-hidden transition-all transform animate-in zoom-in-95 duration-200 ${isDark ? 'bg-slate-900 border-white/10' : 'bg-white border-slate-100'}`}>
+                        <div className="p-6 border-b border-white/5 bg-gradient-to-r from-blue-500/10 to-transparent flex items-center justify-between">
+                            <div>
+                                <h3 className={`text-xl font-black tracking-tighter ${isDark ? 'text-white' : 'text-slate-900'}`}>
+                                    ✏️ MANAGE LEDGER: {selectedShop.shop_name}
+                                </h3>
+                                <p className="text-xs font-bold text-slate-500 uppercase mt-1 tracking-widest">
+                                    Date: {selectedDate.split('-').reverse().join('-')} | Village: {selectedShop.village_name}
+                                </p>
+                            </div>
+                            <button 
+                                onClick={() => setShowLedgerEditModal(false)}
+                                className={`w-8 h-8 rounded-full flex items-center justify-center transition-colors ${isDark ? 'hover:bg-white/10 text-white' : 'hover:bg-slate-100 text-slate-600'}`}
+                            >
+                                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M6 18L18 6M6 6l12 12" /></svg>
+                            </button>
+                        </div>
+
+                        {/* Tabs */}
+                        <div className={`flex border-b ${isDark ? 'border-white/5 bg-slate-950/20' : 'border-slate-100 bg-slate-50'}`}>
+                            {[
+                                { id: 'PAYMENTS', label: '💳 Payments', color: 'green' },
+                                { id: 'ADJUSTMENTS', label: '⚙️ Adjustments', color: 'blue' },
+                                { id: 'RETURNS', label: '↩ Returns', color: 'amber' }
+                            ].map(tab => {
+                                const isActive = ledgerEditTab === tab.id;
+                                return (
+                                    <button
+                                        key={tab.id}
+                                        onClick={() => {
+                                            setLedgerEditTab(tab.id as any);
+                                            setEditingItemId(null);
+                                            setRetroAmount('');
+                                            setRetroDesc('');
+                                            setRetroProductName('');
+                                        }}
+                                        className={`flex-1 py-3 text-xs sm:text-sm font-bold border-b-2 transition-all ${
+                                            isActive 
+                                                ? isDark 
+                                                    ? 'border-blue-500 text-blue-400 bg-white/5' 
+                                                    : 'border-blue-600 text-blue-600 bg-blue-50/30'
+                                                : isDark 
+                                                    ? 'border-transparent text-slate-400 hover:text-white hover:bg-white/5' 
+                                                    : 'border-transparent text-slate-500 hover:text-slate-800 hover:bg-slate-100/50'
+                                        }`}
+                                    >
+                                        {tab.label}
+                                    </button>
+                                );
+                            })}
+                        </div>
+
+                        {/* Content Scroll Area */}
+                        <div className="p-6 max-h-[450px] overflow-y-auto space-y-6">
+                            {loadingLedgerDetails ? (
+                                <div className="flex flex-col items-center justify-center py-12">
+                                    <div className="w-8 h-8 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mb-3" />
+                                    <span className="text-xs text-slate-500 font-bold uppercase tracking-wider">Fetching day ledger entries...</span>
+                                </div>
+                            ) : (
+                                <>
+                                    {/* ── Active Tab Entry List ── */}
+                                    <div>
+                                        <h4 className="text-[10px] font-black uppercase tracking-widest text-slate-500 mb-3">Approved Entries for today</h4>
+                                        {ledgerEditTab === 'PAYMENTS' && (
+                                            <div className="space-y-3">
+                                                {ledgerDayTxs.filter(t => t.type === 'Payment').length === 0 ? (
+                                                    <p className="text-xs text-slate-500 italic py-3 text-center border border-dashed rounded-xl dark:border-white/5">No approved payments for this shop today.</p>
+                                                ) : (
+                                                    ledgerDayTxs.filter(t => t.type === 'Payment').map(tx => {
+                                                        const isEditing = editingItemId === tx.id;
+                                                        return (
+                                                            <div key={tx.id} className={`p-4 rounded-xl border flex flex-col md:flex-row md:items-center justify-between gap-4 transition-all ${isDark ? 'bg-slate-950/40 border-white/5' : 'bg-slate-50 border-slate-200'}`}>
+                                                                {isEditing ? (
+                                                                    <div className="flex-1 grid grid-cols-1 sm:grid-cols-3 gap-3">
+                                                                        <div>
+                                                                            <label className="block text-[8px] font-black uppercase tracking-widest text-slate-500 mb-1">Amount (₹)</label>
+                                                                            <input 
+                                                                                type="number" 
+                                                                                value={editItemAmount} 
+                                                                                onChange={(e) => setEditItemAmount(e.target.value)}
+                                                                                className={`w-full px-3 py-1.5 rounded-lg border text-xs font-black outline-none ${isDark ? 'bg-slate-800 border-white/10 text-white' : 'bg-white border-slate-300 text-slate-900'}`}
+                                                                            />
+                                                                        </div>
+                                                                        <div>
+                                                                            <label className="block text-[8px] font-black uppercase tracking-widest text-slate-500 mb-1">Mode</label>
+                                                                            <select 
+                                                                                value={editItemMode} 
+                                                                                onChange={(e) => setEditItemMode(e.target.value)}
+                                                                                className={`w-full px-3 py-1.5 rounded-lg border text-xs font-bold outline-none ${isDark ? 'bg-slate-800 border-white/10 text-white' : 'bg-white border-slate-300 text-slate-900'}`}
+                                                                            >
+                                                                                <option value="CASH">CASH</option>
+                                                                                <option value="UPI">UPI</option>
+                                                                                <option value="CHEQUE">CHEQUE</option>
+                                                                                <option value="DISCOUNT">DISCOUNT</option>
+                                                                            </select>
+                                                                        </div>
+                                                                        <div>
+                                                                            <label className="block text-[8px] font-black uppercase tracking-widest text-slate-500 mb-1">Description</label>
+                                                                            <input 
+                                                                                type="text" 
+                                                                                value={editItemDesc} 
+                                                                                onChange={(e) => setEditItemDesc(e.target.value)}
+                                                                                className={`w-full px-3 py-1.5 rounded-lg border text-xs font-bold outline-none ${isDark ? 'bg-slate-800 border-white/10 text-white' : 'bg-white border-slate-300 text-slate-900'}`}
+                                                                            />
+                                                                        </div>
+                                                                    </div>
+                                                                ) : (
+                                                                    <div>
+                                                                        <div className="flex items-center gap-2">
+                                                                            <span className="font-black text-sm text-green-500">₹{fmt(tx.amount)}</span>
+                                                                            <span className={`px-2 py-0.5 rounded-full text-[9px] font-black tracking-widest bg-blue-500/10 text-blue-500 border border-blue-500/20`}>{tx.payment_mode}</span>
+                                                                            <span className="text-[10px] text-slate-500 font-bold">by {tx.created_by || 'Staff'}</span>
+                                                                        </div>
+                                                                        <p className={`text-xs mt-1 font-semibold ${isDark ? 'text-slate-400' : 'text-slate-600'}`}>{tx.description}</p>
+                                                                    </div>
+                                                                )}
+                                                                <div className="flex items-center gap-2 justify-end">
+                                                                    {isEditing ? (
+                                                                        <>
+                                                                            <button 
+                                                                                onClick={() => handleSaveInlineTxEdit(tx)}
+                                                                                disabled={savingItemEdit}
+                                                                                className="px-3 py-1.5 rounded-lg bg-green-600 text-white text-xs font-black uppercase tracking-widest hover:bg-green-500 transition-colors"
+                                                                            >
+                                                                                {savingItemEdit ? 'Saving...' : 'Save'}
+                                                                            </button>
+                                                                            <button 
+                                                                                onClick={() => setEditingItemId(null)}
+                                                                                className={`px-3 py-1.5 rounded-lg text-xs font-black uppercase tracking-widest border ${isDark ? 'bg-slate-800 border-white/10 text-slate-300 hover:text-white' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}`}
+                                                                            >
+                                                                                Cancel
+                                                                            </button>
+                                                                        </>
+                                                                    ) : (
+                                                                        <>
+                                                                            <button 
+                                                                                onClick={() => {
+                                                                                    setEditingItemId(tx.id);
+                                                                                    setEditItemAmount(String(tx.amount));
+                                                                                    setEditItemMode(tx.payment_mode || 'CASH');
+                                                                                    setEditItemDesc(tx.description || '');
+                                                                                }}
+                                                                                className="px-3 py-1.5 rounded-lg bg-blue-500/10 text-blue-500 hover:bg-blue-500 hover:text-white text-xs font-black transition-all"
+                                                                            >
+                                                                                Edit
+                                                                            </button>
+                                                                            <button 
+                                                                                onClick={() => handleDeleteInlineTx(tx.id)}
+                                                                                className="px-3 py-1.5 rounded-lg bg-red-500/10 text-red-500 hover:bg-red-500 hover:text-white text-xs font-black transition-all"
+                                                                            >
+                                                                                Delete
+                                                                            </button>
+                                                                        </>
+                                                                    )}
+                                                                </div>
+                                                            </div>
+                                                        );
+                                                    })
+                                                )}
+                                            </div>
+                                        )}
+
+                                        {ledgerEditTab === 'ADJUSTMENTS' && (
+                                            <div className="space-y-3">
+                                                {ledgerDayTxs.filter(t => t.type === 'Adjustment').length === 0 ? (
+                                                    <p className="text-xs text-slate-500 italic py-3 text-center border border-dashed rounded-xl dark:border-white/5">No approved adjustments for this shop today.</p>
+                                                ) : (
+                                                    ledgerDayTxs.filter(t => t.type === 'Adjustment').map(tx => {
+                                                        const isEditing = editingItemId === tx.id;
+                                                        const isPositive = parseFloat(tx.amount) > 0;
+                                                        return (
+                                                            <div key={tx.id} className={`p-4 rounded-xl border flex flex-col md:flex-row md:items-center justify-between gap-4 transition-all ${isDark ? 'bg-slate-950/40 border-white/5' : 'bg-slate-50 border-slate-200'}`}>
+                                                                {isEditing ? (
+                                                                    <div className="flex-1 grid grid-cols-1 sm:grid-cols-3 gap-3">
+                                                                        <div>
+                                                                            <label className="block text-[8px] font-black uppercase tracking-widest text-slate-500 mb-1">Amount (₹)</label>
+                                                                            <span className="text-[9px] block text-slate-400 font-semibold mb-1">Use negative value (e.g. -200) to decrease balance</span>
+                                                                            <input 
+                                                                                type="number" 
+                                                                                value={editItemAmount} 
+                                                                                onChange={(e) => setEditItemAmount(e.target.value)}
+                                                                                className={`w-full px-3 py-1.5 rounded-lg border text-xs font-black outline-none ${isDark ? 'bg-slate-800 border-white/10 text-white' : 'bg-white border-slate-300 text-slate-900'}`}
+                                                                            />
+                                                                        </div>
+                                                                        <div>
+                                                                            <label className="block text-[8px] font-black uppercase tracking-widest text-slate-500 mb-1">Adjustment Type</label>
+                                                                            <select 
+                                                                                value={editItemMode} 
+                                                                                onChange={(e) => setEditItemMode(e.target.value)}
+                                                                                className={`w-full px-3 py-1.5 rounded-lg border text-xs font-bold outline-none ${isDark ? 'bg-slate-800 border-white/10 text-white' : 'bg-white border-slate-300 text-slate-900'}`}
+                                                                            >
+                                                                                <option value="CASH">CASH</option>
+                                                                                <option value="UPI">UPI</option>
+                                                                                <option value="CHEQUE">CHEQUE</option>
+                                                                                <option value="DISCOUNT">DISCOUNT</option>
+                                                                            </select>
+                                                                        </div>
+                                                                        <div>
+                                                                            <label className="block text-[8px] font-black uppercase tracking-widest text-slate-500 mb-1">Description</label>
+                                                                            <input 
+                                                                                type="text" 
+                                                                                value={editItemDesc} 
+                                                                                onChange={(e) => setEditItemDesc(e.target.value)}
+                                                                                className={`w-full px-3 py-1.5 rounded-lg border text-xs font-bold outline-none ${isDark ? 'bg-slate-800 border-white/10 text-white' : 'bg-white border-slate-300 text-slate-900'}`}
+                                                                            />
+                                                                        </div>
+                                                                    </div>
+                                                                ) : (
+                                                                    <div>
+                                                                        <div className="flex items-center gap-2">
+                                                                            <span className={`font-black text-sm ${isPositive ? 'text-indigo-500' : 'text-amber-500'}`}>
+                                                                                {isPositive ? '+' : ''}₹{fmt(tx.amount)}
+                                                                            </span>
+                                                                            <span className={`px-2 py-0.5 rounded-full text-[9px] font-black tracking-widest ${isPositive ? 'bg-indigo-500/10 text-indigo-500' : 'bg-amber-500/10 text-amber-500'} border`}>
+                                                                                {tx.payment_mode || 'Adjustment'}
+                                                                            </span>
+                                                                            <span className="text-[10px] text-slate-500 font-bold">by {tx.created_by || 'Admin'}</span>
+                                                                        </div>
+                                                                        <p className={`text-xs mt-1 font-semibold ${isDark ? 'text-slate-400' : 'text-slate-600'}`}>{tx.description}</p>
+                                                                    </div>
+                                                                )}
+                                                                <div className="flex items-center gap-2 justify-end">
+                                                                    {isEditing ? (
+                                                                        <>
+                                                                            <button 
+                                                                                onClick={() => handleSaveInlineTxEdit(tx)}
+                                                                                disabled={savingItemEdit}
+                                                                                className="px-3 py-1.5 rounded-lg bg-green-600 text-white text-xs font-black uppercase tracking-widest hover:bg-green-500 transition-colors"
+                                                                            >
+                                                                                {savingItemEdit ? 'Saving...' : 'Save'}
+                                                                            </button>
+                                                                            <button 
+                                                                                onClick={() => setEditingItemId(null)}
+                                                                                className={`px-3 py-1.5 rounded-lg text-xs font-black uppercase tracking-widest border ${isDark ? 'bg-slate-800 border-white/10 text-slate-300 hover:text-white' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}`}
+                                                                            >
+                                                                                Cancel
+                                                                            </button>
+                                                                        </>
+                                                                    ) : (
+                                                                        <>
+                                                                            <button 
+                                                                                onClick={() => {
+                                                                                    setEditingItemId(tx.id);
+                                                                                    setEditItemAmount(String(tx.amount));
+                                                                                    setEditItemMode(tx.payment_mode || 'CASH');
+                                                                                    setEditItemDesc(tx.description || '');
+                                                                                }}
+                                                                                className="px-3 py-1.5 rounded-lg bg-blue-500/10 text-blue-500 hover:bg-blue-500 hover:text-white text-xs font-black transition-all"
+                                                                            >
+                                                                                Edit
+                                                                            </button>
+                                                                            <button 
+                                                                                onClick={() => handleDeleteInlineTx(tx.id)}
+                                                                                className="px-3 py-1.5 rounded-lg bg-red-500/10 text-red-500 hover:bg-red-500 hover:text-white text-xs font-black transition-all"
+                                                                            >
+                                                                                Delete
+                                                                            </button>
+                                                                        </>
+                                                                    )}
+                                                                </div>
+                                                            </div>
+                                                        );
+                                                    })
+                                                )}
+                                            </div>
+                                        )}
+
+                                        {ledgerEditTab === 'RETURNS' && (
+                                            <div className="space-y-3">
+                                                {ledgerDayReturns.length === 0 ? (
+                                                    <p className="text-xs text-slate-500 italic py-3 text-center border border-dashed rounded-xl dark:border-white/5">No returned products recorded today.</p>
+                                                ) : (
+                                                    ledgerDayReturns.map(ret => {
+                                                        const isEditing = editingItemId === ret.id;
+                                                        return (
+                                                            <div key={ret.id} className={`p-4 rounded-xl border flex flex-col md:flex-row md:items-center justify-between gap-4 transition-all ${isDark ? 'bg-slate-950/40 border-white/5' : 'bg-slate-50 border-slate-200'}`}>
+                                                                {isEditing ? (
+                                                                    <div className="flex-1 grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                                                        <div>
+                                                                            <label className="block text-[8px] font-black uppercase tracking-widest text-slate-500 mb-1">Product Name</label>
+                                                                            <input 
+                                                                                type="text" 
+                                                                                list="edit-return-products"
+                                                                                value={editItemProdName} 
+                                                                                onChange={(e) => setEditItemProdName(e.target.value)}
+                                                                                className={`w-full px-3 py-1.5 rounded-lg border text-xs font-bold outline-none ${isDark ? 'bg-slate-800 border-white/10 text-white' : 'bg-white border-slate-300 text-slate-900'}`}
+                                                                            />
+                                                                            <datalist id="edit-return-products">
+                                                                                {Array.from(new Set(getAllProducts().map(p => `${p.brand} ${p.name} ${p.size}`))).map(option => (
+                                                                                    <option key={option} value={option} />
+                                                                                ))}
+                                                                            </datalist>
+                                                                        </div>
+                                                                        <div>
+                                                                            <label className="block text-[8px] font-black uppercase tracking-widest text-slate-500 mb-1">Return Value (₹)</label>
+                                                                            <input 
+                                                                                type="number" 
+                                                                                value={editItemAmount} 
+                                                                                onChange={(e) => setEditItemAmount(e.target.value)}
+                                                                                className={`w-full px-3 py-1.5 rounded-lg border text-xs font-black outline-none ${isDark ? 'bg-slate-800 border-white/10 text-white' : 'bg-white border-slate-300 text-slate-900'}`}
+                                                                            />
+                                                                        </div>
+                                                                    </div>
+                                                                ) : (
+                                                                    <div>
+                                                                        <div className="flex items-center gap-2">
+                                                                            <span className="font-black text-sm text-amber-500">₹{fmt(ret.amount)}</span>
+                                                                            <span className="text-xs font-bold uppercase tracking-wider text-slate-500">by {ret.created_by || 'Staff'}</span>
+                                                                        </div>
+                                                                        <p className={`text-xs mt-1 font-black ${isDark ? 'text-white' : 'text-slate-800'}`}>{ret.product_name}</p>
+                                                                    </div>
+                                                                )}
+                                                                <div className="flex items-center gap-2 justify-end">
+                                                                    {isEditing ? (
+                                                                        <>
+                                                                            <button 
+                                                                                onClick={() => handleSaveInlineReturnEdit(ret.id)}
+                                                                                disabled={savingItemEdit}
+                                                                                className="px-3 py-1.5 rounded-lg bg-green-600 text-white text-xs font-black uppercase tracking-widest hover:bg-green-500 transition-colors"
+                                                                            >
+                                                                                {savingItemEdit ? 'Saving...' : 'Save'}
+                                                                            </button>
+                                                                            <button 
+                                                                                onClick={() => setEditingItemId(null)}
+                                                                                className={`px-3 py-1.5 rounded-lg text-xs font-black uppercase tracking-widest border ${isDark ? 'bg-slate-800 border-white/10 text-slate-300 hover:text-white' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}`}
+                                                                            >
+                                                                                Cancel
+                                                                            </button>
+                                                                        </>
+                                                                    ) : (
+                                                                        <>
+                                                                            <button 
+                                                                                onClick={() => {
+                                                                                    setEditingItemId(ret.id);
+                                                                                    setEditItemAmount(String(ret.amount));
+                                                                                    setEditItemProdName(ret.product_name || '');
+                                                                                }}
+                                                                                className="px-3 py-1.5 rounded-lg bg-blue-500/10 text-blue-500 hover:bg-blue-500 hover:text-white text-xs font-black transition-all"
+                                                                            >
+                                                                                Edit
+                                                                            </button>
+                                                                            <button 
+                                                                                onClick={() => handleDeleteInlineReturn(ret.id)}
+                                                                                className="px-3 py-1.5 rounded-lg bg-red-500/10 text-red-500 hover:bg-red-500 hover:text-white text-xs font-black transition-all"
+                                                                            >
+                                                                                Delete
+                                                                            </button>
+                                                                        </>
+                                                                    )}
+                                                                </div>
+                                                            </div>
+                                                        );
+                                                    })
+                                                )}
+                                            </div>
+                                        )}
+                                    </div>
+
+                                    {/* ── Retroactive Form ── */}
+                                    <div className={`p-5 rounded-2xl border ${isDark ? 'bg-slate-950/20 border-white/5' : 'bg-slate-100/50 border-slate-200'}`}>
+                                        <h4 className="text-[10px] font-black uppercase tracking-widest text-slate-500 mb-3">➕ Add Retroactive approved Entry</h4>
+                                        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+                                            {ledgerEditTab === 'RETURNS' ? (
+                                                <div className="sm:col-span-2">
+                                                    <label className="block text-[9px] font-black uppercase tracking-widest text-slate-500 mb-1.5">Product Name</label>
+                                                    <input 
+                                                        type="text" 
+                                                        list="retro-products"
+                                                        value={retroProductName}
+                                                        onChange={(e) => setRetroProductName(e.target.value)}
+                                                        placeholder="Search or type product return name..."
+                                                        className={`w-full px-4 py-2.5 rounded-xl border text-xs font-bold outline-none ${isDark ? 'bg-slate-800 border-white/10 text-white' : 'bg-white border-slate-300 text-slate-900'}`}
+                                                    />
+                                                    <datalist id="retro-products">
+                                                        {Array.from(new Set(getAllProducts().map(p => `${p.brand} ${p.name} ${p.size}`))).map(option => (
+                                                            <option key={option} value={option} />
+                                                        ))}
+                                                    </datalist>
+                                                </div>
+                                            ) : (
+                                                <div>
+                                                    <label className="block text-[9px] font-black uppercase tracking-widest text-slate-500 mb-1.5">Payment Mode</label>
+                                                    <select 
+                                                        value={retroMode}
+                                                        onChange={(e) => setRetroMode(e.target.value)}
+                                                        className={`w-full px-4 py-2.5 rounded-xl border text-xs font-bold outline-none ${isDark ? 'bg-slate-800 border-white/10 text-white' : 'bg-white border-slate-300 text-slate-900'}`}
+                                                    >
+                                                        <option value="CASH">CASH</option>
+                                                        <option value="UPI">UPI</option>
+                                                        <option value="CHEQUE">CHEQUE</option>
+                                                        <option value="DISCOUNT">DISCOUNT</option>
+                                                    </select>
+                                                </div>
+                                            )}
+
+                                            <div>
+                                                <label className="block text-[9px] font-black uppercase tracking-widest text-slate-500 mb-1.5">
+                                                    {ledgerEditTab === 'ADJUSTMENTS' ? 'Amount (₹) (e.g. -200)' : 'Amount (₹)'}
+                                                </label>
+                                                <input 
+                                                    type="number" 
+                                                    value={retroAmount}
+                                                    onChange={(e) => setRetroAmount(e.target.value)}
+                                                    placeholder="0.00"
+                                                    className={`w-full px-4 py-2.5 rounded-xl border text-xs font-black outline-none ${isDark ? 'bg-slate-800 border-white/10 text-white' : 'bg-white border-slate-300 text-slate-900'}`}
+                                                />
+                                            </div>
+
+                                            {ledgerEditTab !== 'RETURNS' && (
+                                                <div className="sm:col-span-2 md:col-span-1">
+                                                    <label className="block text-[9px] font-black uppercase tracking-widest text-slate-500 mb-1.5">Description (Optional)</label>
+                                                    <input 
+                                                        type="text" 
+                                                        value={retroDesc}
+                                                        onChange={(e) => setRetroDesc(e.target.value)}
+                                                        placeholder="e.g. Retroactive credit"
+                                                        className={`w-full px-4 py-2.5 rounded-xl border text-xs font-bold outline-none ${isDark ? 'bg-slate-800 border-white/10 text-white' : 'bg-white border-slate-300 text-slate-900'}`}
+                                                    />
+                                                </div>
+                                            )}
+                                        </div>
+
+                                        <button
+                                            onClick={handleAddRetroactive}
+                                            disabled={submittingRetro}
+                                            className={`mt-4 px-6 py-2.5 rounded-xl font-black text-xs uppercase tracking-widest transition-all bg-blue-600 text-white hover:bg-blue-500 disabled:opacity-50 flex items-center gap-2`}
+                                        >
+                                            <span>{submittingRetro ? 'Submitting...' : `➕ Record Approved ${ledgerEditTab === 'RETURNS' ? 'Return' : ledgerEditTab === 'ADJUSTMENTS' ? 'Adjustment' : 'Payment'}`}</span>
+                                        </button>
+                                    </div>
+                                </>
+                            )}
+                        </div>
+
+                        <div className="p-6 bg-slate-50 dark:bg-slate-900/50 border-t dark:border-white/5 flex justify-end">
+                            <button
+                                onClick={() => setShowLedgerEditModal(false)}
+                                className={`px-6 py-2.5 rounded-xl font-black text-xs uppercase tracking-widest transition-all ${isDark ? 'bg-slate-800 text-slate-400 hover:text-white hover:bg-slate-700' : 'bg-slate-100 text-slate-500 hover:bg-slate-200 hover:text-slate-700'}`}
+                            >
+                                Close Ledger Manager
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* ── Return Product Single Edit Sub-Modal (Admin-Only) ── */}
+            {editingReturnProduct && (
+                <div className="fixed inset-0 z-[60] flex items-center justify-center p-4">
+                    <div className="absolute inset-0 bg-slate-950/90 backdrop-blur-sm" onClick={() => setEditingReturnProduct(null)} />
+                    <div className={`relative w-full max-w-md rounded-3xl border shadow-2xl overflow-hidden transition-all transform animate-in zoom-in-95 duration-200 ${isDark ? 'bg-slate-900 border-white/10' : 'bg-white border-slate-100'}`}>
+                        <div className="p-6 border-b border-white/5 bg-gradient-to-r from-amber-500/10 to-transparent">
+                            <h3 className={`text-xl font-black tracking-tighter ${isDark ? 'text-white' : 'text-slate-900'}`}>
+                                ✏️ EDIT PRODUCT RETURN ENTRY
+                            </h3>
+                            <p className="text-xs font-bold text-slate-500 uppercase mt-1 tracking-widest">
+                                Shop: {editingReturnProduct.shop_name}
+                            </p>
+                        </div>
+                        <div className="p-6 space-y-4">
+                            <div>
+                                <label className="block text-[10px] font-black uppercase tracking-widest text-slate-500 mb-1.5">Product Name</label>
+                                <input
+                                    type="text"
+                                    list="edit-overall-return-products"
+                                    value={editRetProdName}
+                                    onChange={(e) => setEditRetProdName(e.target.value)}
+                                    placeholder="Search or type product name..."
+                                    className={`w-full px-4 py-3 rounded-xl border font-bold text-sm focus:ring-2 outline-none transition-all ${isDark ? 'bg-slate-800 border-white/5 text-white focus:ring-amber-500/50' : 'bg-slate-50 border-slate-200 text-slate-900 focus:ring-amber-500/20'}`}
+                                />
+                                <datalist id="edit-overall-return-products">
+                                    {Array.from(new Set(getAllProducts().map(p => `${p.brand} ${p.name} ${p.size}`))).map(option => (
+                                        <option key={option} value={option} />
+                                    ))}
+                                </datalist>
+                            </div>
+                            <div>
+                                <label className="block text-[10px] font-black uppercase tracking-widest text-slate-500 mb-1.5">Return Value (₹)</label>
+                                <input
+                                    type="number"
+                                    value={editRetProdAmount}
+                                    onChange={(e) => setEditRetProdAmount(e.target.value)}
+                                    placeholder="0.00"
+                                    className={`w-full px-4 py-3 rounded-xl border font-black text-lg focus:ring-2 outline-none transition-all ${isDark ? 'bg-slate-800 border-white/5 text-white focus:ring-amber-500/50' : 'bg-slate-50 border-slate-200 text-slate-900 focus:ring-amber-500/20'}`}
+                                />
+                            </div>
+                        </div>
+                        <div className="p-6 flex gap-3">
+                            <button
+                                onClick={() => setEditingReturnProduct(null)}
+                                className={`flex-1 px-6 py-3 rounded-xl font-black text-xs uppercase tracking-widest transition-all ${isDark ? 'bg-slate-800 text-slate-400 hover:text-white hover:bg-slate-700' : 'bg-slate-100 text-slate-500 hover:bg-slate-200 hover:text-slate-700'}`}
+                            >
+                                Cancel
+                            </button>
+                            <button
+                                onClick={handleSaveOverallReturnEdit}
+                                disabled={savingRetProdEdit}
+                                className={`flex-1 px-6 py-3 rounded-xl font-black text-xs uppercase tracking-widest transition-all bg-amber-600 text-white hover:bg-amber-500 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg shadow-amber-500/30`}
+                            >
+                                {savingRetProdEdit ? 'Saving...' : 'Save Changes'}
                             </button>
                         </div>
                     </div>
