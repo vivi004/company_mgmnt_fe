@@ -15,6 +15,143 @@ interface Props {
 
 const fmt = (n: number) => n.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
+interface CollectionRowProps {
+    row: any;
+    idx: number;
+    isDark: boolean;
+    isAdmin: boolean;
+    setSelectedShop: (shop: any) => void;
+    setShowPaymentModal: (show: boolean) => void;
+    setShowAdjustModal: (show: boolean) => void;
+    handleOpenReturnModal: (shop: any) => void;
+    fetchLedger: (shop: any) => void;
+    handleOpenLedgerEdit: (shop: any, tab: 'PAYMENTS' | 'ADJUSTMENTS' | 'RETURNS') => void;
+    renderModeBadges: (cash: number, upi: number, cheque: number, pos: number, pendingTxs: any[], discount: number) => React.ReactNode;
+}
+
+const CollectionRow = React.memo(({
+    row,
+    idx,
+    isDark,
+    isAdmin,
+    setSelectedShop,
+    setShowPaymentModal,
+    setShowAdjustModal,
+    handleOpenReturnModal,
+    fetchLedger,
+    handleOpenLedgerEdit,
+    renderModeBadges
+}: CollectionRowProps) => {
+    const collected = row.cash_collected + row.upi_collected + row.cheque_collected + (row.discount_payment || 0);
+    const actionShop = React.useMemo(() => ({
+        id: row.shop_id,
+        shop_name: row.shop_name,
+        balance: row.total_balance,
+        village_name: row.village_name
+    }), [row.shop_id, row.shop_name, row.total_balance, row.village_name]);
+
+    return (
+        <tr className={`transition-all duration-200 group ${isDark ? 'hover:bg-white/5' : 'hover:bg-slate-50'}`}>
+            <td className={`px-5 py-3.5 font-bold ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>{idx + 1}</td>
+            <td className="px-5 py-3.5">
+                <div className="flex flex-col">
+                    <div className="flex items-center gap-2">
+                        <span className={`font-black ${isDark ? 'text-white' : 'text-slate-900'}`}>
+                            {row.shop_name} {row.owner_name && row.owner_name.trim() ? `(${row.owner_name.trim()})` : ''}
+                        </span>
+                        {row.pending_transactions.length > 0 && (
+                            <span className="px-1.5 py-0.5 rounded-md bg-amber-500 text-white text-[8px] font-black uppercase tracking-widest animate-bounce shadow-lg shadow-amber-500/40">
+                                Needs Approval
+                            </span>
+                        )}
+                    </div>
+                    <div className="flex items-center gap-2 mt-1.5 opacity-0 group-hover:opacity-100 transition-opacity">
+                        <button 
+                            onClick={() => { setSelectedShop(actionShop); setShowPaymentModal(true); }}
+                            className="px-2 py-0.5 rounded-md bg-emerald-500/10 text-emerald-600 text-[10px] font-black uppercase tracking-tighter hover:bg-emerald-500 hover:text-white transition-all"
+                        >
+                            Collect ₹
+                        </button>
+                        <button 
+                            onClick={() => { setSelectedShop(actionShop); setShowAdjustModal(true); }}
+                            className="px-2 py-0.5 rounded-md bg-blue-500/10 text-blue-600 text-[10px] font-black uppercase tracking-tighter hover:bg-blue-500 hover:text-white transition-all"
+                        >
+                            Adjust ±
+                        </button>
+                        <button 
+                            onClick={() => handleOpenReturnModal(actionShop)}
+                            className="px-2 py-0.5 rounded-md bg-amber-500/10 text-amber-600 text-[10px] font-black uppercase tracking-tighter hover:bg-amber-500 hover:text-white transition-all"
+                        >
+                            Return ↩
+                        </button>
+                        <button 
+                            onClick={() => fetchLedger(actionShop)}
+                            className="px-2 py-0.5 rounded-md bg-slate-500/10 text-slate-600 text-[10px] font-black uppercase tracking-tighter hover:bg-slate-500 hover:text-white transition-all"
+                        >
+                            Ledger 👁
+                        </button>
+                    </div>
+                </div>
+            </td>
+            <td className={`px-5 py-3.5 text-right font-bold ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>₹{fmt(row.old_balance)}</td>
+            <td className={`px-5 py-3.5 text-right font-bold ${isDark ? 'text-white' : 'text-slate-900'}`}>₹{fmt(row.todays_bill_amount)}</td>
+            <td className={`px-5 py-3.5 text-right font-bold text-amber-500`}>
+                {isAdmin ? (
+                    <button 
+                        onClick={() => handleOpenLedgerEdit(actionShop, 'RETURNS')}
+                        className="group/edit inline-flex items-center gap-1 hover:text-amber-400 transition-colors"
+                        title="Click to Manage/Edit Returns"
+                    >
+                        <span>₹{fmt(row.return_amount || 0)}</span>
+                        <span className="opacity-0 group-hover:opacity-100 transition-all text-sm sm:text-base ml-1.5 inline-block hover:scale-125 duration-200">✏️</span>
+                    </button>
+                ) : (
+                    `₹${fmt(row.return_amount || 0)}`
+                )}
+            </td>
+            <td className="px-5 py-3.5 text-right">
+                {isAdmin ? (
+                    <button
+                        onClick={() => handleOpenLedgerEdit(actionShop, 'PAYMENTS')}
+                        className="group/edit inline-flex items-center gap-1 font-black text-green-500 hover:text-green-400 transition-colors"
+                        title="Click to Manage/Edit Payments"
+                    >
+                        <span>₹{fmt(collected)}</span>
+                        <span className="opacity-0 group-hover:opacity-100 transition-all text-sm sm:text-base ml-1.5 inline-block hover:scale-125 duration-200">✏️</span>
+                    </button>
+                ) : (
+                    <div className={`font-black ${collected > 0 ? 'text-green-500' : isDark ? 'text-slate-500' : 'text-slate-400'}`}>₹{fmt(collected)}</div>
+                )}
+                <div className="flex justify-end mt-1">{renderModeBadges(row.cash_collected, row.upi_collected, row.cheque_collected, 0, row.pending_transactions.filter((t: any) => (t.category || t.type || '').toUpperCase() === 'PAYMENT'), row.discount_payment)}</div>
+            </td>
+            <td className={`px-5 py-3.5 text-right`}>
+                {isAdmin ? (
+                    <button
+                        onClick={() => handleOpenLedgerEdit(actionShop, 'ADJUSTMENTS')}
+                        className={`group/edit inline-flex items-center gap-1 font-bold transition-colors ${(row.manual_adjustments + (row.discount_payment || 0)) !== 0 ? ((row.manual_adjustments + (row.discount_payment || 0)) > 0 ? 'text-blue-500 hover:text-blue-400' : 'text-amber-500 hover:text-amber-400') : isDark ? 'text-slate-600 hover:text-slate-500' : 'text-slate-300 hover:text-slate-400'}`}
+                        title="Click to Manage/Edit Adjustments"
+                    >
+                        <span>{(row.manual_adjustments + (row.discount_payment || 0)) !== 0 ? `₹${fmt(row.manual_adjustments + (row.discount_payment || 0))}` : '—'}</span>
+                        <span className="opacity-0 group-hover:opacity-100 transition-all text-sm sm:text-base ml-1.5 inline-block hover:scale-125 duration-200">✏️</span>
+                    </button>
+                ) : (
+                    <div className={`font-bold ${(row.manual_adjustments + (row.discount_payment || 0)) !== 0 ? ((row.manual_adjustments + (row.discount_payment || 0)) > 0 ? 'text-blue-500' : 'text-amber-500') : isDark ? 'text-slate-600' : 'text-slate-300'}`}>
+                        {(row.manual_adjustments + (row.discount_payment || 0)) !== 0 ? `₹${fmt(row.manual_adjustments + (row.discount_payment || 0))}` : '—'}
+                    </div>
+                )}
+                <div className="flex justify-end mt-1">{renderModeBadges(row.manual_cash, row.manual_upi, row.manual_cheque, row.manual_pos, row.pending_transactions.filter((t: any) => (t.category || t.type || '').toUpperCase() === 'MANUAL_ADJUST'), row.discount_adjustment)}</div>
+            </td>
+            <td className={`px-5 py-3.5 text-right font-bold ${row.future_bills !== 0 ? 'text-purple-500' : isDark ? 'text-slate-600' : 'text-slate-300'}`}>
+                {row.future_bills !== 0 ? `₹${fmt(row.future_bills)}` : '—'}
+            </td>
+            <td className={`px-5 py-3.5 text-right font-black ${row.total_balance > 0 ? 'text-red-500' : 'text-green-500'}`}>
+                ₹{fmt(row.total_balance)}
+            </td>
+        </tr>
+    );
+});
+CollectionRow.displayName = 'CollectionRow';
+
 const AdminCollections = ({ theme, orderLines, isAdmin: propsIsAdmin }: Props) => {
     const isDark = theme === 'dark';
     const {
@@ -699,110 +836,22 @@ const AdminCollections = ({ theme, orderLines, isAdmin: propsIsAdmin }: Props) =
                                             </td>
                                         </tr>
                                     ) : (
-                                        filteredCollections.map((row, idx) => {
-                                            const collected = row.cash_collected + row.upi_collected + row.cheque_collected + (row.discount_payment || 0);
-                                            const actionShop = { id: row.shop_id, shop_name: row.shop_name, balance: row.total_balance, village_name: row.village_name };
-
-                                            return (
-                                                <tr key={row.id} className={`transition-all duration-200 group ${isDark ? 'hover:bg-white/5' : 'hover:bg-slate-50'}`}>
-                                                    <td className={`px-5 py-3.5 font-bold ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>{idx + 1}</td>
-                                                    <td className="px-5 py-3.5">
-                                                        <div className="flex flex-col">
-                                                            <div className="flex items-center gap-2">
-                                                                <span className={`font-black ${isDark ? 'text-white' : 'text-slate-900'}`}>
-                                                                    {row.shop_name} {row.owner_name && row.owner_name.trim() ? `(${row.owner_name.trim()})` : ''}
-                                                                </span>
-                                                                {row.pending_transactions.length > 0 && (
-                                                                    <span className="px-1.5 py-0.5 rounded-md bg-amber-500 text-white text-[8px] font-black uppercase tracking-widest animate-bounce shadow-lg shadow-amber-500/40">
-                                                                        Needs Approval
-                                                                    </span>
-                                                                )}
-                                                            </div>
-                                                            <div className="flex items-center gap-2 mt-1.5 opacity-0 group-hover:opacity-100 transition-opacity">
-                                                                <button 
-                                                                    onClick={() => { setSelectedShop(actionShop); setShowPaymentModal(true); }}
-                                                                    className="px-2 py-0.5 rounded-md bg-emerald-500/10 text-emerald-600 text-[10px] font-black uppercase tracking-tighter hover:bg-emerald-500 hover:text-white transition-all"
-                                                                >
-                                                                    Collect ₹
-                                                                </button>
-                                                                <button 
-                                                                    onClick={() => { setSelectedShop(actionShop); setShowAdjustModal(true); }}
-                                                                    className="px-2 py-0.5 rounded-md bg-blue-500/10 text-blue-600 text-[10px] font-black uppercase tracking-tighter hover:bg-blue-500 hover:text-white transition-all"
-                                                                >
-                                                                    Adjust ±
-                                                                </button>
-                                                                <button 
-                                                                    onClick={() => handleOpenReturnModal(actionShop)}
-                                                                    className="px-2 py-0.5 rounded-md bg-amber-500/10 text-amber-600 text-[10px] font-black uppercase tracking-tighter hover:bg-amber-500 hover:text-white transition-all"
-                                                                >
-                                                                    Return ↩
-                                                                </button>
-                                                                <button 
-                                                                    onClick={() => fetchLedger(actionShop)}
-                                                                    className="px-2 py-0.5 rounded-md bg-slate-500/10 text-slate-600 text-[10px] font-black uppercase tracking-tighter hover:bg-slate-500 hover:text-white transition-all"
-                                                                >
-                                                                    Ledger 👁
-                                                                </button>
-                                                            </div>
-                                                        </div>
-                                                    </td>
-                                                    <td className={`px-5 py-3.5 text-right font-bold ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>₹{fmt(row.old_balance)}</td>
-                                                    <td className={`px-5 py-3.5 text-right font-bold ${isDark ? 'text-white' : 'text-slate-900'}`}>₹{fmt(row.todays_bill_amount)}</td>
-                                                    <td className={`px-5 py-3.5 text-right font-bold text-amber-500`}>
-                                                        {isAdmin ? (
-                                                            <button 
-                                                                onClick={() => handleOpenLedgerEdit(actionShop, 'RETURNS')}
-                                                                className="group/edit inline-flex items-center gap-1 hover:text-amber-400 transition-colors"
-                                                                title="Click to Manage/Edit Returns"
-                                                            >
-                                                                <span>₹{fmt(row.return_amount || 0)}</span>
-                                                                <span className="opacity-0 group-hover:opacity-100 transition-all text-sm sm:text-base ml-1.5 inline-block hover:scale-125 duration-200">✏️</span>
-                                                            </button>
-                                                        ) : (
-                                                            `₹${fmt(row.return_amount || 0)}`
-                                                        )}
-                                                    </td>
-                                                    <td className="px-5 py-3.5 text-right">
-                                                        {isAdmin ? (
-                                                            <button
-                                                                onClick={() => handleOpenLedgerEdit(actionShop, 'PAYMENTS')}
-                                                                className="group/edit inline-flex items-center gap-1 font-black text-green-500 hover:text-green-400 transition-colors"
-                                                                title="Click to Manage/Edit Payments"
-                                                            >
-                                                                <span>₹{fmt(collected)}</span>
-                                                                <span className="opacity-0 group-hover:opacity-100 transition-all text-sm sm:text-base ml-1.5 inline-block hover:scale-125 duration-200">✏️</span>
-                                                            </button>
-                                                        ) : (
-                                                            <div className={`font-black ${collected > 0 ? 'text-green-500' : isDark ? 'text-slate-500' : 'text-slate-400'}`}>₹{fmt(collected)}</div>
-                                                        )}
-                                                        <div className="flex justify-end mt-1">{renderModeBadges(row.cash_collected, row.upi_collected, row.cheque_collected, 0, row.pending_transactions.filter(t => (t.category || t.type || '').toUpperCase() === 'PAYMENT'), row.discount_payment)}</div>
-                                                    </td>
-                                                    <td className={`px-5 py-3.5 text-right`}>
-                                                        {isAdmin ? (
-                                                            <button
-                                                                onClick={() => handleOpenLedgerEdit(actionShop, 'ADJUSTMENTS')}
-                                                                className={`group/edit inline-flex items-center gap-1 font-bold transition-colors ${(row.manual_adjustments + (row.discount_payment || 0)) !== 0 ? ((row.manual_adjustments + (row.discount_payment || 0)) > 0 ? 'text-blue-500 hover:text-blue-400' : 'text-amber-500 hover:text-amber-400') : isDark ? 'text-slate-600 hover:text-slate-500' : 'text-slate-300 hover:text-slate-400'}`}
-                                                                title="Click to Manage/Edit Adjustments"
-                                                            >
-                                                                <span>{(row.manual_adjustments + (row.discount_payment || 0)) !== 0 ? `₹${fmt(row.manual_adjustments + (row.discount_payment || 0))}` : '—'}</span>
-                                                                <span className="opacity-0 group-hover:opacity-100 transition-all text-sm sm:text-base ml-1.5 inline-block hover:scale-125 duration-200">✏️</span>
-                                                            </button>
-                                                        ) : (
-                                                            <div className={`font-bold ${(row.manual_adjustments + (row.discount_payment || 0)) !== 0 ? ((row.manual_adjustments + (row.discount_payment || 0)) > 0 ? 'text-blue-500' : 'text-amber-500') : isDark ? 'text-slate-600' : 'text-slate-300'}`}>
-                                                                {(row.manual_adjustments + (row.discount_payment || 0)) !== 0 ? `₹${fmt(row.manual_adjustments + (row.discount_payment || 0))}` : '—'}
-                                                            </div>
-                                                        )}
-                                                        <div className="flex justify-end mt-1">{renderModeBadges(row.manual_cash, row.manual_upi, row.manual_cheque, row.manual_pos, row.pending_transactions.filter(t => (t.category || t.type || '').toUpperCase() === 'MANUAL_ADJUST'), row.discount_adjustment)}</div>
-                                                    </td>
-                                                    <td className={`px-5 py-3.5 text-right font-bold ${row.future_bills !== 0 ? 'text-purple-500' : isDark ? 'text-slate-600' : 'text-slate-300'}`}>
-                                                        {row.future_bills !== 0 ? `₹${fmt(row.future_bills)}` : '—'}
-                                                    </td>
-                                                    <td className={`px-5 py-3.5 text-right font-black ${row.total_balance > 0 ? 'text-red-500' : 'text-green-500'}`}>
-                                                        ₹{fmt(row.total_balance)}
-                                                    </td>
-                                                </tr>
-                                            );
-                                        })
+                                        filteredCollections.map((row, idx) => (
+                                            <CollectionRow
+                                                key={row.id}
+                                                row={row}
+                                                idx={idx}
+                                                isDark={isDark}
+                                                isAdmin={isAdmin}
+                                                setSelectedShop={setSelectedShop}
+                                                setShowPaymentModal={setShowPaymentModal}
+                                                setShowAdjustModal={setShowAdjustModal}
+                                                handleOpenReturnModal={handleOpenReturnModal}
+                                                fetchLedger={fetchLedger}
+                                                handleOpenLedgerEdit={handleOpenLedgerEdit}
+                                                renderModeBadges={renderModeBadges}
+                                            />
+                                        ))
                                     )}
                                     {/* ── TOTAL ROW ── */}
                                     <tr key="total-row" className={`border-t-2 font-black ${isDark ? 'border-blue-500/30 bg-blue-950/20' : 'border-blue-200 bg-blue-50/50'}`}>

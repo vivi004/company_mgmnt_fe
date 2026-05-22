@@ -43,6 +43,7 @@ export const useAdminDashboardData = () => {
     const [bills, setBills] = useState<Array<{ id: number; shopName: string; villageName: string; areaName?: string; specificArea?: string; cart: Record<string, number>; customRates?: Record<string, number>; date: string; deliveryDate?: string; invoiceNo: number }>>([]);
     const [motorVehicles, setMotorVehicles] = useState<any[]>([]);
     const [unverifiedCount, setUnverifiedCount] = useState(0);
+    const [totalBillsCount, setTotalBillsCount] = useState(0);
     const [billSelectedDate, setBillSelectedDate] = useState(() => {
         // Default to today's date in Indian Time
         const now = new Date();
@@ -61,9 +62,22 @@ export const useAdminDashboardData = () => {
 
     const api = () => getAuthAxios();
 
-    const loadBills = async () => {
+    const fetchBillsCount = async () => {
         try {
-            const res = await api().get('/api/bills');
+            const res = await api().get('/api/bills/count');
+            setTotalBillsCount(res.data.count || 0);
+        } catch (err) {
+            console.error("Error loading bills count:", err);
+        }
+    };
+
+    const loadBills = async (dateStr?: string) => {
+        try {
+            const targetDate = dateStr || billSelectedDate;
+            const url = targetDate 
+                ? `/api/bills/date-range?startDate=${targetDate}&endDate=${targetDate}`
+                : '/api/bills';
+            const res = await api().get(url);
             const mappedBills = res.data.map((b: any) => ({
                 id: b.id,
                 shopName: b.shop_name || b.shopName,
@@ -228,6 +242,40 @@ export const useAdminDashboardData = () => {
         }
     };
 
+    const bootstrapDashboardData = async () => {
+        try {
+            const res = await api().get('/api/settings/bootstrap');
+            const { invoiceSettings, vehicles, unverifiedCount, totalBillsCount } = res.data;
+            if (invoiceSettings) {
+                const { next_invoice_no, last_invoice_no, ledger_sheet_url, last_sheet_sync_time } = invoiceSettings;
+                setNextInvoiceNo(next_invoice_no);
+                setLastInvoiceNo(last_invoice_no);
+                setLedgerSheetUrl(ledger_sheet_url || "");
+                localStorage.setItem('nextInvoiceNo', String(next_invoice_no));
+                localStorage.setItem('lastInvoiceNo', String(last_invoice_no));
+                localStorage.setItem('ledgerSheetUrl', ledger_sheet_url || "");
+                
+                if (last_sheet_sync_time) {
+                    setLastSynced(last_sheet_sync_time);
+                    localStorage.setItem('lastSynced', last_sheet_sync_time);
+                }
+            }
+            if (vehicles) {
+                setMotorVehicles(vehicles);
+            }
+            setUnverifiedCount(unverifiedCount || 0);
+            setTotalBillsCount(totalBillsCount || 0);
+        } catch (err) {
+            console.error('Failed to bootstrap dashboard data:', err);
+            // Fallback
+            fetchInvoiceSettings();
+            fetchBillsCount();
+            api().get('/api/settings/vehicles')
+                .then(r => setMotorVehicles(r.data))
+                .catch(e => console.error(e));
+        }
+    };
+
     const fetchInvoiceSettings = async () => {
         try {
             const res = await api().get('/api/settings/invoice');
@@ -255,12 +303,7 @@ export const useAdminDashboardData = () => {
         fetchOlRequests();
         checkBackendHealth();
         loadBills();
-        fetchInvoiceSettings();
-        
-        // Load vehicles globally once
-        api().get('/api/settings/vehicles')
-            .then(res => setMotorVehicles(res.data))
-            .catch(err => console.error('Failed to load vehicles', err));
+        bootstrapDashboardData();
         
         // Refresh product rates from server
         import('../../../constants/productData').then(m => m.fetchAndCacheRatesFromServer());
@@ -275,11 +318,12 @@ export const useAdminDashboardData = () => {
 
     useEffect(() => {
         if (activeTab === 'bills' || activeTab === 'bill-check') {
-            // Only re-load if we don't have bills or if it's been a while (optional)
-            // For now, let's just make it more resilient
-            loadBills();
+            loadBills(billSelectedDate);
         }
-    }, [activeTab]);
+        if (activeTab === 'manage') {
+            fetchBillsCount();
+        }
+    }, [activeTab, billSelectedDate]);
 
     const askConfirm = (message: string, onConfirm: () => void, confirmText: string = "Confirm Delete", confirmColor: string = "bg-red-600") => {
         setConfirmModal({ open: true, message, onConfirm, confirmText, confirmColor });
@@ -488,7 +532,7 @@ export const useAdminDashboardData = () => {
             employees, requests, loading, showModal, editingEmployee, activeTab,
             backendStatus, confirmModal, isMobileMenuOpen, companyName, theme,
             formData, olRequests, orderLines, showOlModal, editingOl, olFormData,
-            toasts, bills, unverifiedCount,
+            toasts, bills, unverifiedCount, totalBillsCount,
             lastSynced, isSyncing, nextInvoiceNo,
             lastInvoiceNo,
             userProfile, profilePic,

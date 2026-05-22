@@ -91,7 +91,7 @@ const AdminDashboard = () => {
                                 employees={state.employees}
                                 loading={state.loading}
                                 theme={state.theme}
-                                billCount={state.bills.length}
+                                billCount={state.totalBillsCount}
                                 handleEdit={actions.handleEdit}
                                 handleDelete={actions.handleDelete}
                                 handleAddNew={actions.handleAddNew}
