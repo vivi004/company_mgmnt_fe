@@ -2,7 +2,6 @@ import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 import tailwindcss from '@tailwindcss/vite'
 
-// https://vite.dev/config/
 export default defineConfig({
   plugins: [
     tailwindcss(),
@@ -12,4 +11,22 @@ export default defineConfig({
       },
     }),
   ],
+  build: {
+    sourcemap: true,
+    rollupOptions: {
+      output: {
+        manualChunks(id) {
+          // Split node_modules to optimize critical request chains and reduce initial JS bundle size
+          if (id.includes('node_modules')) {
+            if (id.includes('@mui') || id.includes('@emotion')) {
+              return 'vendor-mui';
+            }
+            if (id.includes('recharts') || id.includes('d3')) {
+              return 'vendor-recharts';
+            }
+          }
+        }
+      }
+    }
+  }
 })
