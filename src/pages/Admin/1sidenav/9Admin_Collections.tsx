@@ -756,7 +756,7 @@ const AdminCollections = ({ theme, orderLines, isAdmin: propsIsAdmin }: Props) =
                                                                 title="Click to Manage/Edit Returns"
                                                             >
                                                                 <span>₹{fmt(row.return_amount || 0)}</span>
-                                                                <span className="opacity-0 group-hover/edit:opacity-100 transition-opacity text-xs">✏️</span>
+                                                                <span className="opacity-0 group-hover:opacity-100 transition-all text-sm sm:text-base ml-1.5 inline-block hover:scale-125 duration-200">✏️</span>
                                                             </button>
                                                         ) : (
                                                             `₹${fmt(row.return_amount || 0)}`
@@ -770,7 +770,7 @@ const AdminCollections = ({ theme, orderLines, isAdmin: propsIsAdmin }: Props) =
                                                                 title="Click to Manage/Edit Payments"
                                                             >
                                                                 <span>₹{fmt(collected)}</span>
-                                                                <span className="opacity-0 group-hover/edit:opacity-100 transition-opacity text-xs">✏️</span>
+                                                                <span className="opacity-0 group-hover:opacity-100 transition-all text-sm sm:text-base ml-1.5 inline-block hover:scale-125 duration-200">✏️</span>
                                                             </button>
                                                         ) : (
                                                             <div className={`font-black ${collected > 0 ? 'text-green-500' : isDark ? 'text-slate-500' : 'text-slate-400'}`}>₹{fmt(collected)}</div>
@@ -785,7 +785,7 @@ const AdminCollections = ({ theme, orderLines, isAdmin: propsIsAdmin }: Props) =
                                                                 title="Click to Manage/Edit Adjustments"
                                                             >
                                                                 <span>{(row.manual_adjustments + (row.discount_payment || 0)) !== 0 ? `₹${fmt(row.manual_adjustments + (row.discount_payment || 0))}` : '—'}</span>
-                                                                <span className="opacity-0 group-hover/edit:opacity-100 transition-opacity text-xs">✏️</span>
+                                                                <span className="opacity-0 group-hover:opacity-100 transition-all text-sm sm:text-base ml-1.5 inline-block hover:scale-125 duration-200">✏️</span>
                                                             </button>
                                                         ) : (
                                                             <div className={`font-bold ${(row.manual_adjustments + (row.discount_payment || 0)) !== 0 ? ((row.manual_adjustments + (row.discount_payment || 0)) > 0 ? 'text-blue-500' : 'text-amber-500') : isDark ? 'text-slate-600' : 'text-slate-300'}`}>
@@ -889,9 +889,10 @@ const AdminCollections = ({ theme, orderLines, isAdmin: propsIsAdmin }: Props) =
                                                      {isAdmin ? (
                                                          <button
                                                              onClick={() => handleOpenLedgerEdit({ id: row.shop_id, shop_name: row.shop_name, balance: row.total_balance, village_name: row.village_name }, 'RETURNS')}
-                                                             className="font-bold text-amber-500 hover:text-amber-400"
+                                                             className="font-bold text-amber-500 hover:text-amber-400 inline-flex items-center gap-1"
                                                          >
-                                                             ₹{fmt(row.return_amount || 0)} ✏️
+                                                             <span>₹{fmt(row.return_amount || 0)}</span>
+                                                             <span className="text-sm sm:text-base ml-0.5 inline-block hover:scale-125 transition-transform duration-200">✏️</span>
                                                          </button>
                                                      ) : (
                                                          <span className="font-bold text-amber-500">₹{fmt(row.return_amount || 0)}</span>
@@ -902,9 +903,10 @@ const AdminCollections = ({ theme, orderLines, isAdmin: propsIsAdmin }: Props) =
                                                      {isAdmin ? (
                                                          <button
                                                              onClick={() => handleOpenLedgerEdit({ id: row.shop_id, shop_name: row.shop_name, balance: row.total_balance, village_name: row.village_name }, 'PAYMENTS')}
-                                                             className="font-bold text-green-500 hover:text-green-400"
+                                                             className="font-bold text-green-500 hover:text-green-400 inline-flex items-center gap-1"
                                                          >
-                                                             ₹{fmt(collected)} ✏️
+                                                             <span>₹{fmt(collected)}</span>
+                                                             <span className="text-sm sm:text-base ml-0.5 inline-block hover:scale-125 transition-transform duration-200">✏️</span>
                                                          </button>
                                                      ) : (
                                                          <span className="font-bold text-green-500">₹{fmt(collected)}</span>
@@ -916,9 +918,10 @@ const AdminCollections = ({ theme, orderLines, isAdmin: propsIsAdmin }: Props) =
                                                      {isAdmin ? (
                                                          <button
                                                              onClick={() => handleOpenLedgerEdit({ id: row.shop_id, shop_name: row.shop_name, balance: row.total_balance, village_name: row.village_name }, 'ADJUSTMENTS')}
-                                                             className={`font-bold ml-1 ${(row.manual_adjustments + (row.discount_payment || 0)) !== 0 ? ((row.manual_adjustments + (row.discount_payment || 0)) > 0 ? 'text-blue-500 hover:text-blue-400' : 'text-amber-500 hover:text-amber-400') : 'text-slate-400'}`}
+                                                             className={`font-bold ml-1 inline-flex items-center gap-1 ${(row.manual_adjustments + (row.discount_payment || 0)) !== 0 ? ((row.manual_adjustments + (row.discount_payment || 0)) > 0 ? 'text-blue-500 hover:text-blue-400' : 'text-amber-500 hover:text-amber-400') : 'text-slate-400'}`}
                                                          >
-                                                             ₹{fmt(row.manual_adjustments + (row.discount_payment || 0))} ✏️
+                                                             <span>₹{fmt(row.manual_adjustments + (row.discount_payment || 0))}</span>
+                                                             <span className="text-sm sm:text-base ml-0.5 inline-block hover:scale-125 transition-transform duration-200">✏️</span>
                                                          </button>
                                                      ) : (
                                                          <span className={`font-bold ml-1 ${(row.manual_adjustments + (row.discount_payment || 0)) !== 0 ? ((row.manual_adjustments + (row.discount_payment || 0)) > 0 ? 'text-blue-500' : 'text-amber-500') : ''}`}>₹{fmt(row.manual_adjustments + (row.discount_payment || 0))}</span>
@@ -1075,7 +1078,7 @@ const AdminCollections = ({ theme, orderLines, isAdmin: propsIsAdmin }: Props) =
                                                             className="p-1 hover:bg-blue-500/20 rounded text-blue-400 transition-colors"
                                                             title="Edit"
                                                         >
-                                                            ✏️
+                                                            <span className="inline-block hover:scale-125 transition-transform duration-200 text-sm sm:text-base">✏️</span>
                                                         </button>
                                                         <button 
                                                             onClick={() => handleDeleteExpense(exp.id)}
@@ -1250,7 +1253,7 @@ const AdminCollections = ({ theme, orderLines, isAdmin: propsIsAdmin }: Props) =
                                                                         className="p-1 hover:bg-blue-500/20 rounded text-blue-400 transition-colors"
                                                                         title="Edit Return"
                                                                     >
-                                                                        ✏️
+                                                                        <span className="inline-block hover:scale-125 transition-transform duration-200 text-sm sm:text-base">✏️</span>
                                                                     </button>
                                                                     <button
                                                                         onClick={() => handleDeleteOverallReturn(item.id)}
