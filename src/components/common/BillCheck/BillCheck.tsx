@@ -3,6 +3,7 @@ import { getAllProducts, getCartItems } from '../../../constants/productData';
 import { getAuthAxios } from '../../../utils/apiClient';
 import { useToast } from '../../../components/Toast';
 import { previewBill as generatePreviewPDF } from '../../../utils/invoiceGenerator';
+import { printLoadingSheet } from '../../../utils/loadingSheetGenerator';
 import UnifiedOrderingView from '../ShopManager/UnifiedOrderingView';
 import ReviewOrder from '../ReviewOrder/ReviewOrder';
 
@@ -36,6 +37,11 @@ const BillCheck = ({ theme, type, userProfileName, onUnverifiedCountChange }: Pr
     const [unverifiedBills, setUnverifiedBills] = useState<Bill[]>([]);
     const { showToast } = useToast();
     const api = () => getAuthAxios();
+
+    const getTodayLocal = () => {
+        const d = new Date();
+        return new Date(d.getTime() - (d.getTimezoneOffset() * 60000)).toISOString().split('T')[0];
+    };
 
     // Edit Modal State
     const [editingBill, setEditingBill] = useState<Bill | null>(null);
@@ -358,6 +364,17 @@ const BillCheck = ({ theme, type, userProfileName, onUnverifiedCountChange }: Pr
                         ${isDark ? 'bg-amber-500/10 text-amber-400 border-amber-500/20' : 'bg-amber-50 text-amber-600 border-amber-100'}`}>
                         {filteredUnverified.length} {isAdmin ? 'Pending' : 'In Queue'}
                     </div>
+                    {filteredUnverified.length > 0 && (
+                        <button
+                            onClick={() => printLoadingSheet(filteredUnverified, getTodayLocal())}
+                            className="px-4 sm:px-6 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-black rounded-2xl text-[10px] sm:text-xs uppercase tracking-widest shadow-lg shadow-emerald-600/30 transition-all hover:-translate-y-0.5 active:scale-95 flex items-center justify-center gap-2"
+                        >
+                            <svg className="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                            </svg>
+                            Loading Sheet
+                        </button>
+                    )}
                     {unverifiedBills.length > 0 && (
                         <button
                             onClick={() => handleVerifyBatch(unverifiedBills, 'ALL STAFF')}
@@ -387,6 +404,15 @@ const BillCheck = ({ theme, type, userProfileName, onUnverifiedCountChange }: Pr
                                         {staffName}'s Bills
                                     </h3>
                                     <div className="flex items-center gap-2">
+                                        <button
+                                            onClick={() => printLoadingSheet(staffBills, getTodayLocal())}
+                                            className="px-3 py-1.5 bg-emerald-500/10 hover:bg-emerald-500 text-emerald-600 dark:text-emerald-400 hover:text-white font-black rounded-xl text-[9px] uppercase tracking-widest transition-all border border-emerald-500/20 flex items-center gap-1.5"
+                                        >
+                                            <svg className="w-3.5 h-3.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                                            </svg>
+                                            Loading Sheet
+                                        </button>
                                         <button
                                             onClick={() => handleRejectBatch(staffBills, staffName)}
                                             className="px-3 py-1.5 bg-red-500/10 hover:bg-red-500 text-red-500 hover:text-white font-black rounded-xl text-[9px] uppercase tracking-widest transition-all border border-red-500/20"
@@ -476,6 +502,20 @@ const BillCheck = ({ theme, type, userProfileName, onUnverifiedCountChange }: Pr
                                         {/* Action Buttons */}
                                         <div className={`mt-4 sm:mt-6 pt-4 sm:pt-6 border-t border-dashed flex flex-wrap items-center justify-end gap-2 sm:gap-3
                                             ${isAdmin ? (isDark ? 'border-white/10' : 'border-slate-200') : (isDark ? 'border-white/10' : 'border-amber-200')}`}>
+                                            <button
+                                                onClick={() => {
+                                                    const billDateStr = bill.deliveryDate || bill.date;
+                                                    const datePart = billDateStr.includes('T') ? billDateStr.split('T')[0] : billDateStr.split(' ')[0];
+                                                    printLoadingSheet([bill], datePart);
+                                                }}
+                                                className={`p-2 sm:p-2.5 rounded-xl transition-all border shrink-0
+                                                    ${isDark ? 'bg-slate-800 border-white/10 text-slate-300 hover:text-emerald-400 hover:border-emerald-500/50 hover:bg-emerald-500/10' : 'bg-white border-slate-200 text-slate-600 hover:text-emerald-600 shadow-sm hover:border-emerald-400 hover:bg-emerald-50'}`}
+                                                title="Loading Sheet"
+                                            >
+                                                <svg className="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                                                </svg>
+                                            </button>
                                             <button
                                                 onClick={() => previewBill(bill)}
                                                 className={`p-2 sm:p-2.5 rounded-xl transition-all border shrink-0
