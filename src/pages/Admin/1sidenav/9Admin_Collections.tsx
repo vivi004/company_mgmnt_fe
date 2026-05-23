@@ -181,6 +181,67 @@ const AdminCollections = ({ theme, orderLines, isAdmin: propsIsAdmin }: Props) =
     // Search query filter state
     const [searchQuery, setSearchQuery] = useState('');
 
+    const [cashInHand, setCashInHand] = useState<string>('');
+    const [tempCashInput, setTempCashInput] = useState<string>('');
+
+    // Fetch tally from database when date changes
+    useEffect(() => {
+        let isMounted = true;
+        const fetchTally = async () => {
+            try {
+                const res = await getAuthAxios().get(`/api/collections/tally?date=${selectedDate}`);
+                if (isMounted) {
+                    const savedVal = res.data.physical_cash !== null && res.data.physical_cash !== undefined 
+                        ? res.data.physical_cash.toString() 
+                        : '';
+                    setCashInHand(savedVal);
+                    setTempCashInput(savedVal);
+                }
+            } catch (err) {
+                console.error('Failed to fetch cash tally:', err);
+            }
+        };
+        fetchTally();
+        return () => { isMounted = false; };
+    }, [selectedDate]);
+
+    // Save tally to backend database
+    const handleSaveTally = async (val: string) => {
+        const systemCash = modeBreakdown.netCash || 0;
+        const physicalCash = val.trim() !== '' ? parseFloat(val) : null;
+        const variance = physicalCash !== null ? physicalCash - systemCash : null;
+
+        try {
+            await getAuthAxios().post('/api/collections/tally', {
+                date: selectedDate,
+                physical_cash: physicalCash,
+                variance: variance
+            });
+            setCashInHand(val);
+            showToast('Cash tally saved & verified to database!', 'success');
+        } catch (err) {
+            console.error('Failed to save cash tally:', err);
+            showToast('Failed to save cash tally to database.', 'error');
+        }
+    };
+
+    // Reset tally in backend database
+    const handleResetTally = async () => {
+        try {
+            await getAuthAxios().post('/api/collections/tally', {
+                date: selectedDate,
+                physical_cash: null,
+                variance: null
+            });
+            setTempCashInput('');
+            setCashInHand('');
+            showToast('Cash tally reset successfully.', 'info');
+        } catch (err) {
+            console.error('Failed to reset cash tally:', err);
+            showToast('Failed to clear cash tally from database.', 'error');
+        }
+    };
+
     // Dynamic filtered list based on query matching shop name or owner name
     const filteredCollections = collections.filter(row => 
         (row.shop_name || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -1187,6 +1248,144 @@ const AdminCollections = ({ theme, orderLines, isAdmin: propsIsAdmin }: Props) =
                             </div>
                         </div>
                     )}
+
+                    {/* ═══════ Cash Hand Tally & Verification ═══════ */}
+                    <div className={`mt-8 rounded-2xl border overflow-hidden p-6 space-y-6 ${isDark ? 'bg-slate-900/50 border-white/5' : 'bg-white border-slate-100 shadow-sm'}`}>
+                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b pb-4 border-slate-100 dark:border-white/5">
+                            <div>
+                                <h3 className={`text-base font-black uppercase tracking-widest flex items-center gap-2 ${isDark ? 'text-white' : 'text-slate-900'}`}>
+                                    <span>💵</span> Cash Hand Tally & Verification
+                                </h3>
+                                <p className="text-xs text-slate-500 font-bold mt-1 uppercase tracking-wider">
+                                    Verify physical cash in hand against web recorded cash for {new Date(selectedDate).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric', timeZone: 'Asia/Kolkata' })}
+                                </p>
+                            </div>
+                            <button
+                                onClick={handleResetTally}
+                                className={`px-3 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all border ${isDark ? 'bg-white/5 border-white/10 text-slate-400 hover:text-white' : 'bg-slate-50 border-slate-200 text-slate-500 hover:text-red-500 shadow-sm'}`}
+                            >
+                                🔄 Reset Tally
+                            </button>
+                        </div>
+
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            {/* Web recorded cash display */}
+                            <div className={`p-5 rounded-xl border flex flex-col justify-between ${isDark ? 'bg-slate-800/40 border-white/5' : 'bg-slate-50 border-slate-100'}`}>
+                                <div>
+                                    <span className="text-[10px] font-black uppercase tracking-widest text-slate-500">System Cash (Web)</span>
+                                    <h4 className={`text-2xl font-black italic tracking-tighter mt-2 ${isDark ? 'text-blue-400' : 'text-blue-600'}`}>
+                                        ₹{fmt(modeBreakdown.netCash || 0)}
+                                    </h4>
+                                </div>
+                                <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest mt-4">
+                                    Includes all cash collections minus daily expenses
+                                </p>
+                            </div>
+
+                            {/* Physical cash input field */}
+                            <div className={`p-5 rounded-xl border flex flex-col justify-between ${isDark ? 'bg-slate-800/40 border-white/5' : 'bg-slate-50 border-slate-100'}`}>
+                                <div>
+                                    <label htmlFor="physical-cash-input" className="block text-[10px] font-black uppercase tracking-widest text-slate-500 mb-2">
+                                        Physical Cash in Hand (Counted)
+                                    </label>
+                                    <div className="flex gap-2 items-center">
+                                        <div className="relative flex-grow">
+                                            <span className="absolute left-4 top-1/2 -translate-y-1/2 font-black text-slate-500 text-base">₹</span>
+                                            <input
+                                                id="physical-cash-input"
+                                                type="text"
+                                                value={tempCashInput}
+                                                onChange={(e) => {
+                                                    const val = e.target.value;
+                                                    if (val === '' || /^\d*\.?\d*$/.test(val)) {
+                                                        setTempCashInput(val);
+                                                    }
+                                                }}
+                                                placeholder="Enter counted cash..."
+                                                className={`w-full pl-8 pr-4 py-3 rounded-xl border font-black text-base outline-none transition-all ${isDark ? 'bg-slate-900 border-white/10 text-white focus:border-blue-500/50' : 'bg-white border-slate-200 text-slate-900 focus:border-blue-500/30 shadow-sm'}`}
+                                            />
+                                        </div>
+                                        <button
+                                            onClick={() => handleSaveTally(tempCashInput)}
+                                            className={`px-5 py-3 rounded-xl text-sm font-black uppercase tracking-widest transition-all shadow-md ${isDark ? 'bg-emerald-600 hover:bg-emerald-500 text-white shadow-emerald-900/20' : 'bg-emerald-500 hover:bg-emerald-400 text-white shadow-emerald-200'}`}
+                                        >
+                                            Okay
+                                        </button>
+                                    </div>
+                                </div>
+                                <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest mt-4">
+                                    Enter cash amount physically present in cash box
+                                </p>
+                            </div>
+                        </div>
+
+                        {/* Reconciliation status box */}
+                        {cashInHand.trim() !== '' && (() => {
+                            const systemCash = modeBreakdown.netCash || 0;
+                            const physicalCash = parseFloat(cashInHand) || 0;
+                            const diff = physicalCash - systemCash;
+                            const absDiff = Math.abs(diff);
+
+                            let bgClass = '';
+                            let borderClass = '';
+                            let textClass = '';
+                            let badgeLabel = '';
+                            let emoji = '';
+                            let statusDesc = '';
+
+                            if (absDiff === 0) {
+                                bgClass = isDark ? 'bg-emerald-950/20' : 'bg-emerald-50';
+                                borderClass = isDark ? 'border-emerald-500/20' : 'border-emerald-200';
+                                textClass = 'text-emerald-500 dark:text-emerald-400';
+                                badgeLabel = 'TALLY BALANCED';
+                                emoji = '✅';
+                                statusDesc = 'Perfect match! Web record matches physical cash in hand exactly.';
+                            } else if (diff > 0) {
+                                bgClass = isDark ? 'bg-blue-950/20' : 'bg-blue-50';
+                                borderClass = isDark ? 'border-blue-500/20' : 'border-blue-200';
+                                textClass = 'text-blue-500 dark:text-blue-400';
+                                badgeLabel = `SURPLUS: +₹${fmt(absDiff)}`;
+                                emoji = '📈';
+                                statusDesc = 'Extra cash in hand! Physical cash is more than recorded transactions.';
+                            } else {
+                                bgClass = isDark ? 'bg-rose-950/20' : 'bg-rose-50';
+                                borderClass = isDark ? 'border-rose-500/20' : 'border-rose-200';
+                                textClass = 'text-rose-500 dark:text-rose-400';
+                                badgeLabel = `SHORTAGE: -₹${fmt(absDiff)}`;
+                                emoji = '⚠️';
+                                statusDesc = 'Cash shortage! Physical cash is less than recorded transactions.';
+                            }
+
+                            return (
+                                <div className={`p-5 rounded-xl border flex flex-col md:flex-row md:items-center justify-between gap-4 transition-all ${bgClass} ${borderClass}`}>
+                                    <div className="flex items-start gap-4">
+                                        <span className="text-3xl shrink-0 mt-0.5">{emoji}</span>
+                                        <div>
+                                            <span className={`text-[10px] font-black uppercase tracking-widest px-2 py-0.5 rounded border ${textClass} ${borderClass} bg-white/5`}>
+                                                {badgeLabel}
+                                            </span>
+                                            <p className={`text-sm font-black mt-2 ${textClass}`}>
+                                                {diff === 0 
+                                                    ? 'Tally matches 100%' 
+                                                    : diff > 0 
+                                                        ? `Cash surplus of ₹${fmt(absDiff)} detected.` 
+                                                        : `Cash deficit of ₹${fmt(absDiff)} detected.`}
+                                            </p>
+                                            <p className={`text-xs mt-1 font-bold ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
+                                                {statusDesc}
+                                            </p>
+                                        </div>
+                                    </div>
+                                    <div className="text-left md:text-right shrink-0">
+                                        <span className="text-[10px] font-black uppercase tracking-widest text-slate-500 block">Variance</span>
+                                        <span className={`text-2xl font-black italic tracking-tighter ${textClass}`}>
+                                            {diff === 0 ? '₹0.00' : `${diff > 0 ? '+' : '-'}₹${fmt(absDiff)}`}
+                                        </span>
+                                    </div>
+                                </div>
+                            );
+                        })()}
+                    </div>
                 </>
             )}
 
