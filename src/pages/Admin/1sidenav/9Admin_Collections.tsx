@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useCollections } from './useCollections';
 import { useShopActions } from '../../../hooks/useShopActions';
 import ShopActionModals from '../../../components/common/ShopModals/ShopActionModals';
+import { PendingApprovalsModal } from './PendingApprovalsModal';
 import type { OrderLine } from '../../../types/DashboardTypes';
 import { useToast, ToastContainer } from '../../../components/Toast';
 import { getAuthAxios } from '../../../utils/apiClient';
@@ -225,6 +226,10 @@ const AdminCollections = ({ theme, orderLines, isAdmin: propsIsAdmin }: Props) =
     const [overallReturns, setOverallReturns] = useState<any[]>([]);
     const [loadingOverallReturns, setLoadingOverallReturns] = useState(false);
 
+    // Pending Approvals Dashboard State
+    const [showPendingModal, setShowPendingModal] = useState(false);
+    const [pendingCount, setPendingCount] = useState(0);
+
     // Consolidated Ledger Edit Modal States
     const [showLedgerEditModal, setShowLedgerEditModal] = useState(false);
     const [ledgerEditTab, setLedgerEditTab] = useState<'PAYMENTS' | 'ADJUSTMENTS' | 'RETURNS'>('PAYMENTS');
@@ -443,6 +448,21 @@ const AdminCollections = ({ theme, orderLines, isAdmin: propsIsAdmin }: Props) =
             setLoadingOverallReturns(false);
         }
     };
+
+    const fetchPendingCount = async () => {
+        try {
+            const res = await getAuthAxios().get('/api/shops/transactions/pending');
+            setPendingCount(res.data?.length || 0);
+        } catch (err) {
+            console.error('Failed to fetch pending count:', err);
+        }
+    };
+
+    useEffect(() => {
+        fetchPendingCount();
+    }, [collections]);
+
+
 
     // Safety timeout for expense saving (unstick buttons)
     useEffect(() => {
@@ -783,6 +803,19 @@ const AdminCollections = ({ theme, orderLines, isAdmin: propsIsAdmin }: Props) =
                                 >
                                     ↩ View Return Products
                                 </button>
+                                {isAdmin && (
+                                    <button
+                                        onClick={() => setShowPendingModal(true)}
+                                        className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all border shadow flex items-center gap-1.5 hover:scale-105 active:scale-95 relative ${isDark ? 'bg-slate-800 border-white/10 text-blue-400 hover:bg-slate-700 shadow-slate-900/40' : 'bg-blue-50 border-blue-200 text-blue-700 hover:bg-blue-100 shadow-sm'}`}
+                                    >
+                                        ⏳ Pending Approvals
+                                        {pendingCount > 0 && (
+                                            <span className="absolute -top-1.5 -right-1.5 flex h-4 min-w-[16px] px-1 items-center justify-center rounded-full bg-red-500 text-[9px] font-black text-white shadow-lg shadow-red-500/50 animate-bounce">
+                                                {pendingCount}
+                                            </span>
+                                        )}
+                                    </button>
+                                )}
                             </div>
                             <div className="relative max-w-md w-full sm:w-80">
                                 <span className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400 dark:text-slate-500">
@@ -1339,6 +1372,21 @@ const AdminCollections = ({ theme, orderLines, isAdmin: propsIsAdmin }: Props) =
                     </div>
                 </div>
             )}
+
+            {/* ── Pending Approvals Modal ── */}
+            <PendingApprovalsModal 
+                isOpen={showPendingModal}
+                onClose={() => {
+                    setShowPendingModal(false);
+                    fetchPendingCount();
+                }}
+                isDark={isDark}
+                showToast={showToast}
+                refreshDashboard={refresh}
+                handleApprove={handleApprove}
+                handleReject={handleReject}
+                fmt={fmt}
+            />
 
             {/* ── Consolidated Shop Ledger Edit Modal (Admin-Only) ── */}
             {showLedgerEditModal && selectedShop && (
