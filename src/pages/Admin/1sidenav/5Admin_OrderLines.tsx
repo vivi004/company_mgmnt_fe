@@ -16,9 +16,11 @@ interface OrderLineProps {
     handleOpenOlModal: (ol?: OrderLine) => void;
     handleDeleteOl: (id: number) => void;
     handleRefreshInvoiceSettings?: () => Promise<void>;
+    setOrderLines?: React.Dispatch<React.SetStateAction<OrderLine[]>>;
+    fetchOrderLines?: () => Promise<void>;
 }
 
-const AdminOrderLines = ({ orderLines, theme, handleOpenOlModal, handleDeleteOl, handleRefreshInvoiceSettings }: OrderLineProps) => {
+const AdminOrderLines = ({ orderLines, theme, handleOpenOlModal, handleDeleteOl, handleRefreshInvoiceSettings, setOrderLines, fetchOrderLines }: OrderLineProps) => {
     const [selectedVillage, setSelectedVillage] = useState<OrderLine | null>(null);
 
     // If a village is selected, show its shop list
@@ -31,6 +33,8 @@ const AdminOrderLines = ({ orderLines, theme, handleOpenOlModal, handleDeleteOl,
                 onBack={() => setSelectedVillage(null)}
                 type="admin"
                 handleRefreshInvoiceSettings={handleRefreshInvoiceSettings}
+                setOrderLines={setOrderLines}
+                fetchOrderLines={fetchOrderLines}
             />
         );
     }

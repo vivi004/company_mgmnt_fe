@@ -25,8 +25,11 @@ export const PendingApprovalsModal = ({
     const [pendingTxs, setPendingTxs] = useState<any[]>([]);
     const [loadingPending, setLoadingPending] = useState(false);
     const [selectedPendingIds, setSelectedPendingIds] = useState<number[]>([]);
-    const [approvingBulk, setApprovingBulk] = useState(false);
+        const [approvingBulk, setApprovingBulk] = useState(false);
     const [pendingSearchQuery, setPendingSearchQuery] = useState('');
+    const [skipConfirm, setSkipConfirm] = useState(() => {
+        return localStorage.getItem('skipApprovalConfirm') !== 'false';
+    });
 
     const fetchPendingTxs = async () => {
         setLoadingPending(true);
@@ -75,12 +78,25 @@ export const PendingApprovalsModal = ({
     };
 
     const handleApprovePendingSingle = async (txId: number, mode: string, amt: number) => {
-        if (!window.confirm(`Approve this ${mode} request of ₹${fmt(amt)}?`)) return;
+        if (!skipConfirm) {
+            if (!window.confirm(`Approve this ${mode} request of ₹${fmt(amt)}?`)) return;
+        }
+
+        const originalPending = [...pendingTxs];
+
+        // Optimistically remove from state
+        setPendingTxs(prev => prev.filter(t => t.id !== txId));
+        setSelectedPendingIds(prev => prev.filter(id => id !== txId));
+
         try {
             await handleApprove(txId);
-            await fetchPendingTxs();
-            setSelectedPendingIds(prev => prev.filter(id => id !== txId));
-        } catch (err) {}
+            // Background fetch to verify sync
+            const res = await getAuthAxios().get('/api/shops/transactions/pending');
+            setPendingTxs(res.data || []);
+        } catch (err) {
+            // Revert state on failure
+            setPendingTxs(originalPending);
+        }
     };
 
     const handleRejectPendingSingle = async (txId: number) => {
@@ -95,15 +111,29 @@ export const PendingApprovalsModal = ({
 
     const handleApprovePendingBulk = async () => {
         if (selectedPendingIds.length === 0) return;
-        if (!window.confirm(`Are you sure you want to approve all ${selectedPendingIds.length} selected request(s)?`)) return;
+        if (!skipConfirm) {
+            if (!window.confirm(`Are you sure you want to approve all ${selectedPendingIds.length} selected request(s)?`)) return;
+        }
+        
+        const originalPending = [...pendingTxs];
+        const idsToApprove = [...selectedPendingIds];
+
+        // Optimistically remove all selected from list immediately
+        setPendingTxs(prev => prev.filter(t => !idsToApprove.includes(t.id)));
+        setSelectedPendingIds([]);
         setApprovingBulk(true);
+
         try {
-            await getAuthAxios().post('/api/shops/transactions/approve-bulk', { tx_ids: selectedPendingIds });
+            await getAuthAxios().post('/api/shops/transactions/approve-bulk', { tx_ids: idsToApprove });
             showToast('Selected transactions approved successfully!', 'success');
-            setSelectedPendingIds([]);
             refreshDashboard();
-            await fetchPendingTxs();
+            // Background fetch to verify sync
+            const res = await getAuthAxios().get('/api/shops/transactions/pending');
+            setPendingTxs(res.data || []);
         } catch (err: any) {
+            // Revert
+            setPendingTxs(originalPending);
+            setSelectedPendingIds(idsToApprove);
             showToast(err.response?.data?.error || 'Bulk approval failed', 'error');
         } finally {
             setApprovingBulk(false);
@@ -151,11 +181,29 @@ export const PendingApprovalsModal = ({
                                 : 'bg-slate-50 border-slate-200 text-slate-900 placeholder-slate-400 focus:ring-blue-500/10 focus:border-blue-500 shadow-inner'}`}
                         />
                     </div>
-                    {selectedPendingIds.length > 0 && (
-                        <div className="text-xs font-bold text-blue-500 animate-pulse">
-                            ✓ {selectedPendingIds.length} item{selectedPendingIds.length !== 1 ? 's' : ''} selected
-                        </div>
-                    )}
+                    <div className="flex items-center gap-4">
+                        <label className="relative inline-flex items-center cursor-pointer group">
+                            <input 
+                                type="checkbox" 
+                                checked={skipConfirm} 
+                                onChange={(e) => {
+                                    setSkipConfirm(e.target.checked);
+                                    localStorage.setItem('skipApprovalConfirm', String(e.target.checked));
+                                    showToast(e.target.checked ? '⚡ Fast Approve active!' : 'Confirmation prompts active.', 'info');
+                                }}
+                                className="sr-only peer" 
+                            />
+                            <div className="w-8 h-4.5 bg-slate-300 dark:bg-slate-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-3.5 after:w-3.5 after:transition-all peer-checked:bg-emerald-500"></div>
+                            <span className={`ml-2 text-xs font-black uppercase tracking-wider ${isDark ? 'text-slate-400 group-hover:text-slate-200' : 'text-slate-500 group-hover:text-slate-700'}`}>
+                                ⚡ Fast Approve
+                            </span>
+                        </label>
+                        {selectedPendingIds.length > 0 && (
+                            <div className="text-xs font-bold text-blue-500 animate-pulse">
+                                ✓ {selectedPendingIds.length} item{selectedPendingIds.length !== 1 ? 's' : ''} selected
+                            </div>
+                        )}
+                    </div>
                 </div>
                 <div className="p-6 max-h-[400px] overflow-y-auto">
                     {loadingPending ? (

@@ -9,7 +9,12 @@ export interface Shop {
     [key: string]: any; // Allow other fields like phone, owner, etc.
 }
 
-export const useShopActions = (showToast: (msg: string, type: any) => void, onSuccess?: () => void, collectionDate?: string) => {
+export const useShopActions = (
+    showToast: (msg: string, type: any) => void, 
+    onSuccess?: () => void, 
+    collectionDate?: string,
+    onBalanceChange?: (delta: number) => void
+) => {
     const [selectedShop, setSelectedShop] = useState<Shop | null>(null);
     
     // Ledger States
@@ -106,6 +111,7 @@ export const useShopActions = (showToast: (msg: string, type: any) => void, onSu
             setShowAdjustModal(false);
             setSelectedShop(null);
             setAdjData({ amount: '', description: '', method: 'Cash' });
+            if (onBalanceChange) onBalanceChange(parseFloat(adjData.amount));
             if (onSuccess) onSuccess();
         } catch (err: any) {
             showToast(err.response?.data?.message || err.response?.data?.error || 'Failed to adjust balance', 'error');
@@ -163,6 +169,7 @@ export const useShopActions = (showToast: (msg: string, type: any) => void, onSu
             setShowPaymentModal(false);
             setSelectedShop(null);
             setPaymentData({ amount: '', method: 'Cash', upiApp: 'PhonePe', description: '' });
+            if (onBalanceChange) onBalanceChange(-amount);
             if (onSuccess) onSuccess();
         } catch (err: any) {
             showToast(err.response?.data?.error || 'Failed to record payment', 'error');

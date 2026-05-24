@@ -120,6 +120,8 @@ const AdminDashboard = () => {
                                     handleOpenOlModal={actions.handleOpenOlModal}
                                     handleDeleteOl={actions.handleDeleteOl}
                                     handleRefreshInvoiceSettings={actions.fetchInvoiceSettings}
+                                    setOrderLines={actions.setOrderLines}
+                                    fetchOrderLines={actions.fetchOrderLines}
                                 />
                             )}
                             {state.activeTab === 'collections' && (

@@ -539,6 +539,7 @@ export const useAdminDashboardData = () => {
         actions: {
             setActiveTab, setConfirmModal, setIsMobileMenuOpen, setCompanyName,
             setTheme, setFormData, setShowModal, setShowOlModal, setOlFormData,
+            setOrderLines, fetchOrderLines,
             setNextInvoiceNo: async (val: number) => {
                 setNextInvoiceNo(val);
                 localStorage.setItem('nextInvoiceNo', String(val));

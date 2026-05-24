@@ -29,9 +29,11 @@ interface Props {
     onBack: () => void;
     type: 'admin' | 'staff';
     handleRefreshInvoiceSettings?: () => Promise<void>;
+    setOrderLines?: React.Dispatch<React.SetStateAction<any[]>>;
+    fetchOrderLines?: () => Promise<void>;
 }
 
-const ShopManager = ({ orderLineId, villageName, theme, onBack, type, handleRefreshInvoiceSettings }: Props) => {
+const ShopManager = ({ orderLineId, villageName, theme, onBack, type, handleRefreshInvoiceSettings, setOrderLines, fetchOrderLines }: Props) => {
     const isAdmin = type === 'admin';
     const isDark = theme === 'dark';
     const primaryColor = isAdmin ? 'blue' : 'emerald';
@@ -57,7 +59,19 @@ const ShopManager = ({ orderLineId, villageName, theme, onBack, type, handleRefr
         showAdjustModal, setShowAdjustModal, adjData, setAdjData, submittingAdj, handleAdjustment,
         showPaymentModal, setShowPaymentModal, paymentData, setPaymentData, submittingPayment, handleCollectPayment,
         handleApprove, handleReject
-    } = useShopActions(showToast, () => fetchShops());
+    } = useShopActions(
+        showToast, 
+        () => {
+            fetchShops();
+            if (fetchOrderLines) fetchOrderLines();
+        },
+        undefined,
+        (delta: number) => {
+            if (setOrderLines) {
+                setOrderLines((prev: any[]) => prev.map((ol: any) => ol.id === orderLineId ? { ...ol, total_balance: (parseFloat(String(ol.total_balance)) || 0) + delta } : ol));
+            }
+        }
+    );
 
     const [submittingOrder, setSubmittingOrder] = useState(false);
     const [submittingShop, setSubmittingShop] = useState(false);
@@ -240,17 +254,65 @@ const ShopManager = ({ orderLineId, villageName, theme, onBack, type, handleRefr
                 return storedUser.first_name ? `${storedUser.first_name} ${storedUser.last_name || ''}`.trim() : (isAdmin ? 'Admin' : 'Staff');
             })()
         };
+
+        const originalShops = [...shops];
+
         try {
-            if (isAdmin && editingShop) {
-                await api().put(`/api/shops/${editingShop.id}`, payload);
-                showToast('Shop updated!', 'success');
-            } else {
-                await api().post('/api/shops', payload);
-                showToast('Shop added!', 'success');
-            }
+            // Close the modal instantly
             setShowModal(false);
-            fetchShops();
+
+            if (isAdmin && editingShop) {
+                // Calculate balance difference
+                const oldBalance = parseFloat(String(editingShop.balance)) || 0;
+                const newBalance = parseFloat(formData.balance) || 0;
+                const diff = newBalance - oldBalance;
+
+                // Optimistically update the edited shop in local state
+                setShops(prev => prev.map(s => s.id === editingShop.id ? { ...s, ...payload, balance: newBalance } : s));
+
+                // Optimistically update parent orderLines balance
+                if (setOrderLines) {
+                    setOrderLines((prev: any[]) => prev.map((ol: any) => ol.id === orderLineId ? { ...ol, total_balance: (parseFloat(String(ol.total_balance)) || 0) + diff } : ol));
+                }
+
+                showToast('Shop updated!', 'success');
+                await api().put(`/api/shops/${editingShop.id}`, payload);
+            } else {
+                const newBalance = parseFloat(formData.balance) || 0;
+
+                // Optimistically add the new shop with a temporary negative ID
+                const tempId = -Date.now();
+                const newShopOpt = {
+                    id: tempId,
+                    ...payload,
+                    balance: newBalance,
+                    has_order_today: false
+                };
+                setShops(prev => [...prev, newShopOpt]);
+
+                // Optimistically update parent orderLines balance and shop count
+                if (setOrderLines) {
+                    setOrderLines((prev: any[]) => prev.map((ol: any) => ol.id === orderLineId ? { ...ol, total_balance: (parseFloat(String(ol.total_balance)) || 0) + newBalance, shop_count: (ol.shop_count || 0) + 1 } : ol));
+                }
+
+                showToast('Shop added!', 'success');
+                await api().post('/api/shops', payload);
+            }
+
+            // Silent background refresh (without setting fullscreen loading spinner)
+            const res = await api().get(`/api/shops/by-village/${orderLineId}`);
+            const normalized = res.data.map((s: any) => ({
+                ...s,
+                has_order_today: !!s.has_order_today
+            }));
+            setShops(normalized);
+            
+            // Trigger background dashboard fetch to sync
+            if (fetchOrderLines) fetchOrderLines();
         } catch (err: any) {
+            // Rollback on failure
+            setShops(originalShops);
+            if (fetchOrderLines) fetchOrderLines();
             showToast(err.response?.data?.error || err.response?.data?.errors?.[0]?.msg || 'Failed to save', 'error');
         } finally {
             setSubmittingShop(false);
@@ -265,12 +327,26 @@ const ShopManager = ({ orderLineId, villageName, theme, onBack, type, handleRefr
         }
 
         if (!window.confirm('Delete this shop?')) return;
+
+        const shopToDelete = shops.find(s => s.id === id);
+        const shopBalance = shopToDelete ? (parseFloat(String(shopToDelete.balance)) || 0) : 0;
+        const originalShops = [...shops];
+
+        // Optimistic delete
+        setShops(prev => prev.filter(s => s.id !== id));
+        if (setOrderLines) {
+            setOrderLines((prev: any[]) => prev.map((ol: any) => ol.id === orderLineId ? { ...ol, total_balance: Math.max(0, (parseFloat(String(ol.total_balance)) || 0) - shopBalance), shop_count: Math.max(0, (ol.shop_count || 0) - 1) } : ol));
+        }
+
         try {
             await api().delete(`/api/shops/${id}`);
             showToast('Shop deleted', 'success');
             fetchShops();
+            if (fetchOrderLines) fetchOrderLines();
         } catch {
             showToast('Failed to delete shop', 'error');
+            setShops(originalShops);
+            if (fetchOrderLines) fetchOrderLines();
         }
     };
 

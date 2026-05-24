@@ -27,7 +27,7 @@ interface CollectionRowProps {
     handleOpenReturnModal: (shop: any) => void;
     fetchLedger: (shop: any) => void;
     handleOpenLedgerEdit: (shop: any, tab: 'PAYMENTS' | 'ADJUSTMENTS' | 'RETURNS') => void;
-    renderModeBadges: (cash: number, upi: number, cheque: number, pos: number, pendingTxs: any[], discount: number) => React.ReactNode;
+    renderModeBadges: (cash: number, upi: number, cheque: number, pos: number, pendingTxs: any[], discount: number, shopId?: number) => React.ReactNode;
 }
 
 const CollectionRow = React.memo(({
@@ -123,7 +123,7 @@ const CollectionRow = React.memo(({
                 ) : (
                     <div className={`font-black ${collected > 0 ? 'text-green-500' : isDark ? 'text-slate-500' : 'text-slate-400'}`}>₹{fmt(collected)}</div>
                 )}
-                <div className="flex justify-end mt-1">{renderModeBadges(row.cash_collected, row.upi_collected, row.cheque_collected, 0, row.pending_transactions.filter((t: any) => (t.category || t.type || '').toUpperCase() === 'PAYMENT'), row.discount_payment)}</div>
+                <div className="flex justify-end mt-1">{renderModeBadges(row.cash_collected, row.upi_collected, row.cheque_collected, 0, row.pending_transactions.filter((t: any) => (t.category || t.type || '').toUpperCase() === 'PAYMENT'), row.discount_payment, row.shop_id)}</div>
             </td>
             <td className={`px-5 py-3.5 text-right`}>
                 {isAdmin ? (
@@ -140,7 +140,7 @@ const CollectionRow = React.memo(({
                         {(row.manual_adjustments + (row.discount_payment || 0)) !== 0 ? `₹${fmt(row.manual_adjustments + (row.discount_payment || 0))}` : '—'}
                     </div>
                 )}
-                <div className="flex justify-end mt-1">{renderModeBadges(row.manual_cash, row.manual_upi, row.manual_cheque, row.manual_pos, row.pending_transactions.filter((t: any) => (t.category || t.type || '').toUpperCase() === 'MANUAL_ADJUST'), row.discount_adjustment)}</div>
+                <div className="flex justify-end mt-1">{renderModeBadges(row.manual_cash, row.manual_upi, row.manual_cheque, row.manual_pos, row.pending_transactions.filter((t: any) => (t.category || t.type || '').toUpperCase() === 'MANUAL_ADJUST'), row.discount_adjustment, row.shop_id)}</div>
             </td>
             <td className={`px-5 py-3.5 text-right font-bold ${row.future_bills !== 0 ? 'text-purple-500' : isDark ? 'text-slate-600' : 'text-slate-300'}`}>
                 {row.future_bills !== 0 ? `₹${fmt(row.future_bills)}` : '—'}
@@ -158,7 +158,7 @@ const AdminCollections = ({ theme, orderLines, isAdmin: propsIsAdmin }: Props) =
     const {
         selectedDate, setSelectedDate,
         selectedOlId, setSelectedOlId,
-        collections, loading,
+        collections, setCollections, loading,
         totals, modeBreakdown,
         refresh, addExpense, updateExpense, deleteExpense, expenses, recordProductReturn,
         fetchShopDayDetails, updatePayment, updateAdjustment, deleteTransaction,
@@ -177,6 +177,70 @@ const AdminCollections = ({ theme, orderLines, isAdmin: propsIsAdmin }: Props) =
         showPaymentModal, setShowPaymentModal, paymentData, setPaymentData, submittingPayment, handleCollectPayment,
         handleApprove, handleReject
     } = useShopActions(showToast, () => refresh(), selectedDate);
+
+    const [skipConfirm, setSkipConfirm] = useState(() => {
+        return localStorage.getItem('skipApprovalConfirm') !== 'false';
+    });
+
+    const handleApproveOptimistic = async (txId: number, txAmount: number, txMode: string, shopId: number) => {
+        const isSkip = localStorage.getItem('skipApprovalConfirm') !== 'false';
+        if (!isSkip) {
+            if (!window.confirm(`Approve this ${txMode} amount of ₹${fmt(txAmount)}?`)) return;
+        }
+
+        const originalCollections = [...collections];
+        const originalPendingCount = pendingCount;
+
+        // Perform optimistic update
+        setCollections(prev => prev.map(row => {
+            if (row.shop_id !== shopId) return row;
+
+            const pendingList = row.pending_transactions || [];
+            const txExists = pendingList.some((t: any) => t.id === txId);
+            if (!txExists) return row;
+
+            const updatedPending = pendingList.filter((t: any) => t.id !== txId);
+
+            let cashAdd = 0;
+            let upiAdd = 0;
+            let chequeAdd = 0;
+
+            const m = txMode.toUpperCase();
+            if (m.includes('UPI')) {
+                upiAdd = txAmount;
+            } else if (m.includes('CHEQUE') || m.includes('CHECK')) {
+                chequeAdd = txAmount;
+            } else {
+                cashAdd = txAmount;
+            }
+
+            const newCash = row.cash_collected + cashAdd;
+            const newUpi = row.upi_collected + upiAdd;
+            const newCheque = row.cheque_collected + chequeAdd;
+
+            // total_balance = old_balance + todays_bill_amount - (cash_collected + upi_collected + cheque_collected) + manual_adjustments - return_amount
+            const newTotalBalance = row.old_balance + row.todays_bill_amount - (newCash + newUpi + newCheque) + row.manual_adjustments - row.return_amount;
+
+            return {
+                ...row,
+                pending_transactions: updatedPending,
+                cash_collected: newCash,
+                upi_collected: newUpi,
+                cheque_collected: newCheque,
+                total_balance: newTotalBalance
+            };
+        }));
+
+        setPendingCount(prev => Math.max(0, prev - 1));
+
+        try {
+            await handleApprove(txId);
+        } catch (err) {
+            // Rollback on failure
+            setCollections(originalCollections);
+            setPendingCount(originalPendingCount);
+        }
+    };
 
     // Search query filter state
     const [searchQuery, setSearchQuery] = useState('');
@@ -581,7 +645,7 @@ const AdminCollections = ({ theme, orderLines, isAdmin: propsIsAdmin }: Props) =
     };
 
     // Mode badge renderer for a single row
-    const renderModeBadges = (cash: number, upi: number, cheque: number, pos: number = 0, pendingTxs: any[] = [], discount: number = 0) => {
+    const renderModeBadges = (cash: number, upi: number, cheque: number, pos: number = 0, pendingTxs: any[] = [], discount: number = 0, shopId?: number) => {
         const badges: React.ReactNode[] = [];
         
         // 1. APPROVED Badges
@@ -631,7 +695,16 @@ const AdminCollections = ({ theme, orderLines, isAdmin: propsIsAdmin }: Props) =
                     {isAdmin && (
                         <div className="flex items-center gap-1.5 ml-1 border-l border-white/10 pl-1.5">
                             <button 
-                                onClick={(e) => { e.stopPropagation(); if(window.confirm(`Approve this ${mode} amount of ₹${fmt(amt || 0)}?`)) handleApprove(tx.id); }}
+                                onClick={(e) => { 
+                                    e.stopPropagation(); 
+                                    if (shopId) {
+                                        handleApproveOptimistic(tx.id, amt || 0, mode, shopId);
+                                    } else {
+                                        if (window.confirm(`Approve this ${mode} amount of ₹${fmt(amt || 0)}?`)) {
+                                            handleApprove(tx.id);
+                                        }
+                                    }
+                                }}
                                 className="w-6 h-6 flex items-center justify-center bg-emerald-500 text-white rounded-lg hover:bg-emerald-600 transition-all shadow-lg shadow-emerald-500/20 group/btn"
                                 title="Click to Approve and Reduce Balance"
                             >
@@ -1078,7 +1151,7 @@ const AdminCollections = ({ theme, orderLines, isAdmin: propsIsAdmin }: Props) =
                                                         <div className="flex flex-wrap items-center gap-1.5">
                                                             <span className="text-[9px] font-black uppercase tracking-wider text-slate-400">Collected by:</span>
                                                             <div className="flex flex-wrap gap-1">
-                                                                {renderModeBadges(row.cash_collected, row.upi_collected, row.cheque_collected, 0, row.pending_transactions.filter(t => (t.category || t.type || '').toUpperCase() === 'PAYMENT'), row.discount_payment)}
+                                                                {renderModeBadges(row.cash_collected, row.upi_collected, row.cheque_collected, 0, row.pending_transactions.filter(t => (t.category || t.type || '').toUpperCase() === 'PAYMENT'), row.discount_payment, row.shop_id)}
                                                             </div>
                                                         </div>
                                                     )}
@@ -1086,7 +1159,7 @@ const AdminCollections = ({ theme, orderLines, isAdmin: propsIsAdmin }: Props) =
                                                         <div className="flex flex-wrap items-center gap-1.5">
                                                             <span className="text-[9px] font-black uppercase tracking-wider text-slate-400">Adjusted by:</span>
                                                             <div className="flex flex-wrap gap-1">
-                                                                {renderModeBadges(row.manual_cash, row.manual_upi, row.manual_cheque, row.manual_pos, row.pending_transactions.filter(t => (t.category || t.type || '').toUpperCase() === 'MANUAL_ADJUST'), row.discount_adjustment)}
+                                                                {renderModeBadges(row.manual_cash, row.manual_upi, row.manual_cheque, row.manual_pos, row.pending_transactions.filter(t => (t.category || t.type || '').toUpperCase() === 'MANUAL_ADJUST'), row.discount_adjustment, row.shop_id)}
                                                             </div>
                                                         </div>
                                                     )}

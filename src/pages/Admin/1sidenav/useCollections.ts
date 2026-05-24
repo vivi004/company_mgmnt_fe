@@ -323,6 +323,7 @@ export const useCollections = (orderLines: OrderLine[]) => {
         selectedOlId,
         setSelectedOlId,
         collections,
+        setCollections,
         expenses,
         loading,
         totals,
