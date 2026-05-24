@@ -162,7 +162,8 @@ const AdminCollections = ({ theme, orderLines, isAdmin: propsIsAdmin }: Props) =
         totals, modeBreakdown,
         refresh, addExpense, updateExpense, deleteExpense, expenses, recordProductReturn,
         fetchShopDayDetails, updatePayment, updateAdjustment, deleteTransaction,
-        updateReturnProduct, deleteReturnProduct, addRetroactiveTx
+        updateReturnProduct, deleteReturnProduct, addRetroactiveTx,
+        collectPayment, adjustBalance
     } = useCollections(orderLines);
 
     const storedUser = JSON.parse(localStorage.getItem('user') || '{}');
@@ -176,7 +177,7 @@ const AdminCollections = ({ theme, orderLines, isAdmin: propsIsAdmin }: Props) =
         showAdjustModal, setShowAdjustModal, adjData, setAdjData, submittingAdj, handleAdjustment,
         showPaymentModal, setShowPaymentModal, paymentData, setPaymentData, submittingPayment, handleCollectPayment,
         handleApprove, handleReject
-    } = useShopActions(showToast, () => refresh(), selectedDate);
+    } = useShopActions(showToast, () => refresh(), selectedDate, undefined, collectPayment, adjustBalance);
 
 
     const handleApproveOptimistic = async (txId: number, txAmount: number, txMode: string, shopId: number) => {
@@ -544,15 +545,20 @@ const AdminCollections = ({ theme, orderLines, isAdmin: propsIsAdmin }: Props) =
         if (isNaN(amt) || amt <= 0) return alert('Please enter a valid amount');
         if (!selectedShop) return;
         setSubmittingReturn(true);
+
+        // Dismiss modal instantly and reset form state
+        setShowReturnModal(false);
+        const prevShop = selectedShop;
+        const productName = returnProductName.trim();
+        setSelectedShop(null);
+        setReturnProductName('');
+        setReturnAmount('');
+
         try {
-            await recordProductReturn(selectedShop.id, returnProductName.trim(), amt);
+            await recordProductReturn(prevShop.id, productName, amt);
             showToast('Product return recorded successfully', 'success');
-            setShowReturnModal(false);
-            setSelectedShop(null);
-            setReturnProductName('');
-            setReturnAmount('');
         } catch (err: any) {
-            showToast(err.response?.data?.error || 'Failed to record product return', 'error');
+            showToast(err.response?.data?.error || err.message || 'Failed to record product return', 'error');
         } finally {
             setSubmittingReturn(false);
         }
@@ -615,18 +621,26 @@ const AdminCollections = ({ theme, orderLines, isAdmin: propsIsAdmin }: Props) =
         const amt = parseFloat(expAmount);
         if (isNaN(amt) || amt <= 0) return alert('Enter valid amount');
         setSavingExp(true);
+
+        // Dismiss modal instantly and reset form state
+        setShowExpModal(false);
+        const amount = amt;
+        const description = expDesc;
+        const editingId = editingExpId;
+        setExpAmount('');
+        setExpDesc('');
+        setEditingExpId(null);
+
         try {
-            if (editingExpId) {
-                await updateExpense(editingExpId, amt, expDesc);
+            if (editingId) {
+                await updateExpense(editingId, amount, description);
+                showToast('Expense updated successfully', 'success');
             } else {
-                await addExpense(amt, expDesc);
+                await addExpense(amount, description);
+                showToast('Expense recorded successfully', 'success');
             }
-            setShowExpModal(false);
-            setExpAmount('');
-            setExpDesc('');
-            setEditingExpId(null);
-        } catch (err) {
-            alert('Failed to save expense');
+        } catch (err: any) {
+            showToast(err.response?.data?.error || err.message || 'Failed to save expense', 'error');
         } finally {
             setSavingExp(false);
         }
@@ -746,7 +760,7 @@ const AdminCollections = ({ theme, orderLines, isAdmin: propsIsAdmin }: Props) =
                 </div>
                 <div className="flex items-center gap-2 sm:gap-3">
                     <button 
-                        onClick={refresh} 
+                        onClick={() => refresh()} 
                         disabled={loading}
                         className={`p-2.5 rounded-xl border transition-all hover:scale-105 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed ${isDark ? 'bg-slate-800 border-white/10 text-white hover:bg-slate-700' : 'bg-white border-slate-200 text-slate-700 hover:bg-slate-50 shadow-sm'}`}
                         title="Refresh"

@@ -13,7 +13,9 @@ export const useShopActions = (
     showToast: (msg: string, type: any) => void, 
     onSuccess?: () => void, 
     collectionDate?: string,
-    onBalanceChange?: (delta: number) => void
+    onBalanceChange?: (delta: number) => void,
+    collectPaymentOptimistic?: (shopId: number, amount: number, method: string, description: string, userName: string) => Promise<void>,
+    adjustBalanceOptimistic?: (shopId: number, amount: number, method: string, description: string, adminName: string) => Promise<void>
 ) => {
     const [selectedShop, setSelectedShop] = useState<Shop | null>(null);
     
@@ -95,24 +97,37 @@ export const useShopActions = (
     const handleAdjustment = async (e: React.FormEvent) => {
         e.preventDefault();
         if (!selectedShop || submittingAdj) return;
+        const amount = parseFloat(adjData.amount);
+        if (isNaN(amount)) return showToast('Enter a valid amount', 'error');
+        
         setSubmittingAdj(true);
+
+        // Dismiss modal instantly and reset form state
+        setShowAdjustModal(false);
+        const prevShop = selectedShop;
+        const description = adjData.description;
+        const method = adjData.method;
+        setSelectedShop(null);
+        setAdjData({ amount: '', description: '', method: 'Cash' });
+
         try {
             const storedUser = JSON.parse(localStorage.getItem('user') || '{}');
             const adminName = storedUser.first_name ? `${storedUser.first_name} ${storedUser.last_name || ''}`.trim() : 'Admin';
 
-            await api().post(`/api/shops/${selectedShop.id}/adjust-balance`, {
-                amount: parseFloat(adjData.amount),
-                description: adjData.description,
-                payment_method: parseFloat(adjData.amount) < 0 ? adjData.method : null,
-                created_by: adminName,
-                collection_date: collectionDate || undefined
-            });
+            if (adjustBalanceOptimistic) {
+                await adjustBalanceOptimistic(prevShop.id, amount, amount < 0 ? method : 'Cash', description, adminName);
+            } else {
+                await api().post(`/api/shops/${prevShop.id}/adjust-balance`, {
+                    amount: amount,
+                    description: description,
+                    payment_method: amount < 0 ? method : null,
+                    created_by: adminName,
+                    collection_date: collectionDate || undefined
+                });
+                if (onBalanceChange) onBalanceChange(amount);
+                if (onSuccess) onSuccess();
+            }
             showToast('Balance adjusted!', 'success');
-            setShowAdjustModal(false);
-            setSelectedShop(null);
-            setAdjData({ amount: '', description: '', method: 'Cash' });
-            if (onBalanceChange) onBalanceChange(parseFloat(adjData.amount));
-            if (onSuccess) onSuccess();
         } catch (err: any) {
             showToast(err.response?.data?.message || err.response?.data?.error || 'Failed to adjust balance', 'error');
         } finally {
@@ -123,54 +138,65 @@ export const useShopActions = (
     const handleCollectPayment = async (e: React.FormEvent) => {
         e.preventDefault();
         if (!selectedShop || submittingPayment) return;
+
+        let amount = parseFloat(paymentData.amount);
+        if (isNaN(amount) || amount <= 0) {
+            showToast('Please enter a valid amount', 'error');
+            return;
+        }
+
+        const currentBalance = Number(selectedShop.balance) || 0;
+        if (amount > currentBalance) {
+            showToast(`Total balance is ₹${currentBalance.toLocaleString('en-IN')}, invalid to collect`, 'error');
+            return;
+        }
+
         setSubmittingPayment(true);
+
+        // Dismiss modal instantly and reset form state
+        setShowPaymentModal(false);
+        const prevShop = selectedShop;
+        setSelectedShop(null);
+        let method = paymentData.method === 'UPI' ? paymentData.upiApp : paymentData.method;
+        const description = paymentData.description;
+        setPaymentData({ amount: '', method: 'Cash', upiApp: 'PhonePe', description: '' });
+
         try {
             const storedUser = JSON.parse(localStorage.getItem('user') || '{}');
             const userName = storedUser.first_name ? `${storedUser.first_name} ${storedUser.last_name || ''}`.trim() : 'Admin';
-            let amount = parseFloat(paymentData.amount);
 
-            if (isNaN(amount) || amount <= 0) {
-                showToast('Please enter a valid amount', 'error');
-                return;
-            }
-
-            const currentBalance = Number(selectedShop.balance) || 0;
-            if (amount > currentBalance) {
-                showToast(`Total balance is ₹${currentBalance.toLocaleString('en-IN')}, invalid to collect`, 'error');
-                return;
-            }
-
-            let method = paymentData.method;
-            let description = paymentData.description;
-            if (paymentData.method === 'UPI') {
-                method = paymentData.upiApp;
-            } else if (paymentData.method === 'Discount') {
-                method = 'Discount';
-                if (!description) {
-                    description = `Discount Applied — ₹${amount.toLocaleString('en-IN')}`;
+            let finalMethod = method;
+            let finalDescription = description;
+            
+            if (method === 'Discount') {
+                if (!finalDescription) {
+                    finalDescription = `Discount Applied — ₹${amount.toLocaleString('en-IN')}`;
                 }
+            } else if (!finalDescription) {
+                finalDescription = `${method} payment collected by ${userName}`;
             }
 
-            const cash_amount = paymentData.method === 'Cash' ? amount : 0;
-            const upi_amount = paymentData.method === 'UPI' ? amount : 0;
-            const cheque_amount = paymentData.method === 'Cheque' ? amount : 0;
+            if (collectPaymentOptimistic) {
+                await collectPaymentOptimistic(prevShop.id, amount, finalMethod, finalDescription, userName);
+            } else {
+                const cash_amount = finalMethod === 'Cash' ? amount : 0;
+                const upi_amount = ['UPI', 'PhonePe', 'GPay', 'Paytm', 'Other UPI'].includes(finalMethod) ? amount : 0;
+                const cheque_amount = finalMethod === 'Cheque' ? amount : 0;
 
-            await api().post(`/api/shops/${selectedShop.id}/collect-payment`, {
-                amount: amount,
-                payment_method: method,
-                cash_amount,
-                upi_amount,
-                cheque_amount,
-                description: description || `${method} payment collected by ${userName}`,
-                created_by: userName,
-                collection_date: collectionDate || undefined
-            });
+                await api().post(`/api/shops/${prevShop.id}/collect-payment`, {
+                    amount: amount,
+                    payment_method: finalMethod,
+                    cash_amount,
+                    upi_amount,
+                    cheque_amount,
+                    description: finalDescription,
+                    created_by: userName,
+                    collection_date: collectionDate || undefined
+                });
+                if (onBalanceChange) onBalanceChange(-amount);
+                if (onSuccess) onSuccess();
+            }
             showToast('Payment recorded!', 'success');
-            setShowPaymentModal(false);
-            setSelectedShop(null);
-            setPaymentData({ amount: '', method: 'Cash', upiApp: 'PhonePe', description: '' });
-            if (onBalanceChange) onBalanceChange(-amount);
-            if (onSuccess) onSuccess();
         } catch (err: any) {
             showToast(err.response?.data?.error || 'Failed to record payment', 'error');
         } finally {
