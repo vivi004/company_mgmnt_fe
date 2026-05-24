@@ -178,9 +178,6 @@ const AdminCollections = ({ theme, orderLines, isAdmin: propsIsAdmin }: Props) =
         handleApprove, handleReject
     } = useShopActions(showToast, () => refresh(), selectedDate);
 
-    const [skipConfirm, setSkipConfirm] = useState(() => {
-        return localStorage.getItem('skipApprovalConfirm') !== 'false';
-    });
 
     const handleApproveOptimistic = async (txId: number, txAmount: number, txMode: string, shopId: number) => {
         const isSkip = localStorage.getItem('skipApprovalConfirm') !== 'false';
