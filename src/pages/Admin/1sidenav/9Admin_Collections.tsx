@@ -240,6 +240,37 @@ const AdminCollections = ({ theme, orderLines, isAdmin: propsIsAdmin }: Props) =
         }
     };
 
+    const handleRejectOptimistic = async (txId: number, reason: string, shopId: number) => {
+        const originalCollections = [...collections];
+        const originalPendingCount = pendingCount;
+
+        // Perform optimistic update
+        setCollections(prev => prev.map(row => {
+            if (row.shop_id !== shopId) return row;
+
+            const pendingList = row.pending_transactions || [];
+            const txExists = pendingList.some((t: any) => t.id === txId);
+            if (!txExists) return row;
+
+            const updatedPending = pendingList.filter((t: any) => t.id !== txId);
+
+            return {
+                ...row,
+                pending_transactions: updatedPending
+            };
+        }));
+
+        setPendingCount(prev => Math.max(0, prev - 1));
+
+        try {
+            await handleReject(txId, reason);
+        } catch (err) {
+            // Rollback on failure
+            setCollections(originalCollections);
+            setPendingCount(originalPendingCount);
+        }
+    };
+
     // Search query filter state
     const [searchQuery, setSearchQuery] = useState('');
 
@@ -410,6 +441,16 @@ const AdminCollections = ({ theme, orderLines, isAdmin: propsIsAdmin }: Props) =
         const amt = parseFloat(editItemAmount);
         if (isNaN(amt) || amt < 0) return alert('Please enter a valid positive amount');
         setSavingItemEdit(true);
+
+        const originalTxs = [...ledgerDayTxs];
+
+        // Optimistically update inside state instantly
+        setLedgerDayTxs(prev => prev.map(t => {
+            if (t.id !== tx.id) return t;
+            return { ...t, amount: amt, payment_mode: editItemMode, description: editItemDesc };
+        }));
+        setEditingItemId(null);
+
         try {
             if (tx.type === 'Payment') {
                 await updatePayment(tx.id, amt, editItemMode, editItemDesc);
@@ -417,9 +458,8 @@ const AdminCollections = ({ theme, orderLines, isAdmin: propsIsAdmin }: Props) =
                 await updateAdjustment(tx.id, amt, editItemMode, editItemDesc);
             }
             showToast('Ledger entry updated successfully', 'success');
-            setEditingItemId(null);
-            if (selectedShop) await loadShopDayDetails(selectedShop.id);
         } catch (err: any) {
+            setLedgerDayTxs(originalTxs);
             showToast(err.response?.data?.error || 'Failed to update ledger entry', 'error');
         } finally {
             setSavingItemEdit(false);
@@ -428,11 +468,17 @@ const AdminCollections = ({ theme, orderLines, isAdmin: propsIsAdmin }: Props) =
 
     const handleDeleteInlineTx = async (txId: number) => {
         if (!window.confirm('Are you sure you want to delete this ledger entry? Balances will be recalculated.')) return;
+        
+        const originalTxs = [...ledgerDayTxs];
+
+        // Optimistically remove from state instantly
+        setLedgerDayTxs(prev => prev.filter(t => t.id !== txId));
+
         try {
             await deleteTransaction(txId);
             showToast('Ledger entry deleted successfully', 'success');
-            if (selectedShop) await loadShopDayDetails(selectedShop.id);
         } catch (err: any) {
+            setLedgerDayTxs(originalTxs);
             showToast(err.response?.data?.error || 'Failed to delete ledger entry', 'error');
         }
     };
@@ -442,12 +488,21 @@ const AdminCollections = ({ theme, orderLines, isAdmin: propsIsAdmin }: Props) =
         if (!editItemProdName.trim()) return alert('Please enter product name');
         if (isNaN(amt) || amt <= 0) return alert('Please enter a valid amount');
         setSavingItemEdit(true);
+
+        const originalReturns = [...ledgerDayReturns];
+
+        // Optimistically update inside state instantly
+        setLedgerDayReturns(prev => prev.map(r => {
+            if (r.id !== retId) return r;
+            return { ...r, amount: amt, product_name: editItemProdName.trim() };
+        }));
+        setEditingItemId(null);
+
         try {
             await updateReturnProduct(retId, editItemProdName.trim(), amt);
             showToast('Product return updated successfully', 'success');
-            setEditingItemId(null);
-            if (selectedShop) await loadShopDayDetails(selectedShop.id);
         } catch (err: any) {
+            setLedgerDayReturns(originalReturns);
             showToast(err.response?.data?.error || 'Failed to update product return', 'error');
         } finally {
             setSavingItemEdit(false);
@@ -456,11 +511,17 @@ const AdminCollections = ({ theme, orderLines, isAdmin: propsIsAdmin }: Props) =
 
     const handleDeleteInlineReturn = async (retId: number) => {
         if (!window.confirm('Are you sure you want to delete this product return? Balances will be recalculated.')) return;
+        
+        const originalReturns = [...ledgerDayReturns];
+
+        // Optimistically remove from state instantly
+        setLedgerDayReturns(prev => prev.filter(r => r.id !== retId));
+
         try {
             await deleteReturnProduct(retId);
             showToast('Product return deleted successfully', 'success');
-            if (selectedShop) await loadShopDayDetails(selectedShop.id);
         } catch (err: any) {
+            setLedgerDayReturns(originalReturns);
             showToast(err.response?.data?.error || 'Failed to delete product return', 'error');
         }
     };
@@ -485,14 +546,43 @@ const AdminCollections = ({ theme, orderLines, isAdmin: propsIsAdmin }: Props) =
         }
 
         setSubmittingRetro(true);
+
+        const originalTxs = [...ledgerDayTxs];
+        const originalReturns = [...ledgerDayReturns];
+
+        const tempId = -Date.now();
+        if (type === 'Payment' || type === 'Adjustment') {
+            const newTx = {
+                id: tempId,
+                type,
+                amount: amt,
+                payment_mode: retroMode,
+                description: desc,
+                created_at: new Date().toISOString()
+            };
+            setLedgerDayTxs(prev => [...prev, newTx]);
+        } else {
+            const newReturn = {
+                id: tempId,
+                amount: amt,
+                product_name: retroProductName.trim(),
+                created_at: new Date().toISOString()
+            };
+            setLedgerDayReturns(prev => [...prev, newReturn]);
+        }
+
+        // Clear retroactive fields instantly
+        setRetroAmount('');
+        setRetroDesc('');
+        setRetroProductName('');
+
         try {
             await addRetroactiveTx(selectedShop.id, type, amt, retroMode, desc, selectedDate);
             showToast('Retroactive entry recorded successfully', 'success');
-            setRetroAmount('');
-            setRetroDesc('');
-            setRetroProductName('');
             await loadShopDayDetails(selectedShop.id);
         } catch (err: any) {
+            setLedgerDayTxs(originalTxs);
+            setLedgerDayReturns(originalReturns);
             showToast(err.response?.data?.error || 'Failed to record retroactive entry', 'error');
         } finally {
             setSubmittingRetro(false);
@@ -727,7 +817,13 @@ const AdminCollections = ({ theme, orderLines, isAdmin: propsIsAdmin }: Props) =
                                 onClick={(e) => { 
                                     e.stopPropagation(); 
                                     const reason = window.prompt('Enter rejection reason (optional):');
-                                    if (reason !== null) handleReject(tx.id, reason);
+                                    if (reason !== null) {
+                                        if (shopId) {
+                                            handleRejectOptimistic(tx.id, reason, shopId);
+                                        } else {
+                                            handleReject(tx.id, reason);
+                                        }
+                                    }
                                 }}
                                 className="w-6 h-6 flex items-center justify-center bg-red-500/10 text-red-500 rounded-lg hover:bg-red-500 hover:text-white transition-all group/btn"
                                 title="Reject"

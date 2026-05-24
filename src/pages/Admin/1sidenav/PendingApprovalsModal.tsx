@@ -102,11 +102,21 @@ export const PendingApprovalsModal = ({
     const handleRejectPendingSingle = async (txId: number) => {
         const reason = window.prompt('Enter rejection reason (optional):');
         if (reason === null) return;
+
+        const originalPending = [...pendingTxs];
+
+        // Optimistically remove from state instantly
+        setPendingTxs(prev => prev.filter(t => t.id !== txId));
+        setSelectedPendingIds(prev => prev.filter(id => id !== txId));
+
         try {
             await handleReject(txId, reason);
-            await fetchPendingTxs();
-            setSelectedPendingIds(prev => prev.filter(id => id !== txId));
-        } catch (err) {}
+            // Background fetch to verify sync
+            const res = await getAuthAxios().get('/api/shops/transactions/pending');
+            setPendingTxs(res.data || []);
+        } catch (err) {
+            setPendingTxs(originalPending);
+        }
     };
 
     const handleApprovePendingBulk = async () => {
