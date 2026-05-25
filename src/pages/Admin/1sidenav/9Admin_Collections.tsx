@@ -351,6 +351,7 @@ const AdminCollections = ({ theme, orderLines, isAdmin: propsIsAdmin }: Props) =
         acc.totalReturnAmount += row.return_amount;
         acc.totalFutureBills += row.future_bills;
         acc.totalBalance += row.total_balance;
+        acc.todaysBillBalance += row.todays_bill_amount > 0 ? Math.max(0, row.todays_bill_amount - collected) : 0;
         return acc;
     }, {
         totalOldBalance: 0,
@@ -359,8 +360,349 @@ const AdminCollections = ({ theme, orderLines, isAdmin: propsIsAdmin }: Props) =
         totalManualAdjust: 0,
         totalReturnAmount: 0,
         totalFutureBills: 0,
-        totalBalance: 0
+        totalBalance: 0,
+        todaysBillBalance: 0
     });
+
+    const handleDownloadPDF = () => {
+        const w = window.open('', '_blank');
+        if (!w) return;
+
+        const activeOl = orderLines.find(ol => ol.id === selectedOlId);
+        const routeName = activeOl ? activeOl.name.toUpperCase() : 'UNKNOWN ROUTE';
+        const formattedDate = selectedDate.split('-').reverse().join('-');
+
+        const totalBilled = filteredTotals.todaysBillAmount;
+        const totalCollected = filteredTotals.amountCollected;
+        const totalReturns = filteredTotals.totalReturnAmount;
+        const totalUpcoming = filteredTotals.totalFutureBills;
+        const totalDiscounts = modeBreakdown.discount;
+        const totalManualAdjust = filteredTotals.totalManualAdjust;
+        const totalPending = filteredTotals.todaysBillBalance;
+        const totalShops = filteredCollections.length;
+
+        const getModeText = (cash: number, upi: number, cheque: number, discount: number) => {
+            const list: string[] = [];
+            if (cash > 0) list.push(`Cash: ₹${fmt(cash)}`);
+            if (upi > 0) list.push(`UPI: ₹${fmt(upi)}`);
+            if (cheque > 0) list.push(`Cheque: ₹${fmt(cheque)}`);
+            if (discount > 0) list.push(`Discount: ₹${fmt(discount)}`);
+            return list.length > 0 ? list.join(' | ') : '—';
+        };
+
+        const html = `
+        <html>
+        <head>
+            <title>Today Collection Report - ${routeName} - ${formattedDate}</title>
+            <style>
+                @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&display=swap');
+                * { margin: 0; padding: 0; box-sizing: border-box; }
+                body { font-family: 'Outfit', 'Inter', sans-serif; padding: 35px; color: #1e293b; background: #fff; line-height: 1.4; }
+                
+                .header { display: flex; justify-content: space-between; align-items: center; border-bottom: 3px solid #f1f5f9; padding-bottom: 24px; margin-bottom: 25px; }
+                .logo-section h1 { font-size: 28px; font-weight: 900; color: #0f172a; letter-spacing: -0.05em; }
+                .logo-section p { font-size: 11px; font-weight: 800; color: #2563eb; text-transform: uppercase; letter-spacing: 0.15em; margin-top: 2px; }
+                .meta-section { text-align: right; }
+                .meta-section h2 { font-size: 16px; font-weight: 800; color: #0f172a; text-transform: uppercase; letter-spacing: 0.05em; }
+                .meta-section p { font-size: 12px; font-weight: 700; color: #64748b; margin-top: 4px; }
+                
+                .stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 30px; }
+                .stat-card { border: 1px solid #e2e8f0; padding: 14px; border-radius: 16px; background: #f8fafc; }
+                .stat-card h4 { font-size: 9px; font-weight: 800; color: #64748b; text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 6px; }
+                .stat-card p { font-size: 18px; font-weight: 900; color: #0f172a; }
+                
+                h3.section-title { font-size: 13px; font-weight: 900; text-transform: uppercase; letter-spacing: 0.08em; color: #0f172a; margin-bottom: 14px; display: flex; align-items: center; gap: 8px; border-left: 4px solid #2563eb; padding-left: 10px; }
+                table { width: 100%; border-collapse: collapse; margin-bottom: 30px; }
+                th, td { padding: 10px 12px; text-align: left; font-size: 11px; border-bottom: 1px solid #e2e8f0; }
+                th { background: #0f172a; color: #fff; font-weight: 800; text-transform: uppercase; font-size: 9px; letter-spacing: 0.05em; }
+                .text-right { text-align: right; }
+                .font-bold { font-weight: 700; }
+                .font-black { font-weight: 900; }
+                
+                tr.total-row { background: #f1f5f9; border-top: 2.5px solid #cbd5e1; }
+                tr.total-row td { font-weight: 900; font-size: 11.5px; color: #0f172a; }
+                
+                .breakdown-grid { display: grid; grid-template-columns: 1.8fr 1.2fr; gap: 24px; }
+                .expense-list { border: 1px solid #e2e8f0; padding: 16px; border-radius: 16px; background: #f8fafc; }
+                .expense-item { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px dashed #e2e8f0; font-size: 11px; }
+                .expense-item:last-child { border-bottom: none; }
+                .badge-text { font-size: 9px; color: #64748b; margin-top: 3px; display: block; font-style: italic; font-weight: 500; }
+                
+                @media print {
+                    body { padding: 0; }
+                    @page { size: A4 landscape; margin: 10mm; }
+                }
+            </style>
+        </head>
+        <body>
+            <div class="header">
+                <div class="logo-section">
+                    <h1>NISHA OIL MILL</h1>
+                    <p>Daily billing & payment summary</p>
+                </div>
+                <div class="meta-section">
+                    <h2>Route: ${routeName}</h2>
+                    <p>Date: ${formattedDate}</p>
+                </div>
+            </div>
+
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <h4>Billed Today</h4>
+                    <p>₹${fmt(totalBilled)}</p>
+                </div>
+                <div class="stat-card">
+                    <h4>Collected</h4>
+                    <p>₹${fmt(totalCollected)}</p>
+                </div>
+                <div class="stat-card">
+                    <h4>Returns</h4>
+                    <p>₹${fmt(totalReturns)}</p>
+                </div>
+                <div class="stat-card">
+                    <h4>Upcoming Bills</h4>
+                    <p>₹${fmt(totalUpcoming)}</p>
+                </div>
+                <div class="stat-card">
+                    <h4>Discounts</h4>
+                    <p>₹${fmt(totalDiscounts)}</p>
+                </div>
+                <div class="stat-card">
+                    <h4>Manual Adj</h4>
+                    <p>₹${fmt(totalManualAdjust)}</p>
+                </div>
+                <div class="stat-card">
+                    <h4>Pending Balance</h4>
+                    <p>₹${fmt(totalPending)}</p>
+                </div>
+                <div class="stat-card">
+                    <h4>Total Shops</h4>
+                    <p>${totalShops}</p>
+                </div>
+            </div>
+
+            <h3 class="section-title">📋 Collection Details</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th style="width: 4%;">#</th>
+                        <th style="width: 22%;">Shop Name</th>
+                        <th class="text-right" style="width: 10%;">Prev Bal</th>
+                        <th class="text-right" style="width: 10%;">Today's Bill</th>
+                        <th class="text-right" style="width: 9%;">Returns</th>
+                        <th class="text-right" style="width: 16%;">Collected</th>
+                        <th class="text-right" style="width: 13%;">Manual Adjust</th>
+                        <th class="text-right" style="width: 8%;">Upcoming</th>
+                        <th class="text-right" style="width: 8%;">Total Bal</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    ${filteredCollections.map((row, idx) => {
+                        const collected = row.cash_collected + row.upi_collected + row.cheque_collected + (row.discount_payment || 0);
+                        const collectedBreakdown = getModeText(row.cash_collected, row.upi_collected, row.cheque_collected, row.discount_payment);
+                        const adjustedBreakdown = getModeText(row.manual_cash, row.manual_upi, row.manual_cheque, row.discount_adjustment);
+                        
+                        return `
+                        <tr>
+                            <td>${idx + 1}</td>
+                            <td class="font-bold">
+                                ${row.shop_name} ${row.owner_name && row.owner_name.trim() ? `(${row.owner_name.trim()})` : ''}
+                            </td>
+                            <td class="text-right">₹${fmt(row.old_balance)}</td>
+                            <td class="text-right">₹${fmt(row.todays_bill_amount)}</td>
+                            <td class="text-right" style="color: #d97706; font-weight: 700;">₹${fmt(row.return_amount || 0)}</td>
+                            <td class="text-right">
+                                <span class="font-bold" style="color: #16a34a;">₹${fmt(collected)}</span>
+                                ${collected > 0 ? `<span class="badge-text">${collectedBreakdown}</span>` : ''}
+                            </td>
+                            <td class="text-right">
+                                <span>₹${fmt(row.manual_adjustments + (row.discount_payment || 0))}</span>
+                                ${(row.manual_adjustments + (row.discount_payment || 0)) !== 0 ? `<span class="badge-text">${adjustedBreakdown}</span>` : ''}
+                            </td>
+                            <td class="text-right" style="color: #8b5cf6; font-weight: 700;">${row.future_bills !== 0 ? `₹${fmt(row.future_bills)}` : '—'}</td>
+                            <td class="text-right font-black" style="color: ${row.total_balance > 0 ? '#ef4444' : '#16a34a'};">
+                                ₹${fmt(row.total_balance)}
+                            </td>
+                        </tr>`;
+                    }).join('')}
+                    <tr class="total-row">
+                        <td></td>
+                        <td>TOTAL</td>
+                        <td class="text-right">₹${fmt(filteredTotals.totalOldBalance)}</td>
+                        <td class="text-right">₹${fmt(filteredTotals.todaysBillAmount)}</td>
+                        <td class="text-right" style="color: #d97706;">₹${fmt(filteredTotals.totalReturnAmount)}</td>
+                        <td class="text-right" style="color: #16a34a;">₹${fmt(filteredTotals.amountCollected)}</td>
+                        <td class="text-right">₹${fmt(filteredTotals.totalManualAdjust)}</td>
+                        <td class="text-right" style="color: #8b5cf6;">₹${fmt(filteredTotals.totalFutureBills)}</td>
+                        <td class="text-right font-black" style="color: ${filteredTotals.totalBalance > 0 ? '#ef4444' : '#16a34a'};">
+                            ₹${fmt(filteredTotals.totalBalance)}
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <div class="breakdown-grid">
+                <div>
+                    <h3 class="section-title">💰 Collection Breakdown by Mode</h3>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Payment Mode / Detail</th>
+                                <th class="text-right" style="width: 30%;">Amount</th>
+                                <th class="text-right" style="width: 25%;">% Share</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td class="font-bold">💵 Cash (Net)</td>
+                                <td class="text-right font-bold">₹${fmt(modeBreakdown.netCash)}</td>
+                                <td class="text-right">${modeBreakdown.cashPercent}%</td>
+                            </tr>
+                            <tr>
+                                <td class="font-bold">📱 UPI</td>
+                                <td class="text-right font-bold">₹${fmt(modeBreakdown.upi)}</td>
+                                <td class="text-right">${modeBreakdown.upiPercent}%</td>
+                            </tr>
+                            <tr>
+                                <td class="font-bold">📝 Cheque</td>
+                                <td class="text-right font-bold">₹${fmt(modeBreakdown.cheque)}</td>
+                                <td class="text-right">${modeBreakdown.chequePercent}%</td>
+                            </tr>
+                            <tr class="total-row">
+                                <td>TOTAL INCOME</td>
+                                <td class="text-right">₹${fmt(modeBreakdown.total)}</td>
+                                <td class="text-right">100%</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div>
+                    <h3 class="section-title">🥪 Expenses recorded (₹${fmt(modeBreakdown.totalExpenses)})</h3>
+                    <div class="expense-list">
+                        ${expenses.length === 0 
+                            ? '<p style="font-size: 11px; color: #64748b; font-style: italic; text-align: center; padding: 12px 0;">No expenses recorded today.</p>' 
+                            : expenses.map(e => `
+                                <div class="expense-item">
+                                    <span style="font-weight: 700; color: #475569;">${e.description}</span>
+                                    <span style="font-weight: 800; color: #0f172a;">₹${fmt(e.amount)}</span>
+                                </div>
+                            `).join('')
+                        }
+                    </div>
+                </div>
+            </div>
+        </body>
+        </html>`;
+
+        w.document.write(html);
+        w.document.close();
+        setTimeout(() => { w.print(); }, 800);
+    };
+
+    const handleExportCSV = () => {
+        const activeOl = orderLines.find(ol => ol.id === selectedOlId);
+        const routeName = activeOl ? activeOl.name.toUpperCase() : 'UNKNOWN ROUTE';
+        const formattedDate = selectedDate.split('-').reverse().join('-');
+
+        const csvRows: string[] = [];
+
+        csvRows.push(`"NISHA OIL MILL — DAILY COLLECTION REPORT"`);
+        csvRows.push(`"Route:","${routeName}"`);
+        csvRows.push(`"Date:","${formattedDate}"`);
+        csvRows.push(``);
+
+        csvRows.push(`"SUMMARY STATISTICS"`);
+        csvRows.push(`"Billed Today","₹${fmt(filteredTotals.todaysBillAmount)}"` );
+        csvRows.push(`"Collected","₹${fmt(filteredTotals.amountCollected)}"` );
+        csvRows.push(`"Returns","₹${fmt(filteredTotals.totalReturnAmount)}"` );
+        csvRows.push(`"Upcoming Bills","₹${fmt(filteredTotals.totalFutureBills)}"` );
+        csvRows.push(`"Discounts","₹${fmt(modeBreakdown.discount)}"` );
+        csvRows.push(`"Manual Adj","₹${fmt(filteredTotals.totalManualAdjust)}"` );
+        csvRows.push(`"Pending Balance","₹${fmt(filteredTotals.todaysBillBalance)}"` );
+        csvRows.push(`"Total Shops","${filteredCollections.length}"` );
+        csvRows.push(``);
+
+        csvRows.push(`"SHOP COLLECTIONS"`);
+        csvRows.push([
+            '"#"', '"Shop Name"', '"Prev Bal (₹)"', '"Today\'s Bill (₹)"', '"Returns (₹)"', 
+            '"Collected (₹)"', '"Collected Mode Breakdown"', '"Manual Adjust (₹)"', '"Adjust Mode Breakdown"', 
+            '"Upcoming (₹)"', '"Total Bal (₹)"'
+        ].join(','));
+
+        const getModeTextCSV = (cash: number, upi: number, cheque: number, discount: number) => {
+            const list: string[] = [];
+            if (cash > 0) list.push(`Cash: ${cash}`);
+            if (upi > 0) list.push(`UPI: ${upi}`);
+            if (cheque > 0) list.push(`Cheque: ${cheque}`);
+            if (discount > 0) list.push(`Discount: ${discount}`);
+            return list.length > 0 ? list.join(' | ') : '—';
+        };
+
+        filteredCollections.forEach((row, idx) => {
+            const collected = row.cash_collected + row.upi_collected + row.cheque_collected + (row.discount_payment || 0);
+            const collectedBreakdown = getModeTextCSV(row.cash_collected, row.upi_collected, row.cheque_collected, row.discount_payment);
+            const adjustedBreakdown = getModeTextCSV(row.manual_cash, row.manual_upi, row.manual_cheque, row.discount_adjustment);
+            
+            const shopNameWithOwner = `${row.shop_name} ${row.owner_name && row.owner_name.trim() ? `(${row.owner_name.trim()})` : ''}`;
+
+            csvRows.push([
+                idx + 1,
+                `"${shopNameWithOwner.replace(/"/g, '""')}"`,
+                row.old_balance.toFixed(2),
+                row.todays_bill_amount.toFixed(2),
+                row.return_amount.toFixed(2),
+                collected.toFixed(2),
+                `"${collectedBreakdown}"`,
+                (row.manual_adjustments + (row.discount_payment || 0)).toFixed(2),
+                `"${adjustedBreakdown}"`,
+                row.future_bills.toFixed(2),
+                row.total_balance.toFixed(2)
+            ].join(','));
+        });
+
+        csvRows.push([
+            '""',
+            '"TOTAL"',
+            filteredTotals.totalOldBalance.toFixed(2),
+            filteredTotals.todaysBillAmount.toFixed(2),
+            filteredTotals.totalReturnAmount.toFixed(2),
+            filteredTotals.amountCollected.toFixed(2),
+            '""',
+            filteredTotals.totalManualAdjust.toFixed(2),
+            '""',
+            filteredTotals.totalFutureBills.toFixed(2),
+            filteredTotals.totalBalance.toFixed(2)
+        ].join(','));
+        csvRows.push(``);
+
+        csvRows.push(`"COLLECTION BREAKDOWN BY MODE"`);
+        csvRows.push(`"Mode","Amount (₹)","Share (%)"`);
+        csvRows.push(`"Cash (Net)","${modeBreakdown.netCash.toFixed(2)}","${modeBreakdown.cashPercent}%"`);
+        csvRows.push(`"UPI","${modeBreakdown.upi.toFixed(2)}","${modeBreakdown.upiPercent}%"`);
+        csvRows.push(`"Cheque","${modeBreakdown.cheque.toFixed(2)}","${modeBreakdown.chequePercent}%"`);
+        csvRows.push(`"TOTAL INCOME","${modeBreakdown.total.toFixed(2)}","100%"`);
+        csvRows.push(``);
+
+        csvRows.push(`"RECORDED EXPENSES (Total: ₹${modeBreakdown.totalExpenses.toFixed(2)})"`);
+        csvRows.push(`"Description","Amount (₹)"`);
+        if (expenses.length === 0) {
+            csvRows.push(`"No expenses recorded","0.00"`);
+        } else {
+            expenses.forEach(e => {
+                csvRows.push(`"${e.description.replace(/"/g, '""')}","${e.amount.toFixed(2)}"`);
+            });
+        }
+
+        const blob = new Blob([csvRows.join('\n')], { type: 'text/csv;charset=utf-8;' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `collection_report_${routeName.toLowerCase()}_${selectedDate}.csv`;
+        a.click();
+        URL.revokeObjectURL(url);
+        showToast('Spreadsheet exported successfully', 'success');
+    };
 
     // Expense Modal State
     const [showExpModal, setShowExpModal] = useState(false);
@@ -865,6 +1207,42 @@ const AdminCollections = ({ theme, orderLines, isAdmin: propsIsAdmin }: Props) =
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
                         </svg>
                     </button>
+
+                    {/* Download Data Dropdown */}
+                    <div className="relative group">
+                        <button
+                            className={`flex items-center gap-2 px-3 py-2.5 rounded-xl border transition-all hover:scale-105 active:scale-95 ${isDark ? 'bg-slate-800 border-white/10 text-white hover:bg-slate-700' : 'bg-white border-slate-200 text-slate-700 hover:bg-slate-50 shadow-sm'}`}
+                        >
+                            <svg className="w-5 h-5 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                            </svg>
+                            <span className="text-xs font-black uppercase tracking-widest">Download Data</span>
+                            <svg className="w-3.5 h-3.5 text-slate-400 group-hover:text-slate-600 dark:group-hover:text-white transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M19 9l-7 7-7-7" />
+                            </svg>
+                        </button>
+                        
+                        <div className={`absolute right-0 mt-2 w-48 rounded-2xl border shadow-xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 overflow-hidden
+                            ${isDark ? 'bg-slate-900 border-white/10' : 'bg-white border-slate-100'}`}
+                        >
+                            <button
+                                onClick={handleDownloadPDF}
+                                className={`w-full flex items-center gap-3 px-4 py-3 text-left text-[10px] font-black uppercase tracking-wider transition-colors
+                                    ${isDark ? 'text-slate-300 hover:bg-white/5 hover:text-white' : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'}`}
+                            >
+                                <span className="text-base">📄</span>
+                                Download PDF Report
+                            </button>
+                            <button
+                                onClick={handleExportCSV}
+                                className={`w-full flex items-center gap-3 px-4 py-3 text-left text-[10px] font-black uppercase tracking-wider transition-colors border-t
+                                    ${isDark ? 'border-white/5 text-slate-300 hover:bg-white/5 hover:text-white' : 'border-slate-50 text-slate-600 hover:bg-slate-50 hover:text-slate-900'}`}
+                            >
+                                <span className="text-base">📊</span>
+                                Export Excel / CSV
+                            </button>
+                        </div>
+                    </div>
 
                     <div className={`flex items-center p-1 rounded-xl border shadow-sm transition-colors ${isDark ? 'bg-slate-800 border-white/10 hover:border-white/20' : 'bg-white border-slate-200 hover:border-slate-300'}`}>
                         <button 
