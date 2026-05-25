@@ -233,7 +233,7 @@ const AdminCollections = ({ theme, orderLines, isAdmin: propsIsAdmin }: Props) =
 
         try {
             await handleApprove(txId);
-        } catch (err) {
+        } catch {
             // Rollback on failure
             setCollections(originalCollections);
             setPendingCount(originalPendingCount);
@@ -264,7 +264,7 @@ const AdminCollections = ({ theme, orderLines, isAdmin: propsIsAdmin }: Props) =
 
         try {
             await handleReject(txId, reason);
-        } catch (err) {
+        } catch {
             // Rollback on failure
             setCollections(originalCollections);
             setPendingCount(originalPendingCount);
@@ -760,7 +760,7 @@ const AdminCollections = ({ theme, orderLines, isAdmin: propsIsAdmin }: Props) =
             const details = await fetchShopDayDetails(shopId, selectedDate);
             setLedgerDayTxs(details.transactions || []);
             setLedgerDayReturns(details.returns || []);
-        } catch (err) {
+        } catch {
             showToast('Failed to load shop ledger details', 'error');
         } finally {
             setLoadingLedgerDetails(false);
@@ -1002,7 +1002,7 @@ const AdminCollections = ({ theme, orderLines, isAdmin: propsIsAdmin }: Props) =
         try {
             const res = await getAuthAxios().get(`/api/collections/returns?date=${selectedDate}`);
             setOverallReturns(res.data || []);
-        } catch (err) {
+        } catch {
             showToast('Failed to fetch returns data', 'error');
         } finally {
             setLoadingOverallReturns(false);
@@ -1082,7 +1082,7 @@ const AdminCollections = ({ theme, orderLines, isAdmin: propsIsAdmin }: Props) =
         if (!window.confirm('Are you sure you want to delete this expense?')) return;
         try {
             await deleteExpense(id);
-        } catch (err) {
+        } catch {
             alert('Failed to delete expense');
         }
     };
@@ -1529,7 +1529,7 @@ const AdminCollections = ({ theme, orderLines, isAdmin: propsIsAdmin }: Props) =
                                 </div>
                             ) : (
                                 filteredCollections.map((row, idx) => {
-                                    let collected = row.cash_collected + row.upi_collected + row.cheque_collected + (row.discount_payment || 0);
+                                    const collected = row.cash_collected + row.upi_collected + row.cheque_collected + (row.discount_payment || 0);
                                     return (
                                         <div key={row.id} className="p-4 space-y-2">
                                             <div className="flex items-center justify-between">
