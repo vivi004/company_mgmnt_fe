@@ -19,15 +19,18 @@ export const useStaffDashboardData = () => {
     const [profilePic, setProfilePic] = useState(() => localStorage.getItem('staffProfilePic') || "");
 
 
-    const storedUser = JSON.parse(localStorage.getItem('user') || '{}');
+    // Helper: always read fresh from localStorage to avoid stale closures
+    const getStoredUser = () => JSON.parse(localStorage.getItem('user') || '{}');
+
+    const initialUser = getStoredUser();
     const [userProfile, setUserProfile] = useState<Employee>({
-        id: storedUser.id || 0,
-        first_name: storedUser.first_name || "",
-        last_name: storedUser.last_name || "",
-        email: storedUser.email || "",
-        role: storedUser.role || "Staff",
-        status: storedUser.status || "Active",
-        accessible_orderlines: storedUser.accessible_orderlines || []
+        id: initialUser.id || 0,
+        first_name: initialUser.first_name || "",
+        last_name: initialUser.last_name || "",
+        email: initialUser.email || "",
+        role: initialUser.role || "Staff",
+        status: initialUser.status || "Active",
+        accessible_orderlines: initialUser.accessible_orderlines || []
     });
 
     const [formData, setFormData] = useState({
@@ -47,7 +50,8 @@ export const useStaffDashboardData = () => {
     useEffect(() => {
         fetchProducts();
         fetchMyProfile();
-        if (storedUser.id) {
+        const currentUser = getStoredUser();
+        if (currentUser.id) {
             checkNotifications();
         }
     }, []);
@@ -67,8 +71,10 @@ export const useStaffDashboardData = () => {
     }, [theme, activeTab]);
 
     const checkNotifications = async () => {
+        const currentUser = getStoredUser();
+        if (!currentUser.id) return;
         try {
-            const response = await api().get(`/api/requests/my-status/${storedUser.id}`);
+            const response = await api().get(`/api/requests/my-status/${currentUser.id}`);
             const approvedRequests = response.data;
 
             if (approvedRequests.length > 0) {
@@ -102,17 +108,18 @@ export const useStaffDashboardData = () => {
     };
 
     const fetchMyProfile = async () => {
-        if (!storedUser.id) return;
+        const currentUser = getStoredUser();
+        if (!currentUser.id) return;
         try {
             const response = await api().get('/api/employees');
-            const me = response.data.find((e: Employee) => e.id === storedUser.id);
+            const me = response.data.find((e: Employee) => e.id === currentUser.id);
             if (me) {
                 setUserProfile(me);
                 const backendPic = me.profile_pic || "";
                 setProfilePic(backendPic);
                 localStorage.setItem('staffProfilePic', backendPic);
                 // Sync the local storage user credentials with latest DB state to prevent stale login states
-                localStorage.setItem('user', JSON.stringify({ ...storedUser, ...me }));
+                localStorage.setItem('user', JSON.stringify({ ...currentUser, ...me }));
                 
                 setFormData({
                     first_name: me.first_name,

@@ -3,6 +3,10 @@ import { useToast } from "../../../components/Toast";
 import { getAuthAxios } from "../../../utils/apiClient";
 import type { Employee, ProfileRequest, OrderLine, OlRequest, EmployeeFormData } from "../../../types/DashboardTypes";
 
+// Module-level Set: tracks bill IDs already sealed in this session to prevent re-sealing on tab switches.
+// Resets naturally on full page refresh (server already has the sealed data by then).
+const sealedBillIds = new Set<number>();
+
 export const useAdminDashboardData = () => {
     const [employees, setEmployees] = useState<Employee[]>([]);
     const [requests, setRequests] = useState<ProfileRequest[]>([]);
@@ -108,11 +112,12 @@ export const useAdminDashboardData = () => {
             setBills(mappedBills);
 
             // Auto-seal legacy bills that have empty customRates
-            const legacyBills = mappedBills.filter((b: any) => Object.keys(b.customRates).length === 0 && Object.keys(b.cart).length > 0);
+            // Uses a session-level Set to track already-sealed IDs — prevents re-sealing on every tab switch
+            const legacyBills = mappedBills.filter((b: any) => Object.keys(b.customRates).length === 0 && Object.keys(b.cart).length > 0 && !sealedBillIds.has(b.id));
             if (legacyBills.length > 0 && activeTab === 'bills') {
-                import('../../../constants/productData').then(({ getAllProducts }) => {
+                import('../../../constants/productData').then(async ({ getAllProducts }) => {
                     const currentProducts = getAllProducts();
-                    legacyBills.forEach(async (bill: any) => {
+                    for (const bill of legacyBills) {
                         const legacyRates: Record<string, number> = {};
                         currentProducts.forEach(p => {
                             if (p.id.endsWith('_box') || p.id.endsWith('_ltr')) return;
@@ -123,10 +128,11 @@ export const useAdminDashboardData = () => {
                         });
                         try {
                             await api().put(`/api/bills/${bill.id}`, { cart: bill.cart, custom_rates: legacyRates });
+                            sealedBillIds.add(bill.id); // Mark as sealed for this session
                         } catch (e) {
                             console.error('Failed to seal legacy bill:', bill.id);
                         }
-                    });
+                    }
                 });
             }
 
