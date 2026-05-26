@@ -91,25 +91,33 @@ const ShopActionModals: React.FC<Props> = (props) => {
                                                 </div>
                                                 <div>
                                                     <p className="font-black text-sm uppercase tracking-tight">{tx.description}</p>
-                                                    <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mt-1">
-                                                        {(() => {
-                                                            const dateStr = tx.transaction_date || tx.created_at;
-                                                            if (!dateStr) return '—';
-                                                            let validIso = dateStr;
-                                                            if (typeof dateStr === 'string' && !dateStr.includes('Z') && !dateStr.includes('+')) {
-                                                                // Backend stores dates as IST strings — mark them as +05:30, NOT 'Z' (UTC)
-                                                                validIso = dateStr.includes('T') ? dateStr + '+05:30' : dateStr.replace(' ', 'T') + '+05:30';
-                                                            }
-                                                            return new Date(validIso).toLocaleString('en-IN', {
-                                                                timeZone: 'Asia/Kolkata',
-                                                                day: '2-digit',
-                                                                month: 'short',
-                                                                year: 'numeric',
-                                                                hour: '2-digit',
-                                                                minute: '2-digit',
-                                                                hour12: true
-                                                            }).toUpperCase();
-                                                        })()} • BY {tx.created_by}
+                                                    <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mt-1 flex items-center flex-wrap gap-1.5">
+                                                        <span>
+                                                            {(() => {
+                                                                const dateStr = tx.transaction_date || tx.created_at;
+                                                                if (!dateStr) return '—';
+                                                                let validIso = dateStr;
+                                                                if (typeof dateStr === 'string' && !dateStr.includes('Z') && !dateStr.includes('+')) {
+                                                                    // Backend stores dates as IST strings — mark them as +05:30, NOT 'Z' (UTC)
+                                                                    validIso = dateStr.includes('T') ? dateStr + '+05:30' : dateStr.replace(' ', 'T') + '+05:30';
+                                                                }
+                                                                return new Date(validIso).toLocaleString('en-IN', {
+                                                                    timeZone: 'Asia/Kolkata',
+                                                                    day: '2-digit',
+                                                                    month: 'short',
+                                                                    year: 'numeric',
+                                                                    hour: '2-digit',
+                                                                    minute: '2-digit',
+                                                                    hour12: true
+                                                                }).toUpperCase();
+                                                            })()}
+                                                        </span>
+                                                        <span>• BY {tx.created_by}</span>
+                                                        {tx.village_name && (
+                                                            <span className="px-1.5 py-0.5 bg-indigo-500/10 text-indigo-400 text-[8px] font-black uppercase tracking-widest rounded border border-indigo-500/10 shrink-0">
+                                                                📍 {tx.village_name}
+                                                            </span>
+                                                        )}
                                                     </p>
                                                     
                                                     {/* Status Badge */}

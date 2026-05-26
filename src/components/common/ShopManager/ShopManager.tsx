@@ -18,6 +18,7 @@ interface Shop {
     phone: string;
     phone2: string;
     balance: number;
+    parent_shop_id?: number | null;
     has_order_today?: boolean;
     last_order_time?: string;
 }
@@ -39,10 +40,11 @@ const ShopManager = ({ orderLineId, villageName, theme, onBack, type, handleRefr
     const primaryColor = isAdmin ? 'blue' : 'emerald';
 
     const [shops, setShops] = useState<Shop[]>([]);
+    const [allShops, setAllShops] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
     const [showModal, setShowModal] = useState(false);
     const [editingShop, setEditingShop] = useState<Shop | null>(null);
-    const [formData, setFormData] = useState({ shop_name: '', owner_name: '', shop_owner: '', phone: '', phone2: '', balance: '' });
+    const [formData, setFormData] = useState({ shop_name: '', owner_name: '', shop_owner: '', phone: '', phone2: '', balance: '', parent_shop_id: '' as string | number });
     const { toasts, showToast, removeToast } = useToast();
     const [shopSearch, setShopSearch] = useState('');
     const [cart, setCart] = useState<Record<string, number>>({});
@@ -217,9 +219,19 @@ const ShopManager = ({ orderLineId, villageName, theme, onBack, type, handleRefr
         }
     };
 
+    const fetchAllShopsList = async () => {
+        try {
+            const res = await api().get('/api/shops?limit=2000');
+            setAllShops(res.data);
+        } catch (err) {
+            console.error('Failed to fetch all shops:', err);
+        }
+    };
+
     const openAdd = () => {
         setEditingShop(null);
-        setFormData({ shop_name: '', owner_name: '', shop_owner: '', phone: '', phone2: '', balance: '' });
+        setFormData({ shop_name: '', owner_name: '', shop_owner: '', phone: '', phone2: '', balance: '', parent_shop_id: '' });
+        fetchAllShopsList();
         setShowModal(true);
     };
 
@@ -231,8 +243,10 @@ const ShopManager = ({ orderLineId, villageName, theme, onBack, type, handleRefr
             shop_owner: shop.shop_owner || '',
             phone: shop.phone,
             phone2: shop.phone2 || '',
-            balance: shop.balance.toString()
+            balance: shop.balance.toString(),
+            parent_shop_id: shop.parent_shop_id ? shop.parent_shop_id.toString() : ''
         });
+        fetchAllShopsList();
         setShowModal(true);
     };
 
@@ -249,6 +263,7 @@ const ShopManager = ({ orderLineId, villageName, theme, onBack, type, handleRefr
             phone: formData.phone,
             phone2: formData.phone2,
             balance: parseFloat(formData.balance) || 0,
+            parent_shop_id: formData.parent_shop_id ? parseInt(String(formData.parent_shop_id)) : null,
             created_by: (() => {
                 const storedUser = JSON.parse(localStorage.getItem('user') || '{}');
                 return storedUser.first_name ? `${storedUser.first_name} ${storedUser.last_name || ''}`.trim() : (isAdmin ? 'Admin' : 'Staff');
@@ -622,9 +637,12 @@ const ShopManager = ({ orderLineId, villageName, theme, onBack, type, handleRefr
 
                                     <div className="flex-grow min-w-0">
                                         <div className="flex items-start justify-between gap-2">
-                                            <p className={`font-black text-base sm:text-lg leading-tight break-words ${isDark ? 'text-white' : 'text-slate-900'}`}>
+                                            <p className={`font-black text-base sm:text-lg leading-tight break-words ${isDark ? 'text-white' : 'text-slate-900'} flex items-center gap-1.5`}>
                                                 {shop.shop_name}
                                                 {shops.filter(s => s.shop_name.trim().toLowerCase() === shop.shop_name.trim().toLowerCase()).length > 1 && shop.owner_name ? ` (${shop.owner_name})` : ''}
+                                                {shop.parent_shop_id && (
+                                                    <span className="text-xs text-indigo-500 font-normal shrink-0" title="Linked Shared-Balance Account">🔗</span>
+                                                )}
                                             </p>
                                             {shop.has_order_today && (
                                                 <span className="px-1.5 py-0.5 bg-emerald-500 text-white text-[8px] font-black uppercase tracking-widest rounded-md shrink-0 mt-0.5">
@@ -756,6 +774,29 @@ const ShopManager = ({ orderLineId, villageName, theme, onBack, type, handleRefr
                                     />
                                 </div>
                             ))}
+                            {isAdmin && (
+                                <div className="space-y-2">
+                                    <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-2">Link to Shop (Optional)</label>
+                                    <select
+                                        value={formData.parent_shop_id || ''}
+                                        onChange={e => setFormData({ ...formData, parent_shop_id: e.target.value || '' })}
+                                        className={`w-full rounded-2xl px-5 py-4 border text-sm font-semibold transition-all focus:outline-none focus:ring-4
+                                            ${isDark ? `bg-slate-800 border-white/10 text-white focus:ring-${primaryColor}-500/20 focus:border-${primaryColor}-500` : `bg-slate-50 border-slate-200 text-slate-900 focus:ring-${primaryColor}-600/10 focus:border-${primaryColor}-600`}`}
+                                    >
+                                        <option value="">-- No Link (Independent Shop) --</option>
+                                        {allShops
+                                            .filter(s => s.id !== editingShop?.id) // Don't let shop link to itself
+                                            .map(s => (
+                                                <option key={s.id} value={s.id}>
+                                                    {s.shop_name} ({s.village_name} - {s.area_name || s.ol_village_name})
+                                                </option>
+                                            ))}
+                                    </select>
+                                    <p className="text-[9px] font-bold text-slate-400 mt-1 uppercase tracking-wider italic">
+                                        🔗 Linking shops consolidates their balances and ledger histories across both routes.
+                                    </p>
+                                </div>
+                            )}
                             <button
                                 type="submit"
                                 disabled={submittingShop}
