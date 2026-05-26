@@ -786,11 +786,17 @@ const ShopManager = ({ orderLineId, villageName, theme, onBack, type, handleRefr
                                         <option value="">-- No Link (Independent Shop) --</option>
                                         {allShops
                                             .filter(s => s.id !== editingShop?.id) // Don't let shop link to itself
-                                            .map(s => (
-                                                <option key={s.id} value={s.id}>
-                                                    {s.shop_name} ({s.village_name} - {s.area_name || s.ol_village_name})
-                                                </option>
-                                            ))}
+                                            .map(s => {
+                                                const subArea = s.owner_name;
+                                                const labelLocation = subArea 
+                                                    ? `${s.village_name} - ${subArea}` 
+                                                    : s.village_name;
+                                                return (
+                                                    <option key={s.id} value={s.id}>
+                                                        {s.shop_name} ({labelLocation})
+                                                    </option>
+                                                );
+                                            })}
                                     </select>
                                     <p className="text-[9px] font-bold text-slate-400 mt-1 uppercase tracking-wider italic">
                                         🔗 Linking shops consolidates their balances and ledger histories across both routes.
