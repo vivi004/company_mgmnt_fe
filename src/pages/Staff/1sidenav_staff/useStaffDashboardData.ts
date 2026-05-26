@@ -76,6 +76,7 @@ export const useStaffDashboardData = () => {
                     showToast(`✅ Profile approved! ${req.first_name} ${req.last_name} — ${req.email}`, 'success');
                     api().put(`/api/requests/acknowledge/${req.id}`);
                 });
+                fetchMyProfile(); // Reload the profile immediately to update name and email in UI upon approval
             }
         } catch (err) {
             console.error("Error checking notifications:", err);
@@ -110,6 +111,9 @@ export const useStaffDashboardData = () => {
                 const backendPic = me.profile_pic || "";
                 setProfilePic(backendPic);
                 localStorage.setItem('staffProfilePic', backendPic);
+                // Sync the local storage user credentials with latest DB state to prevent stale login states
+                localStorage.setItem('user', JSON.stringify({ ...storedUser, ...me }));
+                
                 setFormData({
                     first_name: me.first_name,
                     last_name: me.last_name,
@@ -165,6 +169,15 @@ export const useStaffDashboardData = () => {
         }
     };
 
+    const handleOpenProfileModal = () => {
+        setFormData({
+            first_name: userProfile.first_name,
+            last_name: userProfile.last_name,
+            email: userProfile.email
+        });
+        setShowModal(true);
+    };
+
     const handleAddSector = async (e: React.FormEvent) => {
         e.preventDefault();
         try {
@@ -200,7 +213,7 @@ export const useStaffDashboardData = () => {
         actions: {
             setActiveTab, setShowModal, setTheme, setIsMobileMenuOpen,
             setFormData, setShowOlModal, setNewSector, removeToast,
-            handleRequestSubmit, handleAddSector, handleDeleteRequest, setUnverifiedCount,
+            handleRequestSubmit, handleOpenProfileModal, handleAddSector, handleDeleteRequest, setUnverifiedCount,
             setProfilePic: async (pic: string) => {
                 setProfilePic(pic);
                 localStorage.setItem('staffProfilePic', pic);

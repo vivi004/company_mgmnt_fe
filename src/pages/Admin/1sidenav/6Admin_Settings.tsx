@@ -435,40 +435,6 @@ const AdminSettings = ({
                         </div>
                     </Card>
                 </div>
-
-                {/* Development Tools - FOR DEVELOPMENT USE ONLY */}
-                <div className="md:col-span-2">
-                    <Card theme={theme}>
-                        <SectionHeader icon="🛠️" title="Development Tools" subtitle="Temporary Development Use" colorClass="bg-amber-600 text-amber-500 shadow-amber-500/40" theme={theme} />
-                        <div className="flex flex-col md:flex-row items-center justify-between gap-6">
-                            <div className="space-y-2 text-center md:text-left">
-                                <p className="text-xs font-black text-amber-500 uppercase tracking-widest">⚠️ Danger Zone</p>
-                                <p className="text-xs font-bold text-slate-500 italic max-w-xl">
-                                    Wipe all bills, collections, expenses, and transactions. Shop names and settings will be kept, but all financial history will be deleted. <strong>This cannot be undone.</strong>
-                                </p>
-                            </div>
-                            <button 
-                                onClick={async () => {
-                                    if (window.confirm("CRITICAL WARNING: This will DELETE all bills, collections, and financial history forever. Are you absolutely sure?")) {
-                                        if (window.confirm("FINAL CONFIRMATION: Type 'DELETE' in your mind and click OK to confirm absolute destruction of transaction data.")) {
-                                            try {
-                                                const res = await getAuthAxios().post('/api/settings/reset-database');
-                                                alert(res.data.message || "Database reset successful");
-                                                window.location.reload();
-                                            } catch (err: any) {
-                                                alert(err.response?.data?.error || "Reset failed");
-                                            }
-                                        }
-                                    }
-                                }}
-                                className="w-full md:w-auto px-10 py-5 bg-amber-600 hover:bg-amber-700 text-white font-black rounded-2xl text-xs uppercase tracking-widest shadow-lg shadow-amber-500/30 transition-all hover:-translate-y-0.5 active:scale-95 shrink-0"
-                            >
-                                Reset All Transaction Data
-                            </button>
-                        </div>
-                    </Card>
-                </div>
-
             </div>
 
         </div>

@@ -504,6 +504,10 @@ export const useAdminDashboardData = () => {
     };
 
     const handleDelete = async (id: number) => {
+        if (id === userProfile.id) {
+            showToast("You cannot delete your own account while logged in.", "error");
+            return;
+        }
         askConfirm("Are you sure you want to delete this record?", async () => {
             try {
                 await api().delete(`/api/employees/${id}`);

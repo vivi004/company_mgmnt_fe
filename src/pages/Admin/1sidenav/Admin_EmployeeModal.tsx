@@ -17,6 +17,9 @@ const AdminEmployeeModal: React.FC<AdminEmployeeModalProps> = ({
 }) => {
     const [showPassword, setShowPassword] = useState(false);
 
+    const storedUser = JSON.parse(localStorage.getItem('user') || '{}');
+    const isEditingSelf = editingEmployee !== null && editingEmployee.id === storedUser.id;
+
     useEffect(() => {
         if (open) setShowPassword(false);
     }, [open]);
@@ -53,11 +56,11 @@ const AdminEmployeeModal: React.FC<AdminEmployeeModalProps> = ({
                         </div>
                         <div className="col-span-2 space-y-3">
                             <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-4">Communication Line (Email)</label>
-                            <input required type="email" className={`w-full rounded-[25px] px-8 py-5 border transition-all font-black text-sm focus:outline-none focus:ring-4 ${theme === 'dark' ? 'bg-slate-800 border-white/10 text-white focus:ring-blue-500/20 focus:border-blue-500' : 'bg-slate-50 border-slate-100 text-slate-900 focus:ring-blue-600/10 focus:border-blue-600'}`} value={formData.email} onChange={e => setFormData({ ...formData, email: e.target.value })} />
+                            <input required type="email" autoComplete="new-email" className={`w-full rounded-[25px] px-8 py-5 border transition-all font-black text-sm focus:outline-none focus:ring-4 ${theme === 'dark' ? 'bg-slate-800 border-white/10 text-white focus:ring-blue-500/20 focus:border-blue-500' : 'bg-slate-50 border-slate-100 text-slate-900 focus:ring-blue-600/10 focus:border-blue-600'}`} value={formData.email} onChange={e => setFormData({ ...formData, email: e.target.value })} />
                         </div>
                         <div className="space-y-3">
                             <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-4">System Identity</label>
-                            <input required type="text" placeholder="username" className={`w-full rounded-[25px] px-8 py-5 border transition-all font-black text-sm focus:outline-none focus:ring-4 ${theme === 'dark' ? 'bg-slate-800 border-white/10 text-white focus:ring-blue-500/20 focus:border-blue-500' : 'bg-slate-50 border-slate-100 text-slate-900 focus:ring-blue-600/10 focus:border-blue-600'}`} value={formData.username} onChange={e => setFormData({ ...formData, username: e.target.value })} />
+                            <input required type="text" placeholder="username" autoComplete="new-username" className={`w-full rounded-[25px] px-8 py-5 border transition-all font-black text-sm focus:outline-none focus:ring-4 ${theme === 'dark' ? 'bg-slate-800 border-white/10 text-white focus:ring-blue-500/20 focus:border-blue-500' : 'bg-slate-50 border-slate-100 text-slate-900 focus:ring-blue-600/10 focus:border-blue-600'}`} value={formData.username} onChange={e => setFormData({ ...formData, username: e.target.value })} />
                         </div>
                         <div className="space-y-3">
                             <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-4">
@@ -67,6 +70,7 @@ const AdminEmployeeModal: React.FC<AdminEmployeeModalProps> = ({
                                 <input
                                     required={!editingEmployee}
                                     type={showPassword ? "text" : "password"}
+                                    autoComplete="new-password"
                                     placeholder={editingEmployee ? "Leave blank to keep current" : "Min. 6 characters"}
                                     className={`w-full rounded-[25px] px-8 py-5 pr-16 border transition-all font-black text-sm focus:outline-none focus:ring-4 ${theme === 'dark' ? 'bg-slate-800 border-white/10 text-white focus:ring-blue-500/20 focus:border-blue-500' : 'bg-slate-50 border-slate-100 text-slate-900 focus:ring-blue-600/10 focus:border-blue-600'}`}
                                     value={formData.password}
@@ -98,18 +102,23 @@ const AdminEmployeeModal: React.FC<AdminEmployeeModalProps> = ({
 
                         <div className="space-y-3">
                             <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-4">Role Matrix</label>
-                            <select className={`w-full rounded-[25px] px-8 py-5 border transition-all font-black text-sm focus:outline-none focus:ring-4 ${theme === 'dark' ? 'bg-slate-800 border-white/10 text-white focus:ring-blue-500/20 focus:border-blue-500' : 'bg-slate-50 border-slate-200 text-slate-900 focus:ring-blue-600/10 focus:border-blue-600'}`} value={formData.role} onChange={e => setFormData({ ...formData, role: e.target.value })}>
+                            <select disabled={isEditingSelf} className={`w-full rounded-[25px] px-8 py-5 border transition-all font-black text-sm focus:outline-none focus:ring-4 ${isEditingSelf ? 'opacity-65 cursor-not-allowed' : ''} ${theme === 'dark' ? 'bg-slate-800 border-white/10 text-white focus:ring-blue-500/20 focus:border-blue-500' : 'bg-slate-50 border-slate-200 text-slate-900 focus:ring-blue-600/10 focus:border-blue-600'}`} value={formData.role} onChange={e => setFormData({ ...formData, role: e.target.value })}>
                                 <option value="Staff">Node Staff</option>
                                 <option value="Admin">Core Admin</option>
                             </select>
                         </div>
                         <div className="space-y-3">
                             <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-4">Status</label>
-                            <select className={`w-full rounded-[25px] px-8 py-5 border transition-all font-black text-sm focus:outline-none focus:ring-4 ${theme === 'dark' ? 'bg-slate-800 border-white/10 text-white focus:ring-blue-500/20 focus:border-blue-500' : 'bg-slate-50 border-slate-200 text-slate-900 focus:ring-blue-600/10 focus:border-blue-600'}`} value={formData.status} onChange={e => setFormData({ ...formData, status: e.target.value })}>
+                            <select disabled={isEditingSelf} className={`w-full rounded-[25px] px-8 py-5 border transition-all font-black text-sm focus:outline-none focus:ring-4 ${isEditingSelf ? 'opacity-65 cursor-not-allowed' : ''} ${theme === 'dark' ? 'bg-slate-800 border-white/10 text-white focus:ring-blue-500/20 focus:border-blue-500' : 'bg-slate-50 border-slate-200 text-slate-900 focus:ring-blue-600/10 focus:border-blue-600'}`} value={formData.status} onChange={e => setFormData({ ...formData, status: e.target.value })}>
                                 <option value="Active">Active</option>
                                 <option value="Suspended">Offline</option>
                             </select>
                         </div>
+                        {isEditingSelf && (
+                            <div className="col-span-2 text-center text-xs font-bold text-amber-500 bg-amber-500/10 border border-amber-500/20 py-4 px-6 rounded-2xl">
+                                ℹ️ You cannot modify your own role or status while logged in.
+                            </div>
+                        )}
 
                         {formData.role === 'Staff' && (
                             <div className="col-span-2 space-y-3 mt-4">

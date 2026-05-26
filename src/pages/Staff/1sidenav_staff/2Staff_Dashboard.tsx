@@ -103,7 +103,7 @@ const StaffDashboard = () => {
                                     theme={state.theme}
                                     setTheme={actions.setTheme}
                                     userProfile={state.userProfile}
-                                    setShowModal={actions.setShowModal}
+                                    setShowModal={actions.handleOpenProfileModal}
                                     profilePic={state.profilePic}
                                     setProfilePic={actions.setProfilePic}
                                 />
