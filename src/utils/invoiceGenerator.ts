@@ -18,7 +18,77 @@ export interface Bill {
     isEditedPrice?: boolean;
 }
 
+interface InvoicePage {
+    items: any[];
+    startIndex: number;
+    isFinal: boolean;
+}
+
+const MAX_ITEMS_WITH_FOOTER = 11;
+const MAX_ITEMS_WITHOUT_FOOTER = 20;
+
+const getUpiSettings = () => {
+    const isClient = typeof window !== 'undefined';
+    return {
+        upiId1: isClient ? localStorage.getItem('upiId1') || 'nishaoilmills@ybl' : 'nishaoilmills@ybl',
+        upiName1: isClient ? localStorage.getItem('upiName1') || 'NISHA OIL MILL' : 'NISHA OIL MILL',
+        upiId2: isClient ? localStorage.getItem('upiId2') || 'nishaoilmills@okaxis' : 'nishaoilmills@okaxis',
+        upiName2: isClient ? localStorage.getItem('upiName2') || 'NISHA OIL MILL' : 'NISHA OIL MILL',
+    };
+};
+
+const paginateItems = (allItems: any[]): InvoicePage[] => {
+    const pages: InvoicePage[] = [];
+    let currentIndex = 0;
+    
+    while (currentIndex < allItems.length) {
+        const remainingCount = allItems.length - currentIndex;
+        
+        // 1. If remaining items fit on the final page, add them and complete
+        if (remainingCount <= MAX_ITEMS_WITH_FOOTER) {
+            pages.push({
+                items: allItems.slice(currentIndex),
+                startIndex: currentIndex + 1,
+                isFinal: true
+            });
+            break;
+        }
+        
+        // 2. Otherwise, create a non-final page
+        let sliceSize = MAX_ITEMS_WITHOUT_FOOTER;
+        
+        // If slicing MAX_ITEMS_WITHOUT_FOOTER would leave 0 items for the next page, split them
+        if (remainingCount - sliceSize <= 0) {
+            sliceSize = MAX_ITEMS_WITH_FOOTER;
+        } else if (remainingCount - sliceSize < 3) {
+            // Avoid leaving only 1 or 2 items on the final page
+            sliceSize = remainingCount - 5;
+        }
+        
+        pages.push({
+            items: allItems.slice(currentIndex, currentIndex + sliceSize),
+            startIndex: currentIndex + 1,
+            isFinal: false
+        });
+        currentIndex += sliceSize;
+    }
+    
+    if (pages.length === 0) {
+        pages.push({
+            items: [],
+            startIndex: 1,
+            isFinal: true
+        });
+    }
+    
+    return pages;
+};
+
 export const invoiceHTML = (bill: Bill, vehicleNo: string = '') => {
+    const upi = getUpiSettings();
+    const upiLink1 = `upi://pay?pa=${upi.upiId1}&pn=${encodeURIComponent(upi.upiName1)}&cu=INR`;
+    const upiLink2 = `upi://pay?pa=${upi.upiId2}&pn=${encodeURIComponent(upi.upiName2)}&cu=INR`;
+
     const items = getCartItems(bill.cart, bill.customRates).map(it => {
         const isLtrVariant = it.id.endsWith('_ltr');
         const sizeLower = it.size.toLowerCase();
@@ -36,6 +106,7 @@ export const invoiceHTML = (bill: Bill, vehicleNo: string = '') => {
         }
         return it;
     });
+
     const totalQty = items.reduce((a, i) => a + i.quantity, 0);
     const totalAmt = items.reduce((a, i) => a + i.price * i.quantity, 0);
 
@@ -43,8 +114,6 @@ export const invoiceHTML = (bill: Bill, vehicleNo: string = '') => {
         if (!dStr) return '';
         const d = new Date(dStr);
         if (isNaN(d.getTime())) return dStr;
-        
-        // Use local time components to avoid UTC shift issues
         const day = d.getDate();
         const m = d.getMonth() + 1;
         const y = d.getFullYear();
@@ -58,67 +127,63 @@ export const invoiceHTML = (bill: Bill, vehicleNo: string = '') => {
     const LR  = 'border-left:1px solid #000;border-right:1px solid #000;border-top:none;border-bottom:none;padding:3px 5px;vertical-align:top;';
     const LRB = 'border-left:1px solid #000;border-right:1px solid #000;border-top:none;border-bottom:1px solid #000;padding:3px 5px;vertical-align:top;';
 
-    const itemRows = items.map((it, i) => {
-        let desc = `${it.name.toUpperCase()} ${it.size.toUpperCase()}`;
-        if (it.id === 'vs-gn-500ml-box' || it.id === 'vs-gn-1l-box') {
-            desc = desc.replace(/\s*BOX$/i, '');
-        }
+    const renderSinglePage = (
+        pageItems: typeof items,
+        startIndex: number,
+        isFinal: boolean,
+        pageLabel: string,
+        pageNum: number,
+        totalPages: number
+    ) => {
+        const itemRows = pageItems.map((it, i) => {
+            const serialNo = startIndex + i;
+            let desc = `${it.name.toUpperCase()} ${it.size.toUpperCase()}`;
+            if (it.id === 'vs-gn-500ml-box' || it.id === 'vs-gn-1l-box') {
+                desc = desc.replace(/\s*BOX$/i, '');
+            }
 
-        // Renames Box sizes strictly for the Invoice layout
-        desc = desc.replace('1 BOX (50X100ML)', '100ML BOX');
-        desc = desc.replace('1 BOX (25X200ML)', '200ML BOX');
-        desc = desc.replace('1 BOX (20X500ML)', '500ML BOX');
-        desc = desc.replace('1 BOX (10X1L)', '1LTR BOX');
-        desc = desc.replace('1 BOX (5X2L)', '2LTR BOX');
-        desc = desc.replace('1 LTR (10X100ML)', '100ML');
-        desc = desc.replace('1 LTR (5X200ML)', '200ML');
-        let u = (it.unit || 'NOS').toUpperCase();
-        if (it.id === 'vs-gn-500ml-box' || it.id === 'vs-gn-1l-box' || it.id.endsWith('-box')) {
-            u = 'BOX';
-        } else if (/\b15\s*(LTR|KG|L|T|TIN)\b/i.test(desc))              u = 'TIN';
-        else if (/\b5\s*(LTR|KG|L|CAN)\b/i.test(desc))            u = 'CAN';
-        else if (/\bBOX\b/i.test(desc) || it.id.includes('_box')) u = 'BOX';
-        else if (it.id.endsWith('_ltr') && (it.size.toLowerCase() === '100 ml' || it.size.toLowerCase() === '200 ml' || it.size.toLowerCase() === '500 ml')) u = 'LTR';
-        else if (/\b(100|200|500)\s*ML\b/i.test(desc))            u = 'PCS';
-        else if (u === 'LITRE')                                    u = 'PCS';
-        return `<tr>
-            <td style="${LR}text-align:center;">${i + 1}</td>
-            <td style="${LR}font-weight:bold;">${desc}</td>
-            <td style="${LR}text-align:center;font-weight:bold;">${it.quantity} ${u}${it.weight ? `<br><span style="font-size:9px;font-weight:normal;font-style:italic;">(${it.weight})</span>` : ''}</td>
-            <td style="${LR}text-align:right;">${it.price.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</td>
-            <td style="${LR}text-align:center;">${u}</td>
-            <td style="${LR}text-align:right;font-weight:bold;">${(it.price * it.quantity).toLocaleString('en-IN', { minimumFractionDigits: 2 })}</td>
-        </tr>`;
-    }).join('');
+            desc = desc.replace('1 BOX (50X100ML)', '100ML BOX');
+            desc = desc.replace('1 BOX (25X200ML)', '200ML BOX');
+            desc = desc.replace('1 BOX (20X500ML)', '500ML BOX');
+            desc = desc.replace('1 BOX (10X1L)', '1LTR BOX');
+            desc = desc.replace('1 BOX (5X2L)', '2LTR BOX');
+            desc = desc.replace('1 LTR (10X100ML)', '100ML');
+            desc = desc.replace('1 LTR (5X200ML)', '200ML');
 
-    /*
-     * EXACT LAYOUT (from image):
-     * 6 cols: 4% | 44% | 13% | 13% | 6% | 20%
-     *
-     * HEADER:
-     *  Row1: NISHA OIL MILL (col1+2, rowspan=5) | Invoice No (col3+4) | Dated (col5+6)
-     *  Row2: (span)                              | Delivery Note       | Mode/Terms
-     *  Row3: (span)                              | Dispatch Doc No.    | Delivery Note Date
-     *  Row4: (span)                              | Dispatched through  | Destination
-     *  Row5: (span)                              | Bill of Lading      | Motor Vehicle No.
-     *  Row6: Buyer (Bill to) (col1+2)            | Terms of Delivery (col3+4+5+6, colspan=4)
-     *
-     * ITEMS → SPACER → TOTAL
-     *
-     * BOTTOM:
-     *  RowA: Amount Chargeable (col1-4) | E. & O.E (col5+6)
-     *  RowB: Declaration text (col1-6, full width)
-     *  RowC: Customer's Seal (col1+2, colspan=2) | for NISHA OIL MILL + Authorised Signatory (col3-6, colspan=4)
-     *
-     * FOOTER: outside table, centered div
-     */
+            let u = (it.unit || 'NOS').toUpperCase();
+            if (it.id === 'vs-gn-500ml-box' || it.id === 'vs-gn-1l-box' || it.id.endsWith('-box')) {
+                u = 'BOX';
+            } else if (/\b15\s*(LTR|KG|L|T|TIN)\b/i.test(desc))              u = 'TIN';
+            else if (/\b5\s*(LTR|KG|L|CAN)\b/i.test(desc))            u = 'CAN';
+            else if (/\bBOX\b/i.test(desc) || it.id.includes('_box')) u = 'BOX';
+            else if (it.id.endsWith('_ltr') && (it.size.toLowerCase() === '100 ml' || it.size.toLowerCase() === '200 ml' || it.size.toLowerCase() === '500 ml')) u = 'LTR';
+            else if (/\b(100|200|500)\s*ML\b/i.test(desc))            u = 'PCS';
+            else if (u === 'LITRE')                                    u = 'PCS';
 
-    const page = (label: string) => `
+            return `<tr>
+                <td style="${LR}text-align:center;">${serialNo}</td>
+                <td style="${LR}font-weight:bold;">${desc}</td>
+                <td style="${LR}text-align:center;font-weight:bold;">${it.quantity} ${u}${it.weight ? `<br><span style="font-size:9px;font-weight:normal;font-style:italic;">(${it.weight})</span>` : ''}</td>
+                <td style="${LR}text-align:right;">${it.price.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</td>
+                <td style="${LR}text-align:center;">${u}</td>
+                <td style="${LR}text-align:right;font-weight:bold;">${(it.price * it.quantity).toLocaleString('en-IN', { minimumFractionDigits: 2 })}</td>
+            </tr>`;
+        }).join('');
+
+        const numItems = pageItems.length;
+        const spacerHeight = isFinal 
+            ? Math.max(0, 180 - numItems * 12) 
+            : Math.max(0, 320 - numItems * 13);
+
+        const pageQty = pageItems.reduce((a, i) => a + i.quantity, 0);
+        const pageAmt = pageItems.reduce((a, i) => a + i.price * i.quantity, 0);
+
+        return `
 <div class="bp" style="font-family:Arial,sans-serif;font-size:11px;color:#000;background:#fff;padding:6mm 8mm;">
 
 <div style="position:relative;text-align:center;margin-bottom:4px;">
     <b style="font-size:14px;text-decoration:underline;">QUOTATION</b>
-    <span style="position:absolute;right:0;top:0;font-size:10px;font-style:italic;font-weight:normal;">(${label})</span>
+    <span style="position:absolute;right:0;top:0;font-size:10px;font-style:italic;font-weight:normal;">(${pageLabel})</span>
 </div>
 
 <table style="width:100%;border-collapse:collapse;table-layout:fixed;">
@@ -186,7 +251,7 @@ ${itemRows}
 
 <!-- Spacer row -->
 <tr>
-    <td style="${LRB}height:120px;"></td>
+    <td style="${LRB}height:${spacerHeight}px;"></td>
     <td style="${LRB}"></td>
     <td style="${LRB}"></td>
     <td style="${LRB}"></td>
@@ -194,7 +259,8 @@ ${itemRows}
     <td style="${LRB}"></td>
 </tr>
 
-<!-- Total -->
+<!-- Total or Subtotal -->
+${isFinal ? `
 <tr style="font-weight:bold;">
     <td style="${B}"></td>
     <td style="${B}text-align:right;font-size:14px;">Total</td>
@@ -204,7 +270,7 @@ ${itemRows}
     <td style="${B}text-align:right;font-size:20px;font-weight:bold;">&#8377; ${totalAmt.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</td>
 </tr>
 
-<!-- Amount + Declaration in ONE full-width cell; E.&O.E floated right (no internal column line) -->
+<!-- Amount + Declaration in ONE full-width cell; E.&O.E floated right -->
 <tr>
     <td colspan="6" style="${B}font-size:9px;padding:4px 5px;vertical-align:top;line-height:1.6;">
         <span style="float:right;font-size:9px;">E. &amp; O.E</span>
@@ -229,6 +295,21 @@ ${itemRows}
         <div style="margin-top:40px;font-size:10px;">Authorised Signatory</div>
     </td>
 </tr>
+` : `
+<tr style="font-weight:bold;">
+    <td style="${B}"></td>
+    <td style="${B}text-align:right;font-size:12px;">Page Subtotal</td>
+    <td style="${B}text-align:center;font-size:12px;">${pageQty}</td>
+    <td style="${B}"></td>
+    <td style="${B}"></td>
+    <td style="${B}text-align:right;font-size:12px;">&#8377; ${pageAmt.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</td>
+</tr>
+<tr>
+    <td colspan="6" style="${B}text-align:center;font-weight:bold;font-size:11px;padding:12px;background:#f9f9f9;letter-spacing:1px;">
+        *** Continued on Page ${pageNum + 1} ***
+    </td>
+</tr>
+`}
 
 </tbody>
 </table>
@@ -236,18 +317,54 @@ ${itemRows}
 <!-- Footer outside table -->
 <div style="text-align:center;font-size:9px;margin-top:6px;line-height:1.8;">
     <b>SUBJECT TO SALEM JURISDICTION</b><br>
-    This is a Computer Generated Invoice
+    <span style="font-size:10px;font-weight:bold;">Page ${pageNum} of ${totalPages}</span>
+    <div style="display: flex; justify-content: center; gap: 40px; margin-top: 8px;">
+        <div style="text-align: center;">
+            <img src="https://chart.googleapis.com/chart?cht=qr&chs=85x85&chl=${encodeURIComponent(upiLink1)}" width="85" height="85" style="display: block; margin: 0 auto 3px;" alt="Scan to Pay 1" />
+            <div style="font-size: 8px; font-weight: bold; line-height: 1.2; color: #333;">GPay/PhonePe/Paytm<br>${upi.upiId1}</div>
+        </div>
+        <div style="text-align: center;">
+            <img src="https://chart.googleapis.com/chart?cht=qr&chs=85x85&chl=${encodeURIComponent(upiLink2)}" width="85" height="85" style="display: block; margin: 0 auto 3px;" alt="Scan to Pay 2" />
+            <div style="font-size: 8px; font-weight: bold; line-height: 1.2; color: #333;">Scan & Pay<br>${upi.upiId2}</div>
+        </div>
+    </div>
 </div>
 
 </div>`;
+    };
 
-    return page('ORIGINAL FOR RECIPIENT') + page('DUPLICATE FOR SUPPLIER');
+    const invoicePages = paginateItems(items);
+
+    const generateCopyHTML = (label: string) => {
+        return invoicePages.map((pg, pageIdx) => {
+            const pageNum = pageIdx + 1;
+            const totalPages = invoicePages.length;
+            const pageLabel = `${label} - Page ${pageNum} of ${totalPages}`;
+            return renderSinglePage(pg.items, pg.startIndex, pg.isFinal, pageLabel, pageNum, totalPages);
+        }).join('');
+    };
+
+    return generateCopyHTML('ORIGINAL FOR RECIPIENT') + generateCopyHTML('DUPLICATE FOR SUPPLIER');
 };
+
+const printStyles = `
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: Arial, sans-serif; font-size: 11px; color: #000; background: #fff; }
+    @page { size: A4; margin: 8mm; }
+    table { width: 100%; border-collapse: collapse; }
+    td, th { border: none; }
+    div.bp { page-break-after: always; }
+    div.bp:last-child { page-break-after: auto; }
+    @media print {
+        body { padding: 0 !important; }
+        div.bp { padding: 2mm 0 !important; box-shadow: none !important; margin: 0 !important; }
+    }
+`;
 
 export const downloadBill = (bill: Bill, vehicleNo: string = '') => {
     const w = window.open('', '_blank');
     if (!w) return;
-    w.document.write(`<html><head><title>Invoice-${bill.shopName}</title><style>*{margin:0;padding:0;box-sizing:border-box}body{font-family:Arial,sans-serif;font-size:11px;color:#000;background:#fff}@page{size:A4;margin:8mm}table{width:100%;border-collapse:collapse}td,th{border:none}div.bp{page-break-after:always}div.bp:last-child{page-break-after:auto}</style></head><body>${invoiceHTML(bill, vehicleNo)}</body></html>`);
+    w.document.write(`<html><head><title>Invoice-${bill.shopName}</title><style>${printStyles}</style></head><body>${invoiceHTML(bill, vehicleNo)}</body></html>`);
     w.document.close();
     setTimeout(() => { w.print(); w.close(); }, 600);
 };
@@ -255,7 +372,7 @@ export const downloadBill = (bill: Bill, vehicleNo: string = '') => {
 export const previewBill = (bill: Bill, vehicleNo: string = '') => {
     const w = window.open('', '_blank');
     if (!w) return;
-    w.document.write(`<html><head><title>Preview-${bill.shopName}</title><style>*{margin:0;padding:0;box-sizing:border-box}body{font-family:Arial,sans-serif;font-size:11px;color:#000;background:#fff;padding:20px}@page{size:A4;margin:8mm}table{width:100%;border-collapse:collapse}td,th{border:none}div.bp{page-break-after:always;max-width:210mm;margin:0 auto 30px;box-shadow:0 0 10px rgba(0,0,0,0.1)}div.bp:last-child{page-break-after:auto}</style></head><body>${invoiceHTML(bill, vehicleNo)}</body></html>`);
+    w.document.write(`<html><head><title>Preview-${bill.shopName}</title><style>${printStyles} body { padding: 20px; } div.bp { max-width: 210mm; margin: 0 auto 30px; box-shadow: 0 0 10px rgba(0,0,0,0.1); }</style></head><body>${invoiceHTML(bill, vehicleNo)}</body></html>`);
     w.document.close();
 };
 
@@ -264,7 +381,7 @@ export const downloadAllFiltered = (filteredBills: Bill[], vehicleNo: string = '
     const w = window.open('', '_blank');
     if (!w) return;
     const allHTML = filteredBills.map(b => invoiceHTML(b, vehicleNo)).join('');
-    w.document.write(`<html><head><title>All Invoices</title><style>*{margin:0;padding:0;box-sizing:border-box}body{font-family:Arial,sans-serif;font-size:11px;color:#000;background:#fff}@page{size:A4;margin:8mm}table{width:100%;border-collapse:collapse}td,th{border:none}div.bp{page-break-after:always}div.bp:last-child{page-break-after:auto}</style></head><body>${allHTML}</body></html>`);
+    w.document.write(`<html><head><title>All Invoices</title><style>${printStyles}</style></head><body>${allHTML}</body></html>`);
     w.document.close();
     setTimeout(() => { w.print(); w.close(); }, 600);
 };
@@ -274,7 +391,7 @@ export const downloadStaffBillsPdf = (staffBills: Bill[], staffName: string, veh
     const w = window.open('', '_blank');
     if (!w) return;
     const allHTML = staffBills.map(b => invoiceHTML(b, vehicleNo)).join('');
-    w.document.write(`<html><head><title>${staffName} Invoices</title><style>*{margin:0;padding:0;box-sizing:border-box}body{font-family:Arial,sans-serif;font-size:11px;color:#000;background:#fff}@page{size:A4;margin:8mm}table{width:100%;border-collapse:collapse}td,th{border:none}div.bp{page-break-after:always}div.bp:last-child{page-break-after:auto}</style></head><body>${allHTML}</body></html>`);
+    w.document.write(`<html><head><title>${staffName} Invoices</title><style>${printStyles}</style></head><body>${allHTML}</body></html>`);
     w.document.close();
     setTimeout(() => { w.print(); w.close(); }, 600);
 };

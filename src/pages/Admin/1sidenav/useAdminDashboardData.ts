@@ -30,6 +30,10 @@ export const useAdminDashboardData = () => {
     const [lastInvoiceNo, setLastInvoiceNo] = useState(() => parseInt(localStorage.getItem('lastInvoiceNo') || '1000', 10));
     const [profilePic, setProfilePic] = useState(() => localStorage.getItem('adminProfilePic') || "");
     const [ledgerSheetUrl, setLedgerSheetUrl] = useState(() => localStorage.getItem('ledgerSheetUrl') || "");
+    const [upiId1, setUpiId1] = useState(() => localStorage.getItem('upiId1') || "nishaoilmills@ybl");
+    const [upiName1, setUpiName1] = useState(() => localStorage.getItem('upiName1') || "NISHA OIL MILL");
+    const [upiId2, setUpiId2] = useState(() => localStorage.getItem('upiId2') || "nishaoilmills@okaxis");
+    const [upiName2, setUpiName2] = useState(() => localStorage.getItem('upiName2') || "NISHA OIL MILL");
 
 
     const [formData, setFormData] = useState<EmployeeFormData>({
@@ -250,13 +254,27 @@ export const useAdminDashboardData = () => {
 
     const applyInvoiceSettings = (settings: any) => {
         if (!settings) return;
-        const { next_invoice_no, last_invoice_no, ledger_sheet_url, last_sheet_sync_time } = settings;
+        const { next_invoice_no, last_invoice_no, ledger_sheet_url, last_sheet_sync_time, upi_id_1, upi_name_1, upi_id_2, upi_name_2 } = settings;
         setNextInvoiceNo(next_invoice_no);
         setLastInvoiceNo(last_invoice_no);
         setLedgerSheetUrl(ledger_sheet_url || "");
         localStorage.setItem('nextInvoiceNo', String(next_invoice_no));
         localStorage.setItem('lastInvoiceNo', String(last_invoice_no));
         localStorage.setItem('ledgerSheetUrl', ledger_sheet_url || "");
+        
+        const id1 = upi_id_1 || "nishaoilmills@ybl";
+        const name1 = upi_name_1 || "NISHA OIL MILL";
+        const id2 = upi_id_2 || "nishaoilmills@okaxis";
+        const name2 = upi_name_2 || "NISHA OIL MILL";
+        
+        setUpiId1(id1);
+        setUpiName1(name1);
+        setUpiId2(id2);
+        setUpiName2(name2);
+        localStorage.setItem('upiId1', id1);
+        localStorage.setItem('upiName1', name1);
+        localStorage.setItem('upiId2', id2);
+        localStorage.setItem('upiName2', name2);
         
         if (last_sheet_sync_time) {
             setLastSynced(last_sheet_sync_time);
@@ -315,7 +333,11 @@ export const useAdminDashboardData = () => {
         localStorage.setItem('nextInvoiceNo', String(nextInvoiceNo));
         localStorage.setItem('ledgerSheetUrl', ledgerSheetUrl);
         localStorage.setItem('adminActiveTab', activeTab);
-    }, [companyName, theme, nextInvoiceNo, ledgerSheetUrl, activeTab]);
+        localStorage.setItem('upiId1', upiId1);
+        localStorage.setItem('upiName1', upiName1);
+        localStorage.setItem('upiId2', upiId2);
+        localStorage.setItem('upiName2', upiName2);
+    }, [companyName, theme, nextInvoiceNo, ledgerSheetUrl, activeTab, upiId1, upiName1, upiId2, upiName2]);
 
     useEffect(() => {
         if (activeTab === 'bills' || activeTab === 'bill-check') {
@@ -544,12 +566,34 @@ export const useAdminDashboardData = () => {
             ledgerSheetUrl,
             billSelectedDate,
             filteredBillCount,
-            motorVehicles
+            motorVehicles,
+            upiId1, upiName1, upiId2, upiName2
         },
         actions: {
             setActiveTab, setConfirmModal, setIsMobileMenuOpen, setCompanyName,
             setTheme, setFormData, setShowModal, setShowOlModal, setOlFormData,
             setOrderLines, fetchOrderLines,
+            setUpiId1, setUpiName1, setUpiId2, setUpiName2,
+            handleSaveUpiSettings: async (id1: string, name1: string, id2: string, name2: string) => {
+                setUpiId1(id1);
+                setUpiName1(name1);
+                setUpiId2(id2);
+                setUpiName2(name2);
+                localStorage.setItem('upiId1', id1);
+                localStorage.setItem('upiName1', name1);
+                localStorage.setItem('upiId2', id2);
+                localStorage.setItem('upiName2', name2);
+                try {
+                    await api().put('/api/settings/invoice', {
+                        upi_id_1: id1,
+                        upi_name_1: name1,
+                        upi_id_2: id2,
+                        upi_name_2: name2
+                    });
+                } catch (err) {
+                    console.error('Failed to save UPI settings to backend:', err);
+                }
+            },
             setNextInvoiceNo: async (val: number) => {
                 setNextInvoiceNo(val);
                 localStorage.setItem('nextInvoiceNo', String(val));

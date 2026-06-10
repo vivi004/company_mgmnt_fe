@@ -21,6 +21,11 @@ interface SettingsProps {
     handleSyncAllToLedger?: () => void;
     handleLogoutAllStaff?: () => void;
     handleRefreshInvoiceSettings?: () => Promise<void>;
+    upiId1?: string;
+    upiName1?: string;
+    upiId2?: string;
+    upiName2?: string;
+    handleSaveUpiSettings?: (id1: string, name1: string, id2: string, name2: string) => Promise<void> | void;
 }
 
 // Declare Card globally to prevent React from unmounting its DOM subtree on every state change
@@ -50,7 +55,12 @@ const AdminSettings = ({
     ledgerSheetUrl = "",
     handleSyncAllToLedger,
     handleLogoutAllStaff,
-    handleRefreshInvoiceSettings
+    handleRefreshInvoiceSettings,
+    upiId1 = "nishaoilmills@ybl",
+    upiName1 = "NISHA OIL MILL",
+    upiId2 = "nishaoilmills@okaxis",
+    upiName2 = "NISHA OIL MILL",
+    handleSaveUpiSettings
 }: SettingsProps) => {
 
     const fileInputRef = React.useRef<HTMLInputElement>(null);
@@ -67,6 +77,36 @@ const AdminSettings = ({
     // Motor Vehicles state
     const [motorVehicles, setMotorVehicles] = useState<any[]>([]);
     const [newVehicle, setNewVehicle] = useState('');
+
+    // UPI states
+    const [draftUpiId1, setDraftUpiId1] = useState(upiId1);
+    const [draftUpiName1, setDraftUpiName1] = useState(upiName1);
+    const [draftUpiId2, setDraftUpiId2] = useState(upiId2);
+    const [draftUpiName2, setDraftUpiName2] = useState(upiName2);
+    const [upiSaving, setUpiSaving] = useState(false);
+    const [upiSaved, setUpiSaved] = useState(false);
+
+    useEffect(() => {
+        setDraftUpiId1(upiId1);
+        setDraftUpiName1(upiName1);
+        setDraftUpiId2(upiId2);
+        setDraftUpiName2(upiName2);
+    }, [upiId1, upiName1, upiId2, upiName2]);
+
+    const onSaveUpi = async () => {
+        if (!handleSaveUpiSettings) return;
+        setUpiSaving(true);
+        setUpiSaved(false);
+        await handleSaveUpiSettings(
+            draftUpiId1.trim(),
+            draftUpiName1.trim(),
+            draftUpiId2.trim(),
+            draftUpiName2.trim()
+        );
+        setUpiSaving(false);
+        setUpiSaved(true);
+        setTimeout(() => setUpiSaved(false), 2500);
+    };
 
     const fetchVehicles = async () => {
         try {
@@ -370,6 +410,72 @@ const AdminSettings = ({
                                 <p className={`font-black text-xl ${theme === 'dark' ? 'text-slate-300' : 'text-slate-700'}`}>#{lastInvoiceNo}</p>
                             </div>
                         </div>
+                    </div>
+                </Card>
+
+                {/* UPI Settings */}
+                <Card theme={theme}>
+                    <SectionHeader icon="💳" title="UPI Payment Settings" subtitle="Configure Payment QR Codes" colorClass="bg-indigo-600 text-indigo-500 shadow-indigo-500/40" theme={theme} />
+                    <div className="space-y-4">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <div className="space-y-1">
+                                <label className={`text-[10px] font-black italic px-2 uppercase tracking-widest ${theme === 'dark' ? 'text-slate-400' : 'text-slate-500'}`}>UPI ID 1 (VPA)</label>
+                                <input
+                                    type="text"
+                                    placeholder="e.g. merchant@ybl"
+                                    value={draftUpiId1}
+                                    onChange={e => setDraftUpiId1(e.target.value)}
+                                    className={`w-full px-5 py-3 rounded-2xl font-bold text-sm border focus:outline-none focus:ring-2 transition-all ${theme === 'dark' ? 'bg-slate-800 border-white/10 text-white focus:border-indigo-500' : 'bg-slate-50 border-slate-200 text-slate-900 focus:border-indigo-500'}`}
+                                />
+                            </div>
+                            <div className="space-y-1">
+                                <label className={`text-[10px] font-black italic px-2 uppercase tracking-widest ${theme === 'dark' ? 'text-slate-400' : 'text-slate-500'}`}>UPI Name 1 (Payee)</label>
+                                <input
+                                    type="text"
+                                    placeholder="e.g. NISHA OIL MILL"
+                                    value={draftUpiName1}
+                                    onChange={e => setDraftUpiName1(e.target.value)}
+                                    className={`w-full px-5 py-3 rounded-2xl font-bold text-sm border focus:outline-none focus:ring-2 transition-all ${theme === 'dark' ? 'bg-slate-800 border-white/10 text-white focus:border-indigo-500' : 'bg-slate-50 border-slate-200 text-slate-900 focus:border-indigo-500'}`}
+                                />
+                            </div>
+                        </div>
+
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <div className="space-y-1">
+                                <label className={`text-[10px] font-black italic px-2 uppercase tracking-widest ${theme === 'dark' ? 'text-slate-400' : 'text-slate-500'}`}>UPI ID 2 (VPA)</label>
+                                <input
+                                    type="text"
+                                    placeholder="e.g. merchant@okaxis"
+                                    value={draftUpiId2}
+                                    onChange={e => setDraftUpiId2(e.target.value)}
+                                    className={`w-full px-5 py-3 rounded-2xl font-bold text-sm border focus:outline-none focus:ring-2 transition-all ${theme === 'dark' ? 'bg-slate-800 border-white/10 text-white focus:border-indigo-500' : 'bg-slate-50 border-slate-200 text-slate-900 focus:border-indigo-500'}`}
+                                />
+                            </div>
+                            <div className="space-y-1">
+                                <label className={`text-[10px] font-black italic px-2 uppercase tracking-widest ${theme === 'dark' ? 'text-slate-400' : 'text-slate-500'}`}>UPI Name 2 (Payee)</label>
+                                <input
+                                    type="text"
+                                    placeholder="e.g. NISHA OIL MILL"
+                                    value={draftUpiName2}
+                                    onChange={e => setDraftUpiName2(e.target.value)}
+                                    className={`w-full px-5 py-3 rounded-2xl font-bold text-sm border focus:outline-none focus:ring-2 transition-all ${theme === 'dark' ? 'bg-slate-800 border-white/10 text-white focus:border-indigo-500' : 'bg-slate-50 border-slate-200 text-slate-900 focus:border-indigo-500'}`}
+                                />
+                            </div>
+                        </div>
+
+                        <button
+                            onClick={onSaveUpi}
+                            disabled={upiSaving}
+                            className={`w-full mt-2 py-4 rounded-[20px] font-black text-xs uppercase tracking-widest transition-all shadow-lg active:scale-95
+                                ${upiSaved
+                                    ? 'bg-emerald-500 text-white shadow-emerald-500/20'
+                                    : upiSaving
+                                        ? 'opacity-50 cursor-not-allowed bg-indigo-400 text-white'
+                                        : 'bg-indigo-600 hover:bg-indigo-700 text-white shadow-indigo-500/20 hover:-translate-y-0.5'
+                                }`}
+                        >
+                            {upiSaved ? '✓ Saved UPI Settings' : upiSaving ? 'Saving…' : 'Save UPI Settings →'}
+                        </button>
                     </div>
                 </Card>
 

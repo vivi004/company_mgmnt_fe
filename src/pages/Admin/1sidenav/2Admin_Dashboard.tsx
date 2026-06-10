@@ -165,6 +165,11 @@ const AdminDashboard = () => {
                                     setProfilePic={actions.setProfilePic}
                                     ledgerSheetUrl={state.ledgerSheetUrl}
                                     handleSyncAllToLedger={actions.handleSyncAllToLedger}
+                                    upiId1={state.upiId1}
+                                    upiName1={state.upiName1}
+                                    upiId2={state.upiId2}
+                                    upiName2={state.upiName2}
+                                    handleSaveUpiSettings={actions.handleSaveUpiSettings}
                                 />
                             )}
                         </Suspense>
