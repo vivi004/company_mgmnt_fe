@@ -343,6 +343,7 @@ ${isFinal ? `
 <div style="text-align:center;font-size:9px;margin-top:6px;line-height:1.8;">
     <b>SUBJECT TO SALEM JURISDICTION</b><br>
     <span style="font-size:10px;font-weight:bold;">Page ${pageNum} of ${totalPages}</span>
+    ${isFinal ? `
     <div style="display: flex; justify-content: center; gap: 40px; margin-top: 8px;">
         <div style="text-align: center;">
             <img src="${generateQRCodeDataURL(upiLink1)}" width="85" height="85" style="display: block; margin: 0 auto 3px;" alt="Scan to Pay 1" />
@@ -353,6 +354,7 @@ ${isFinal ? `
             <div style="font-size: 8px; font-weight: bold; line-height: 1.2; color: #333;">Scan & Pay<br>${upi.upiId2}</div>
         </div>
     </div>
+    ` : ''}
 </div>
 
 </div>`;
