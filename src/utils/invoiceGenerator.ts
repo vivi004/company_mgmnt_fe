@@ -1,5 +1,6 @@
 import { getCartItems } from '../constants/productData';
 import { numberToWordsINR } from './numberToWords';
+import qrcode from 'qrcode-generator';
 
 export interface Bill {
     id: number;
@@ -35,6 +36,18 @@ const getUpiSettings = () => {
         upiId2: isClient ? localStorage.getItem('upiId2') || 'nishaoilmills@okaxis' : 'nishaoilmills@okaxis',
         upiName2: isClient ? localStorage.getItem('upiName2') || 'NISHA OIL MILL' : 'NISHA OIL MILL',
     };
+};
+
+const generateQRCodeDataURL = (text: string): string => {
+    try {
+        const qr = qrcode(0, 'M');
+        qr.addData(text);
+        qr.make();
+        return qr.createDataURL(4, 1);
+    } catch (e) {
+        console.error('Error generating QR code', e);
+        return '';
+    }
 };
 
 const paginateItems = (allItems: any[]): InvoicePage[] => {
@@ -320,11 +333,11 @@ ${isFinal ? `
     <span style="font-size:10px;font-weight:bold;">Page ${pageNum} of ${totalPages}</span>
     <div style="display: flex; justify-content: center; gap: 40px; margin-top: 8px;">
         <div style="text-align: center;">
-            <img src="https://chart.googleapis.com/chart?cht=qr&chs=85x85&chl=${encodeURIComponent(upiLink1)}" width="85" height="85" style="display: block; margin: 0 auto 3px;" alt="Scan to Pay 1" />
+            <img src="${generateQRCodeDataURL(upiLink1)}" width="85" height="85" style="display: block; margin: 0 auto 3px;" alt="Scan to Pay 1" />
             <div style="font-size: 8px; font-weight: bold; line-height: 1.2; color: #333;">GPay/PhonePe/Paytm<br>${upi.upiId1}</div>
         </div>
         <div style="text-align: center;">
-            <img src="https://chart.googleapis.com/chart?cht=qr&chs=85x85&chl=${encodeURIComponent(upiLink2)}" width="85" height="85" style="display: block; margin: 0 auto 3px;" alt="Scan to Pay 2" />
+            <img src="${generateQRCodeDataURL(upiLink2)}" width="85" height="85" style="display: block; margin: 0 auto 3px;" alt="Scan to Pay 2" />
             <div style="font-size: 8px; font-weight: bold; line-height: 1.2; color: #333;">Scan & Pay<br>${upi.upiId2}</div>
         </div>
     </div>
