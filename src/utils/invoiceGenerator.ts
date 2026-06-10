@@ -1,6 +1,6 @@
 import { getCartItems } from '../constants/productData';
 import { numberToWordsINR } from './numberToWords';
-import qrcode from 'qrcode-generator';
+import * as qrcodeModule from 'qrcode-generator';
 
 export interface Bill {
     id: number;
@@ -40,7 +40,19 @@ const getUpiSettings = () => {
 
 const generateQRCodeDataURL = (text: string): string => {
     try {
-        const qr = qrcode(0, 'M');
+        let qrFn: any = qrcodeModule;
+        if (qrFn && typeof qrFn.qrcode === 'function') {
+            qrFn = qrFn.qrcode;
+        } else if (typeof qrFn !== 'function' && qrFn && typeof qrFn.default === 'function') {
+            qrFn = qrFn.default;
+        }
+        if (typeof qrFn !== 'function' && typeof window !== 'undefined' && (window as any).qrcode) {
+            qrFn = (window as any).qrcode;
+        }
+        if (typeof qrFn !== 'function') {
+            throw new Error('qrcode function is not defined in any of the resolved formats');
+        }
+        const qr = qrFn(0, 'M');
         qr.addData(text);
         qr.make();
         return qr.createDataURL(4, 1);
