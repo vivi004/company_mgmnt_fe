@@ -155,6 +155,7 @@ const AdminDashboard = () => {
                                     backendStatus={state.backendStatus}
                                     lastSynced={state.lastSynced}
                                     isSyncing={state.isSyncing}
+                                    isSyncingLedger={state.isSyncingLedger}
                                     handleSync={actions.handleSync}
                                     handleLogoutAllStaff={actions.handleLogoutAllStaff}
                                     nextInvoiceNo={state.nextInvoiceNo}

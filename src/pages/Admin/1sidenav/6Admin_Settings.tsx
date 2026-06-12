@@ -8,6 +8,7 @@ interface SettingsProps {
     backendStatus: string;
     lastSynced: string;
     isSyncing: boolean;
+    isSyncingLedger: boolean;
     handleSync: () => void;
     setEmailForwarding?: (val: boolean) => void;
     setPushNotifications?: (val: boolean) => void;
@@ -47,7 +48,7 @@ const SectionHeader = ({ icon, title, subtitle, colorClass, theme }: { icon: str
 
 const AdminSettings = ({
     theme, setTheme,
-    lastSynced, isSyncing,
+    lastSynced, isSyncing, isSyncingLedger,
     handleSync,
     nextInvoiceNo, setNextInvoiceNo, lastInvoiceNo,
     profilePic, setProfilePic,
@@ -313,11 +314,11 @@ const AdminSettings = ({
 
                             <button
                                 onClick={handleSyncAllToLedger}
-                                disabled={isSyncing}
+                                disabled={isSyncingLedger}
                                 className={`w-full py-4 border-2 border-dashed rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all
                                     ${theme === 'dark' ? 'border-white/10 text-slate-500 hover:border-blue-500/50 hover:text-blue-400' : 'border-slate-200 text-slate-400 hover:border-blue-300 hover:text-blue-600'}`}
                             >
-                                {isSyncing ? 'Processing Sync...' : '🔄 Sync All Existing Shops to Ledger'}
+                                {isSyncingLedger ? 'Processing Sync...' : '🔄 Sync All Existing Shops to Ledger'}
                             </button>
                         </div>
                         <p className="text-[10px] font-medium text-slate-500 italic text-center px-4">

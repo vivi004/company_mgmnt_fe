@@ -26,6 +26,7 @@ export const useAdminDashboardData = () => {
     // NEW ADMINISTRATIVE SETTINGS
     const [lastSynced, setLastSynced] = useState(() => localStorage.getItem('lastSynced') || "Never");
     const [isSyncing, setIsSyncing] = useState(false);
+    const [isSyncingLedger, setIsSyncingLedger] = useState(false);
     const [nextInvoiceNo, setNextInvoiceNo] = useState(() => parseInt(localStorage.getItem('nextInvoiceNo') || '1001', 10));
     const [lastInvoiceNo, setLastInvoiceNo] = useState(() => parseInt(localStorage.getItem('lastInvoiceNo') || '1000', 10));
     const [profilePic, setProfilePic] = useState(() => localStorage.getItem('adminProfilePic') || "");
@@ -542,7 +543,7 @@ export const useAdminDashboardData = () => {
             backendStatus, confirmModal, isMobileMenuOpen, companyName, theme,
             formData, olRequests, orderLines, showOlModal, editingOl, olFormData,
             toasts, bills, unverifiedCount, totalBillsCount,
-            lastSynced, isSyncing, nextInvoiceNo,
+            lastSynced, isSyncing, isSyncingLedger, nextInvoiceNo,
             lastInvoiceNo,
             userProfile, profilePic,
             ledgerSheetUrl,
@@ -611,7 +612,7 @@ export const useAdminDashboardData = () => {
             handleEdit, handleAddNew, handleDelete,
             handleSync,
             handleSyncAllToLedger: async () => {
-                setIsSyncing(true);
+                setIsSyncingLedger(true);
                 try {
                     await api().post('/api/shops/sync-all-to-ledger');
                     showToast("All existing shops synced to ledger!", "success");
@@ -619,7 +620,7 @@ export const useAdminDashboardData = () => {
                     console.error(err);
                     showToast("Failed to sync all shops", "error");
                 } finally {
-                    setIsSyncing(false);
+                    setIsSyncingLedger(false);
                 }
             },
             handleLogoutAllStaff: async () => {
