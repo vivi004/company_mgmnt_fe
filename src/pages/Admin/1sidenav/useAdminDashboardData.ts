@@ -354,35 +354,7 @@ export const useAdminDashboardData = () => {
 
     // SETTINGS ACTIONS
     // SETTINGS ACTIONS
-    const handleManualSync = async () => {
-        setIsSyncing(true);
-        try {
-            const { syncRatesFromSheet } = await import('../../../services/googleSheetSync');
-            const result = await syncRatesFromSheet();
-            
-            if (result.success) {
-                const now = new Date().toLocaleString('en-IN', { hour12: true, timeZone: 'Asia/Kolkata' });
-                setLastSynced(now);
-                localStorage.setItem('lastSynced', now);
-                // Persist the manual synchronization timestamp to the global database settings
-                try {
-                    await api().put('/api/settings/invoice', { last_sheet_sync_time: now });
-                } catch (dbErr) {
-                    console.error('Failed to sync manual fetch timestamp to database:', dbErr);
-                }
-                showToast("Product rates merged locally to Web dashboard!", "success");
-            } else {
-                showToast(result.error || "Google Sheets Sync Failed", "error");
-            }
-        } catch (err: any) {
-            console.error(err);
-            showToast("Google Sheets Sync Failed", "error");
-        } finally {
-            setIsSyncing(false);
-        }
-    };
-
-    const handleAppSync = async () => {
+    const handleSync = async () => {
         setIsSyncing(true);
         try {
             const { syncRatesFromSheet, getSheetRates } = await import('../../../services/googleSheetSync');
@@ -390,18 +362,28 @@ export const useAdminDashboardData = () => {
             const result = await syncRatesFromSheet();
             
             if (result.success) {
+                // 2. Persist the sync timestamp
+                const now = new Date().toLocaleString('en-IN', { hour12: true, timeZone: 'Asia/Kolkata' });
+                setLastSynced(now);
+                localStorage.setItem('lastSynced', now);
+                try {
+                    await api().put('/api/settings/invoice', { last_sheet_sync_time: now });
+                } catch (dbErr) {
+                    console.error('Failed to sync fetch timestamp to database:', dbErr);
+                }
+
+                // 3. Push to server for Mobile App
                 const rates = getSheetRates();
-                // 2. Push to server for Mobile App
                 await api().post('/api/products/sync', { rates });
                 
-                showToast("Rates pushed to Mobile App successfully!", "success");
+                showToast("Data synced to Web and Mobile App successfully!", "success");
             } else {
-                showToast(result.error || "App Sync Failed", "error");
+                showToast(result.error || "Google Sheets Sync Failed", "error");
             }
         } catch (err: any) {
             console.error(err);
-            const msg = err.response?.data?.error || err.message || "App Sync Failed";
-            showToast(`Server update failed: ${msg}`, "error");
+            const msg = err.response?.data?.error || err.message || "Sync Failed";
+            showToast(`Sync failed: ${msg}`, "error");
         } finally {
             setIsSyncing(false);
         }
@@ -627,8 +609,7 @@ export const useAdminDashboardData = () => {
             handleApproveRequest, handleRejectRequest, handleApproveOl, handleRejectOl, setUnverifiedCount,
             handleDeleteOl, handleOpenOlModal, handleOlSubmit, handleSubmit,
             handleEdit, handleAddNew, handleDelete,
-            handleManualSync,
-            handleAppSync,
+            handleSync,
             handleSyncAllToLedger: async () => {
                 setIsSyncing(true);
                 try {

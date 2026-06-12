@@ -8,8 +8,7 @@ interface SettingsProps {
     backendStatus: string;
     lastSynced: string;
     isSyncing: boolean;
-    handleManualSync: () => void;
-    handleAppSync?: () => void;
+    handleSync: () => void;
     setEmailForwarding?: (val: boolean) => void;
     setPushNotifications?: (val: boolean) => void;
     nextInvoiceNo: number;
@@ -49,7 +48,7 @@ const SectionHeader = ({ icon, title, subtitle, colorClass, theme }: { icon: str
 const AdminSettings = ({
     theme, setTheme,
     lastSynced, isSyncing,
-    handleManualSync, handleAppSync,
+    handleSync,
     nextInvoiceNo, setNextInvoiceNo, lastInvoiceNo,
     profilePic, setProfilePic,
     ledgerSheetUrl = "",
@@ -286,18 +285,10 @@ const AdminSettings = ({
                                 <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Last Data Fetch</p>
                                 <p className={`font-black text-sm ${theme === 'dark' ? 'text-white' : 'text-slate-900'}`}>{lastSynced}</p>
                             </div>
-                            <div className="flex flex-col sm:flex-row md:flex-col lg:flex-row gap-2">
-                                <button onClick={handleManualSync} disabled={isSyncing}
-                                    className={`px-6 py-3 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all ${isSyncing ? 'opacity-50 cursor-not-allowed bg-slate-500 text-white' : 'bg-emerald-500 hover:bg-emerald-600 text-white shadow-lg shadow-emerald-500/20 hover:-translate-y-0.5'}`}>
-                                    {isSyncing ? 'Syncing...' : 'Sync Web'}
-                                </button>
-                                {handleAppSync && (
-                                    <button onClick={handleAppSync} disabled={isSyncing}
-                                        className={`px-6 py-3 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all ${isSyncing ? 'opacity-50 cursor-not-allowed bg-slate-500 text-white' : 'bg-blue-600 hover:bg-blue-700 text-white shadow-lg shadow-blue-500/20 hover:-translate-y-0.5'}`}>
-                                        {isSyncing ? 'Pushing...' : 'Sync App'}
-                                    </button>
-                                )}
-                            </div>
+                            <button onClick={handleSync} disabled={isSyncing}
+                                className={`px-6 py-3 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all ${isSyncing ? 'opacity-50 cursor-not-allowed bg-slate-500 text-white' : 'bg-emerald-500 hover:bg-emerald-600 text-white shadow-lg shadow-emerald-500/20 hover:-translate-y-0.5'}`}>
+                                {isSyncing ? 'Syncing...' : 'Sync Data'}
+                            </button>
                         </div>
                         <a href="https://docs.google.com/spreadsheets/d/1gSE3fMAzka_eIlIU2sFR4xC4_IxJTeHAgJkp5YQCSvM/edit" target="_blank" rel="noreferrer"
                             className="block text-center px-6 py-4 rounded-[20px] text-xs font-black uppercase tracking-widest transition-all bg-emerald-600 hover:bg-emerald-700 text-white shadow-lg shadow-emerald-600/20 hover:-translate-y-0.5 active:scale-95">
