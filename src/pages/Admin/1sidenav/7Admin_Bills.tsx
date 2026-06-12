@@ -3,7 +3,7 @@ import { useAdminBills } from './useAdminBills';
 import AdminBillsCalendar from './Admin_BillsCalendar';
 import UnifiedOrderingView from '../../../components/common/ShopManager/UnifiedOrderingView';
 import ReviewOrder from '../../../components/common/ReviewOrder/ReviewOrder';
-import { previewBill, downloadBill, downloadAllFiltered, downloadStaffBillsPdf, type Bill } from '../../../utils/invoiceGenerator';
+import { previewBill, downloadBill, downloadAllFiltered, downloadStaffBillsPdf, downloadStaffDataPdf, type Bill } from '../../../utils/invoiceGenerator';
 import { printLoadingSheet } from '../../../utils/loadingSheetGenerator';
 import { useState } from 'react';
 
@@ -232,6 +232,15 @@ const AdminBills: React.FC<Props> = ({ bills, theme, onDeleteBill, onEditBill, s
                                                 Staff PDF
                                             </button>
                                             <button
+                                                onClick={() => downloadStaffDataPdf(allStaffBills, staffName)}
+                                                className="flex-1 xs:flex-initial px-4 py-2 bg-amber-500/10 hover:bg-amber-500 text-amber-600 dark:text-amber-400 hover:text-white font-black rounded-xl text-xs uppercase tracking-widest transition-all shadow-sm flex items-center justify-center gap-2"
+                                            >
+                                                <svg className="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
+                                                </svg>
+                                                Data
+                                            </button>
+                                            <button
                                                 onClick={() => printLoadingSheet(allStaffBills, state.selectedDate || state.todayStr, selectedVehicles[staffName] || '')}
                                                 className="flex-1 xs:flex-initial px-4 py-2 bg-emerald-500/10 hover:bg-emerald-500 text-emerald-600 dark:text-emerald-400 hover:text-white font-black rounded-xl text-xs uppercase tracking-widest transition-all shadow-sm flex items-center justify-center gap-2"
                                             >
@@ -268,6 +277,12 @@ const AdminBills: React.FC<Props> = ({ bills, theme, onDeleteBill, onEditBill, s
                                                         className={`px-3 py-1.5 rounded-lg text-[9px] font-black uppercase tracking-widest border transition-all ${isDark ? 'bg-white/5 border-white/10 text-slate-400 hover:text-white' : 'bg-white border-slate-200 text-slate-500 hover:text-blue-600 shadow-sm'}`}
                                                     >
                                                         PDF
+                                                    </button>
+                                                    <button
+                                                        onClick={() => downloadStaffDataPdf(villageBills, `${staffName}_${villageName}`)}
+                                                        className={`px-3 py-1.5 rounded-lg text-[9px] font-black uppercase tracking-widest border transition-all ${isDark ? 'bg-white/5 border-white/10 text-slate-400 hover:text-white' : 'bg-white border-slate-200 text-slate-500 hover:text-amber-600 shadow-sm'}`}
+                                                    >
+                                                        Data
                                                     </button>
                                                     <button
                                                         onClick={() => printLoadingSheet(villageBills, state.selectedDate || state.todayStr, selectedVehicles[staffName] || '')}

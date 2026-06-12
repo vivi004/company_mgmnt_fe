@@ -422,3 +422,96 @@ export const downloadStaffBillsPdf = (staffBills: Bill[], staffName: string, veh
     w.document.close();
     setTimeout(() => { w.print(); w.close(); }, 600);
 };
+
+const staffDataPrintStyles = `
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: Arial, sans-serif; font-size: 12px; color: #000; background: #fff; padding: 10mm; }
+    @page { size: A4; margin: 10mm; }
+    table { width: 100%; border-collapse: collapse; }
+    div.data-page { page-break-inside: avoid; }
+    @media print {
+        body { padding: 0 !important; }
+    }
+`;
+
+export const staffDataBillHTML = (bill: Bill) => {
+    const items = getCartItems(bill.cart, bill.customRates).map(it => {
+        const isLtrVariant = it.id.endsWith('_ltr');
+        const sizeLower = it.size.toLowerCase();
+        const is100ml = sizeLower === '100 ml';
+        const is200ml = sizeLower === '200 ml';
+        const is500ml = sizeLower === '500 ml';
+        if (isLtrVariant && (is100ml || is200ml || is500ml)) {
+            const multiplier = is100ml ? 10 : is200ml ? 5 : is500ml ? 2 : 1;
+            return {
+                ...it,
+                quantity: it.quantity / multiplier,
+                price: it.price * multiplier,
+                unit: 'LTR'
+            };
+        }
+        return it;
+    });
+
+    const itemRows = items.map((it, i) => {
+        const serialNo = i + 1;
+        let desc = `${it.name.toUpperCase()} ${it.size.toUpperCase()}`;
+        if (it.id === 'vs-gn-500ml-box' || it.id === 'vs-gn-1l-box') {
+            desc = desc.replace(/\s*BOX$/i, '');
+        }
+
+        desc = desc.replace('1 BOX (50X100ML)', '100ML BOX');
+        desc = desc.replace('1 BOX (25X200ML)', '200ML BOX');
+        desc = desc.replace('1 BOX (20X500ML)', '500ML BOX');
+        desc = desc.replace('1 BOX (10X1L)', '1LTR BOX');
+        desc = desc.replace('1 BOX (5X2L)', '2LTR BOX');
+        desc = desc.replace('1 LTR (10X100ML)', '100ML');
+        desc = desc.replace('1 LTR (5X200ML)', '200ML');
+
+        let u = (it.unit || 'NOS').toUpperCase();
+        if (it.id === 'vs-gn-500ml-box' || it.id === 'vs-gn-1l-box' || it.id.endsWith('-box')) {
+            u = 'BOX';
+        } else if (/\b15\s*(LTR|KG|L|T|TIN)\b/i.test(desc)) u = 'TIN';
+        else if (/\b5\s*(LTR|KG|L|CAN)\b/i.test(desc)) u = 'CAN';
+        else if (/\bBOX\b/i.test(desc) || it.id.includes('_box')) u = 'BOX';
+        else if (it.id.endsWith('_ltr') && (it.size.toLowerCase() === '100 ml' || it.size.toLowerCase() === '200 ml' || it.size.toLowerCase() === '500 ml')) u = 'LTR';
+        else if (/\b(100|200|500)\s*ML\b/i.test(desc)) u = 'PCS';
+        else if (u === 'LITRE') u = 'PCS';
+
+        return `<tr>
+            <td style="border: 1px solid #000; padding: 6px 8px; text-align: center; font-size: 13px;">${serialNo}</td>
+            <td style="border: 1px solid #000; padding: 6px 8px; font-weight: bold; font-size: 13px;">${desc}</td>
+            <td style="border: 1px solid #000; padding: 6px 8px; text-align: center; font-weight: bold; font-size: 14px;">${it.quantity} ${u}</td>
+        </tr>`;
+    }).join('');
+
+    return `
+    <div class="data-page" style="font-family: Arial, sans-serif; padding: 10px; margin-bottom: 25px; border-bottom: 2px dashed #333; page-break-inside: avoid;">
+        <h2 style="font-size: 18px; font-weight: 900; margin-bottom: 8px; text-transform: uppercase;">
+            ${bill.shopName} <span style="font-size: 13px; font-weight: normal; color: #555;">(${bill.specificArea || bill.areaName || bill.villageName || ''})</span>
+        </h2>
+        <table style="width: 100%; border-collapse: collapse;">
+            <thead>
+                <tr style="background-color: #f2f2f2;">
+                    <th style="border: 1px solid #000; padding: 6px 8px; width: 8%; font-size: 12px; text-transform: uppercase;">Sl</th>
+                    <th style="border: 1px solid #000; padding: 6px 8px; text-align: left; font-size: 12px; text-transform: uppercase;">Product Name</th>
+                    <th style="border: 1px solid #000; padding: 6px 8px; width: 25%; font-size: 12px; text-transform: uppercase;">Qty</th>
+                </tr>
+            </thead>
+            <tbody>
+                ${itemRows}
+            </tbody>
+        </table>
+    </div>
+    `;
+};
+
+export const downloadStaffDataPdf = (staffBills: Bill[], title: string) => {
+    if (staffBills.length === 0) return;
+    const w = window.open('', '_blank');
+    if (!w) return;
+    const allHTML = staffBills.map(b => staffDataBillHTML(b)).join('');
+    w.document.write(`<html><head><title>${title} Data</title><style>${staffDataPrintStyles}</style></head><body>${allHTML}</body></html>`);
+    w.document.close();
+    setTimeout(() => { w.print(); w.close(); }, 600);
+};
