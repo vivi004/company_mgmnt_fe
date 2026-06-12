@@ -65,10 +65,10 @@ const generateQRCodeDataURL = (text: string): string => {
 const paginateItems = (allItems: any[]): InvoicePage[] => {
     const pages: InvoicePage[] = [];
     let currentIndex = 0;
-    
+
     while (currentIndex < allItems.length) {
         const remainingCount = allItems.length - currentIndex;
-        
+
         // 1. If remaining items fit on the final page, add them and complete
         if (remainingCount <= MAX_ITEMS_WITH_FOOTER) {
             pages.push({
@@ -78,10 +78,10 @@ const paginateItems = (allItems: any[]): InvoicePage[] => {
             });
             break;
         }
-        
+
         // 2. Otherwise, create a non-final page
         let sliceSize = MAX_ITEMS_WITHOUT_FOOTER;
-        
+
         // If slicing MAX_ITEMS_WITHOUT_FOOTER would leave 0 items for the next page, split them
         if (remainingCount - sliceSize <= 0) {
             sliceSize = MAX_ITEMS_WITH_FOOTER;
@@ -89,7 +89,7 @@ const paginateItems = (allItems: any[]): InvoicePage[] => {
             // Avoid leaving only 1 or 2 items on the final page
             sliceSize = remainingCount - 5;
         }
-        
+
         pages.push({
             items: allItems.slice(currentIndex, currentIndex + sliceSize),
             startIndex: currentIndex + 1,
@@ -97,7 +97,7 @@ const paginateItems = (allItems: any[]): InvoicePage[] => {
         });
         currentIndex += sliceSize;
     }
-    
+
     if (pages.length === 0) {
         pages.push({
             items: [],
@@ -105,7 +105,7 @@ const paginateItems = (allItems: any[]): InvoicePage[] => {
             isFinal: true
         });
     }
-    
+
     return pages;
 };
 
@@ -148,8 +148,8 @@ export const invoiceHTML = (bill: Bill, vehicleNo: string = '') => {
 
     const dds = formatStringDate(bill.deliveryDate || bill.date || '');
 
-    const B   = 'border:1px solid #000;padding:3px 5px;vertical-align:top;';
-    const LR  = 'border-left:1px solid #000;border-right:1px solid #000;border-top:none;border-bottom:none;padding:3px 5px;vertical-align:top;';
+    const B = 'border:1px solid #000;padding:3px 5px;vertical-align:top;';
+    const LR = 'border-left:1px solid #000;border-right:1px solid #000;border-top:none;border-bottom:none;padding:3px 5px;vertical-align:top;';
     const LRB = 'border-left:1px solid #000;border-right:1px solid #000;border-top:none;border-bottom:1px solid #000;padding:3px 5px;vertical-align:top;';
 
     const renderSinglePage = (
@@ -178,12 +178,12 @@ export const invoiceHTML = (bill: Bill, vehicleNo: string = '') => {
             let u = (it.unit || 'NOS').toUpperCase();
             if (it.id === 'vs-gn-500ml-box' || it.id === 'vs-gn-1l-box' || it.id.endsWith('-box')) {
                 u = 'BOX';
-            } else if (/\b15\s*(LTR|KG|L|T|TIN)\b/i.test(desc))              u = 'TIN';
-            else if (/\b5\s*(LTR|KG|L|CAN)\b/i.test(desc))            u = 'CAN';
+            } else if (/\b15\s*(LTR|KG|L|T|TIN)\b/i.test(desc)) u = 'TIN';
+            else if (/\b5\s*(LTR|KG|L|CAN)\b/i.test(desc)) u = 'CAN';
             else if (/\bBOX\b/i.test(desc) || it.id.includes('_box')) u = 'BOX';
             else if (it.id.endsWith('_ltr') && (it.size.toLowerCase() === '100 ml' || it.size.toLowerCase() === '200 ml' || it.size.toLowerCase() === '500 ml')) u = 'LTR';
-            else if (/\b(100|200|500)\s*ML\b/i.test(desc))            u = 'PCS';
-            else if (u === 'LITRE')                                    u = 'PCS';
+            else if (/\b(100|200|500)\s*ML\b/i.test(desc)) u = 'PCS';
+            else if (u === 'LITRE') u = 'PCS';
 
             return `<tr>
                 <td style="${LR}text-align:center;">${serialNo}</td>
@@ -196,8 +196,8 @@ export const invoiceHTML = (bill: Bill, vehicleNo: string = '') => {
         }).join('');
 
         const numItems = pageItems.length;
-        const spacerHeight = isFinal 
-            ? Math.max(0, 180 - numItems * 12) 
+        const spacerHeight = isFinal
+            ? Math.max(0, 180 - numItems * 12)
             : Math.max(0, 320 - numItems * 13);
 
         const pageQty = pageItems.reduce((a, i) => a + i.quantity, 0);
@@ -344,7 +344,7 @@ ${isFinal ? `
     <b>SUBJECT TO SALEM JURISDICTION</b><br>
     <span style="font-size:10px;font-weight:bold;">Page ${pageNum} of ${totalPages}</span>
     ${isFinal ? `
-    <div style="display: flex; justify-content: center; gap: 40px; margin-top: 8px;">
+    <div style="display: flex; justify-content: center; gap: 250px; margin-top: 8px;">
         <div style="text-align: center;">
             <img src="${generateQRCodeDataURL(upiLink1)}" width="85" height="85" style="display: block; margin: 0 auto 3px;" alt="Scan to Pay 1" />
             <div style="font-size: 8px; font-weight: bold; line-height: 1.2; color: #333;">GPay/PhonePe/Paytm<br>${upi.upiId1}</div>
