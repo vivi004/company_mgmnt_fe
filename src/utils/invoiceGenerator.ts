@@ -162,7 +162,7 @@ export const invoiceHTML = (bill: Bill, vehicleNo: string = '') => {
         pageNum: number,
         totalPages: number
     ) => {
-        const oldBalVal = bill.old_balance ?? bill.oldBalance ?? 0;
+        const oldBalVal = Number(bill.old_balance ?? bill.oldBalance ?? 0);
         const totalAmountVal = oldBalVal + totalAmt;
         const formattedOldBal = oldBalVal.toLocaleString('en-IN', { minimumFractionDigits: 2 });
         const formattedTodayBill = totalAmt.toLocaleString('en-IN', { minimumFractionDigits: 2 });
