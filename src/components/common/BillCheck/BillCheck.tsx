@@ -22,6 +22,8 @@ interface Bill {
     phone?: string;
     phone2?: string;
     isEditedPrice?: boolean;
+    old_balance?: number;
+    oldBalance?: number;
 }
 
 interface Props {
@@ -98,7 +100,9 @@ const BillCheck = ({ theme, type, userProfileName, onUnverifiedCountChange }: Pr
                 createdBy: b.created_by || b.createdBy,
                 phone: b.phone || '',
                 phone2: b.phone2 || '',
-                isEditedPrice: Boolean(b.is_edited_price || b.isEditedPrice)
+                isEditedPrice: Boolean(b.is_edited_price || b.isEditedPrice),
+                old_balance: b.old_balance ?? b.oldBalance ?? 0,
+                oldBalance: b.old_balance ?? b.oldBalance ?? 0
             }));
             setUnverifiedBills(mapped);
             if (onUnverifiedCountChange) {
