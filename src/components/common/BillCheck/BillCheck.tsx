@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { getAllProducts, getCartItems } from '../../../constants/productData';
 import { getAuthAxios } from '../../../utils/apiClient';
 import { useToast } from '../../../components/Toast';
-import { previewBill as generatePreviewPDF } from '../../../utils/invoiceGenerator';
+import { previewBill as generatePreviewPDF, downloadStaffDataPdf } from '../../../utils/invoiceGenerator';
 import { printLoadingSheet } from '../../../utils/loadingSheetGenerator';
 import UnifiedOrderingView from '../ShopManager/UnifiedOrderingView';
 import ReviewOrder from '../ReviewOrder/ReviewOrder';
@@ -365,15 +365,26 @@ const BillCheck = ({ theme, type, userProfileName, onUnverifiedCountChange }: Pr
                         {filteredUnverified.length} {isAdmin ? 'Pending' : 'In Queue'}
                     </div>
                     {filteredUnverified.length > 0 && (
-                        <button
-                            onClick={() => printLoadingSheet(filteredUnverified, getTodayLocal())}
-                            className="px-4 sm:px-6 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-black rounded-2xl text-[10px] sm:text-xs uppercase tracking-widest shadow-lg shadow-emerald-600/30 transition-all hover:-translate-y-0.5 active:scale-95 flex items-center justify-center gap-2"
-                        >
-                            <svg className="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                            </svg>
-                            Loading Sheet
-                        </button>
+                        <>
+                            <button
+                                onClick={() => downloadStaffDataPdf(filteredUnverified, 'ALL UNVERIFIED')}
+                                className="px-4 sm:px-6 py-2.5 bg-amber-600 hover:bg-amber-700 text-white font-black rounded-2xl text-[10px] sm:text-xs uppercase tracking-widest shadow-lg shadow-amber-600/30 transition-all hover:-translate-y-0.5 active:scale-95 flex items-center justify-center gap-2"
+                            >
+                                <svg className="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
+                                </svg>
+                                Data
+                            </button>
+                            <button
+                                onClick={() => printLoadingSheet(filteredUnverified, getTodayLocal())}
+                                className="px-4 sm:px-6 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-black rounded-2xl text-[10px] sm:text-xs uppercase tracking-widest shadow-lg shadow-emerald-600/30 transition-all hover:-translate-y-0.5 active:scale-95 flex items-center justify-center gap-2"
+                            >
+                                <svg className="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                                </svg>
+                                Loading Sheet
+                            </button>
+                        </>
                     )}
                     {unverifiedBills.length > 0 && (
                         <button
@@ -404,6 +415,15 @@ const BillCheck = ({ theme, type, userProfileName, onUnverifiedCountChange }: Pr
                                         {staffName}'s Bills
                                     </h3>
                                     <div className="flex items-center gap-2">
+                                        <button
+                                            onClick={() => downloadStaffDataPdf(staffBills, staffName)}
+                                            className="px-3 py-1.5 bg-amber-500/10 hover:bg-amber-500 text-amber-600 dark:text-amber-400 hover:text-white font-black rounded-xl text-[9px] uppercase tracking-widest transition-all border border-amber-500/20 flex items-center gap-1.5"
+                                        >
+                                            <svg className="w-3.5 h-3.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
+                                            </svg>
+                                            Data
+                                        </button>
                                         <button
                                             onClick={() => printLoadingSheet(staffBills, getTodayLocal())}
                                             className="px-3 py-1.5 bg-emerald-500/10 hover:bg-emerald-500 text-emerald-600 dark:text-emerald-400 hover:text-white font-black rounded-xl text-[9px] uppercase tracking-widest transition-all border border-emerald-500/20 flex items-center gap-1.5"
