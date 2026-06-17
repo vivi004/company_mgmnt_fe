@@ -335,11 +335,17 @@ const AdminCollections = ({ theme, orderLines, isAdmin: propsIsAdmin }: Props) =
         }
     };
 
-    // Dynamic filtered list based on query matching shop name or owner name
-    const filteredCollections = collections.filter(row => 
-        (row.shop_name || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
-        (row.owner_name || '').toLowerCase().includes(searchQuery.toLowerCase())
-    );
+    // Dynamic filtered list based on query matching shop name or owner name, sorted by today's bill amount > 0 first
+    const filteredCollections = collections
+        .filter(row => 
+            (row.shop_name || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
+            (row.owner_name || '').toLowerCase().includes(searchQuery.toLowerCase())
+        )
+        .sort((a, b) => {
+            const aHasBill = (a.todays_bill_amount || 0) > 0 ? 1 : 0;
+            const bHasBill = (b.todays_bill_amount || 0) > 0 ? 1 : 0;
+            return bHasBill - aHasBill;
+        });
 
     // Summing totals specifically for the filtered set to display at the bottom of the table
     const filteredTotals = filteredCollections.reduce((acc, row) => {
