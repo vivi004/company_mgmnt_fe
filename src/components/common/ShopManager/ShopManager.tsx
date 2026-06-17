@@ -276,7 +276,7 @@ const ShopManager = ({ orderLineId, villageName, theme, onBack, type, handleRefr
             // Close the modal instantly
             setShowModal(false);
 
-            if (isAdmin && editingShop) {
+            if (editingShop) {
                 // Calculate balance difference
                 const oldBalance = parseFloat(String(editingShop.balance)) || 0;
                 const newBalance = parseFloat(formData.balance) || 0;
@@ -714,7 +714,7 @@ const ShopManager = ({ orderLineId, villageName, theme, onBack, type, handleRefr
                                                         <span>Collect</span>
                                                     </button>
                                                 </div>
-                                                <div className="col-span-2 flex w-full">
+                                                <div className="col-span-1 flex w-full">
                                                     <button
                                                         onClick={(e) => { e.preventDefault(); e.stopPropagation(); fetchLedger(shop); }}
                                                         className={`w-full p-3 rounded-2xl border transition-all flex flex-col items-center justify-center gap-1.5 text-[8px] sm:text-[9px] font-black uppercase tracking-widest ${isDark ? 'bg-white/5 border-white/10 text-indigo-400 hover:bg-indigo-500/20' : 'bg-indigo-50 border-indigo-100 text-indigo-600 hover:bg-indigo-600 hover:text-white'}`}
@@ -722,6 +722,16 @@ const ShopManager = ({ orderLineId, villageName, theme, onBack, type, handleRefr
                                                     >
                                                         <svg className="w-4.5 h-4.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 17v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2m3.222.882a.5.5 0 010-.764L15.39 8.388a.5.5 0 01.44-.061l1.597.532a.5.5 0 00.54-.124l1.26-1.26a.5.5 0 00-.518-.813l-1.18.393a.5.5 0 01-.44-.061l-1.597-.532a.5.5 0 00-.54.124l-1.26 1.26a.5.5 0 00.518.813l1.18-.393z" /></svg>
                                                         <span>Ledger</span>
+                                                    </button>
+                                                </div>
+                                                <div className="col-span-1 flex w-full">
+                                                    <button
+                                                        onClick={(e) => { e.preventDefault(); e.stopPropagation(); openEdit(shop); }}
+                                                        className={`w-full p-3 rounded-2xl border transition-all flex flex-col items-center justify-center gap-1.5 text-[8px] sm:text-[9px] font-black uppercase tracking-widest ${isDark ? 'bg-white/5 border-white/10 text-blue-400 hover:bg-blue-500/20' : 'bg-blue-50 border-blue-100 text-blue-600 hover:bg-blue-600 hover:text-white'}`}
+                                                        title="Edit"
+                                                    >
+                                                        <svg className="w-4.5 h-4.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" /></svg>
+                                                        <span>Edit</span>
                                                     </button>
                                                 </div>
                                             </>
@@ -743,11 +753,11 @@ const ShopManager = ({ orderLineId, villageName, theme, onBack, type, handleRefr
                         <div className="flex items-center justify-between mb-8">
                             <div>
                                 <h3 className={`text-2xl font-black italic tracking-tight ${isDark ? 'text-white' : 'text-slate-900'}`}>
-                                    {isAdmin && editingShop ? 'Edit Shop' : 'Add New Shop'}
+                                    {editingShop ? 'Edit Shop' : 'Add New Shop'}
                                 </h3>
                                 <p className="text-xs font-black text-slate-500 uppercase tracking-widest mt-1">{villageName}</p>
                             </div>
-                            <button onClick={() => setShowModal(false)} className="text-slate-400 hover:text-red-400 transition-colors">
+                            <button onClick={() => { setShowModal(false); setEditingShop(null); }} className="text-slate-400 hover:text-red-400 transition-colors">
                                 <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M6 18L18 6M6 6l12 12" /></svg>
                             </button>
                         </div>
@@ -759,21 +769,28 @@ const ShopManager = ({ orderLineId, villageName, theme, onBack, type, handleRefr
                                 { label: 'Phone 1', key: 'phone', type: 'text', required: false, placeholder: 'e.g. 9876543210' },
                                 { label: 'Phone 2', key: 'phone2', type: 'text', required: false, placeholder: 'e.g. 9876543211' },
                                 { label: 'Balance (₹)', key: 'balance', type: 'number', required: false, placeholder: '0.00' },
-                            ].map(({ label, key, type, required, placeholder }) => (
-                                <div key={key} className="space-y-2">
-                                    <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-2">{label}</label>
-                                    <input
-                                        required={required}
-                                        type={type}
-                                        step={key === 'balance' ? '0.01' : undefined}
-                                        placeholder={placeholder}
-                                        className={`w-full rounded-2xl px-5 py-4 border text-sm font-semibold transition-all focus:outline-none focus:ring-4
-                                            ${isDark ? `bg-slate-800 border-white/10 text-white focus:ring-${primaryColor}-500/20 focus:border-${primaryColor}-500` : `bg-slate-50 border-slate-200 text-slate-900 focus:ring-${primaryColor}-600/10 focus:border-${primaryColor}-600`}`}
-                                        value={(formData as any)[key]}
-                                        onChange={e => setFormData({ ...formData, [key]: e.target.value })}
-                                    />
-                                </div>
-                            ))}
+                            ].map(({ label, key, type, required, placeholder }) => {
+                                const isBalanceField = key === 'balance';
+                                const isDisabled = isBalanceField && !!editingShop && !isAdmin;
+                                return (
+                                    <div key={key} className="space-y-2">
+                                        <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-2">{label}</label>
+                                        <input
+                                            required={required}
+                                            type={type}
+                                            disabled={isDisabled}
+                                            step={key === 'balance' ? '0.01' : undefined}
+                                            placeholder={placeholder}
+                                            className={`w-full rounded-2xl px-5 py-4 border text-sm font-semibold transition-all focus:outline-none focus:ring-4
+                                                ${isDisabled 
+                                                    ? (isDark ? 'bg-slate-800/40 text-slate-500 border-white/5 cursor-not-allowed' : 'bg-slate-100 text-slate-400 border-slate-200 cursor-not-allowed')
+                                                    : (isDark ? `bg-slate-800 border-white/10 text-white focus:ring-${primaryColor}-500/20 focus:border-${primaryColor}-500` : `bg-slate-50 border-slate-200 text-slate-900 focus:ring-${primaryColor}-600/10 focus:border-${primaryColor}-600`)}`}
+                                            value={(formData as any)[key]}
+                                            onChange={e => setFormData({ ...formData, [key]: e.target.value })}
+                                        />
+                                    </div>
+                                );
+                            })}
                             {isAdmin && (
                                 <div className="space-y-2">
                                     <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-2">Link to Shop (Optional)</label>
@@ -809,7 +826,7 @@ const ShopManager = ({ orderLineId, villageName, theme, onBack, type, handleRefr
                                 className={`w-full py-4 bg-${primaryColor}-600 hover:bg-${primaryColor}-700 text-white font-black rounded-2xl text-sm uppercase tracking-widest shadow-lg shadow-${primaryColor}-600/20 transition-all mt-4
                                     ${submittingShop ? 'opacity-50 cursor-not-allowed' : 'hover:-translate-y-0.5 active:scale-95'}`}
                             >
-                                {submittingShop ? 'Saving...' : (isAdmin && editingShop ? 'Save Changes' : 'Add Shop')}
+                                {submittingShop ? 'Saving...' : (editingShop ? 'Save Changes' : 'Add Shop')}
                             </button>
                         </form>
                     </div>
