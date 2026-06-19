@@ -353,14 +353,14 @@ ${isFinal ? `
     <span style="font-size:10px;font-weight:bold;">Page ${pageNum} of ${totalPages}</span>
     ${isFinal ? `
     <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-top: 8px; text-align: left;">
-        <div style="display: flex; justify-content: flex-start; gap: 250px;">
-            <div style="width: 85px; text-align: center;">
+        <div style="display: flex; justify-content: flex-start; gap: 180px;">
+            <div style="width: 120px; text-align: center;">
                 <img src="${generateQRCodeDataURL(upiLink1)}" width="85" height="85" style="display: block; margin: 0 auto 3px;" alt="Scan to Pay 1" />
-                <div style="font-size: 8px; font-weight: bold; line-height: 1.2; color: #333;">GPay/PhonePe/Paytm<br>${upi.upiId1}</div>
+                <div style="font-size: 11px; font-weight: bold; line-height: 1.3; color: #000;">GPay/PhonePe/Paytm<br>${upi.upiId1}</div>
             </div>
-            <div style="width: 85px; text-align: center;">
+            <div style="width: 120px; text-align: center;">
                 <img src="${generateQRCodeDataURL(upiLink2)}" width="85" height="85" style="display: block; margin: 0 auto 3px;" alt="Scan to Pay 2" />
-                <div style="font-size: 8px; font-weight: bold; line-height: 1.2; color: #333;">Scan & Pay<br>${upi.upiId2}</div>
+                <div style="font-size: 11px; font-weight: bold; line-height: 1.3; color: #000;">Scan to Pay<br>${upi.upiId2}</div>
             </div>
         </div>
         <div style="font-size: 11px; line-height: 1.6; color: #000; font-family: Arial, sans-serif; font-weight: bold;">
