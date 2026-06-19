@@ -461,8 +461,17 @@ const staffDataPrintStyles = `
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body { font-family: Arial, sans-serif; font-size: 12px; color: #000; background: #fff; padding: 10mm; }
     @page { size: A4; margin: 10mm; }
+    .data-container {
+        column-count: 2;
+        column-gap: 20px;
+    }
     table { width: 100%; border-collapse: collapse; }
-    div.data-page { page-break-inside: avoid; }
+    div.data-page {
+        width: 100%;
+        page-break-inside: avoid;
+        break-inside: avoid;
+        display: inline-block;
+    }
     @media print {
         body { padding: 0 !important; }
     }
@@ -544,7 +553,7 @@ export const downloadStaffDataPdf = (staffBills: Bill[], title: string) => {
     if (staffBills.length === 0) return;
     const w = window.open('', '_blank');
     if (!w) return;
-    const allHTML = staffBills.map(b => staffDataBillHTML(b)).join('');
+    const allHTML = `<div class="data-container">` + staffBills.map(b => staffDataBillHTML(b)).join('') + `</div>`;
     w.document.write(`<html><head><title>${title} Data</title><style>${staffDataPrintStyles}</style></head><body>${allHTML}</body></html>`);
     w.document.close();
     setTimeout(() => { w.print(); w.close(); }, 600);
