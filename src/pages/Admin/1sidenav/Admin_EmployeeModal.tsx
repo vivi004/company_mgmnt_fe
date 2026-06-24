@@ -106,6 +106,7 @@ const AdminEmployeeModal: React.FC<AdminEmployeeModalProps> = ({
                                 <option value="Staff">Staff</option>
                                 <option value="Admin">Admin</option>
                                 <option value="Player">Player</option>
+                                <option value="Viewer">Viewer</option>
                             </select>
                         </div>
                         <div className="space-y-3">

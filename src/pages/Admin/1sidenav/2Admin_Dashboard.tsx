@@ -22,6 +22,10 @@ const BillCheck = React.lazy(() => import("../../../components/common/BillCheck/
 
 const AdminDashboard = () => {
     const { state, actions } = useAdminDashboardData();
+    const userRaw = localStorage.getItem('user');
+    const isViewer = (() => {
+        try { return JSON.parse(userRaw || '{}').role?.toLowerCase() === 'viewer'; } catch { return false; }
+    })();
 
     return (
         <div className={`flex h-screen w-full font-['Outfit'] overflow-hidden ${state.theme === 'dark' ? 'bg-slate-950 text-slate-100' : 'bg-slate-50 text-slate-900'}`}>
@@ -37,6 +41,7 @@ const AdminDashboard = () => {
                     olRequestCount={state.olRequests.length}
                     billCount={state.filteredBillCount}
                     unverifiedCount={state.unverifiedCount}
+                    isViewer={isViewer}
                 />
             </div>
 
@@ -62,6 +67,7 @@ const AdminDashboard = () => {
                         billCount={state.filteredBillCount}
                         unverifiedCount={state.unverifiedCount}
                         onClose={() => actions.setIsMobileMenuOpen(false)}
+                        isViewer={isViewer}
                     />
                 </div>
             </Drawer>
@@ -100,6 +106,7 @@ const AdminDashboard = () => {
                                     handleEdit={actions.handleEdit}
                                     handleDelete={actions.handleDelete}
                                     handleAddNew={actions.handleAddNew}
+                                    isViewer={isViewer}
                                 />
                             )}
                             {state.activeTab === 'requests' && (
@@ -111,6 +118,7 @@ const AdminDashboard = () => {
                                     handleRejectRequest={actions.handleRejectRequest}
                                     handleApproveOl={actions.handleApproveOl}
                                     handleRejectOl={actions.handleRejectOl}
+                                    isViewer={isViewer}
                                 />
                             )}
                             {state.activeTab === 'order-lines' && (
@@ -122,6 +130,7 @@ const AdminDashboard = () => {
                                     handleRefreshInvoiceSettings={actions.fetchInvoiceSettings}
                                     setOrderLines={actions.setOrderLines}
                                     fetchOrderLines={actions.fetchOrderLines}
+                                    isViewer={isViewer}
                                 />
                             )}
                             {state.activeTab === 'collections' && (
@@ -129,6 +138,7 @@ const AdminDashboard = () => {
                                     theme={state.theme}
                                     orderLines={state.orderLines}
                                     isAdmin={true}
+                                    isViewer={isViewer}
                                 />
                             )}
                             {state.activeTab === 'bills' && (
@@ -140,10 +150,11 @@ const AdminDashboard = () => {
                                     selectedDate={state.billSelectedDate}
                                     setSelectedDate={actions.setBillSelectedDate}
                                     motorVehicles={state.motorVehicles}
+                                    isViewer={isViewer}
                                 />
                             )}
                             {state.activeTab === 'bill-check' && (
-                                <BillCheck theme={state.theme} type="admin" onUnverifiedCountChange={actions.setUnverifiedCount} />
+                                <BillCheck theme={state.theme} type="admin" onUnverifiedCountChange={actions.setUnverifiedCount} userRole={isViewer ? 'viewer' : 'admin'} />
                             )}
                             {state.activeTab === 'sales' && (
                                 <AdminSales theme={state.theme} />
@@ -170,6 +181,7 @@ const AdminDashboard = () => {
                                     upiId2={state.upiId2}
                                     upiName2={state.upiName2}
                                     handleSaveUpiSettings={actions.handleSaveUpiSettings}
+                                    isViewer={isViewer}
                                 />
                             )}
                         </Suspense>

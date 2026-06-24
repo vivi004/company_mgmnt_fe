@@ -26,6 +26,7 @@ interface SettingsProps {
     upiId2?: string;
     upiName2?: string;
     handleSaveUpiSettings?: (id1: string, name1: string, id2: string, name2: string) => Promise<void> | void;
+    isViewer?: boolean;
 }
 
 // Declare Card globally to prevent React from unmounting its DOM subtree on every state change
@@ -60,7 +61,8 @@ const AdminSettings = ({
     upiName1 = "NISHA OIL MILL",
     upiId2 = "nishaoilmills@okaxis",
     upiName2 = "NISHA OIL MILL",
-    handleSaveUpiSettings
+    handleSaveUpiSettings,
+    isViewer = false
 }: SettingsProps) => {
 
     const fileInputRef = React.useRef<HTMLInputElement>(null);
@@ -239,6 +241,7 @@ const AdminSettings = ({
                                 </p>
                             </div>
                             <input type="file" hidden ref={fileInputRef} accept="image/*" onChange={handleFileChange} />
+                            {!isViewer && (
                             <div className="flex flex-wrap gap-3 justify-center md:justify-start">
                                 <button onClick={() => fileInputRef.current?.click()} className="px-6 py-3 bg-indigo-600 text-white font-black rounded-xl text-[10px] uppercase tracking-widest shadow-lg shadow-indigo-600/20 hover:bg-indigo-700 transition-all hover:-translate-y-0.5">
                                     Browse
@@ -255,6 +258,7 @@ const AdminSettings = ({
                                     </button>
                                 )}
                             </div>
+                            )}
                         </div>
                     </div>
                 </Card>
@@ -286,8 +290,8 @@ const AdminSettings = ({
                                 <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Last Data Fetch</p>
                                 <p className={`font-black text-sm ${theme === 'dark' ? 'text-white' : 'text-slate-900'}`}>{lastSynced}</p>
                             </div>
-                            <button onClick={handleSync} disabled={isSyncing}
-                                className={`px-6 py-3 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all ${isSyncing ? 'opacity-50 cursor-not-allowed bg-slate-500 text-white' : 'bg-emerald-500 hover:bg-emerald-600 text-white shadow-lg shadow-emerald-500/20 hover:-translate-y-0.5'}`}>
+                            <button onClick={handleSync} disabled={isSyncing || isViewer}
+                                className={`px-6 py-3 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all ${isViewer ? 'opacity-40 cursor-not-allowed bg-slate-400 text-white' : isSyncing ? 'opacity-50 cursor-not-allowed bg-slate-500 text-white' : 'bg-emerald-500 hover:bg-emerald-600 text-white shadow-lg shadow-emerald-500/20 hover:-translate-y-0.5'}`}>
                                 {isSyncing ? 'Syncing...' : 'Sync Data'}
                             </button>
                         </div>
@@ -314,9 +318,9 @@ const AdminSettings = ({
 
                             <button
                                 onClick={handleSyncAllToLedger}
-                                disabled={isSyncingLedger}
+                                disabled={isSyncingLedger || isViewer}
                                 className={`w-full py-4 border-2 border-dashed rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all
-                                    ${theme === 'dark' ? 'border-white/10 text-slate-500 hover:border-blue-500/50 hover:text-blue-400' : 'border-slate-200 text-slate-400 hover:border-blue-300 hover:text-blue-600'}`}
+                                    ${isViewer ? 'opacity-40 cursor-not-allowed border-slate-200 text-slate-400' : theme === 'dark' ? 'border-white/10 text-slate-500 hover:border-blue-500/50 hover:text-blue-400' : 'border-slate-200 text-slate-400 hover:border-blue-300 hover:text-blue-600'}`}
                             >
                                 {isSyncingLedger ? 'Processing Sync...' : '🔄 Sync All Existing Shops to Ledger'}
                             </button>
@@ -351,10 +355,12 @@ const AdminSettings = ({
                             <input type="text" placeholder="e.g. 9876543210" value={manualPhone} onChange={e => setManualPhone(e.target.value)}
                                 className={`w-full px-5 py-3 rounded-2xl font-bold text-sm border focus:outline-none focus:ring-2 transition-all ${theme === 'dark' ? 'bg-slate-800 border-white/10 text-white focus:border-pink-500' : 'bg-slate-50 border-slate-200 text-slate-900 focus:border-pink-500'}`} />
                         </div>
+                        {!isViewer && (
                         <button onClick={handleStartManualBill}
                             className="w-full mt-2 px-6 py-4 bg-pink-600 hover:bg-pink-700 text-white font-black rounded-2xl text-xs uppercase tracking-widest transition-all shadow-lg shadow-pink-500/30 hover:-translate-y-0.5 active:scale-95">
                             Start Manual Billing
                         </button>
+                        )}
                     </div>
                 </Card>
 
@@ -371,6 +377,7 @@ const AdminSettings = ({
                                 onKeyDown={e => { if (e.key === 'Enter') handleSaveInvoiceNo(); }}
                                 className={`w-full px-6 py-4 rounded-[20px] font-black text-2xl tracking-widest border transition-all focus:outline-none focus:ring-4 ${theme === 'dark' ? 'bg-slate-800 border-white/10 text-violet-300 focus:ring-violet-500/20 focus:border-violet-500' : 'bg-slate-50 border-slate-200 text-violet-700 focus:ring-violet-600/10 focus:border-violet-600'}`}
                             />
+                            {!isViewer && (
                             <button
                                 onClick={handleSaveInvoiceNo}
                                 disabled={invoiceSaving}
@@ -384,6 +391,7 @@ const AdminSettings = ({
                             >
                                 {invoiceSaved ? '✓ Saved' : invoiceSaving ? 'Saving…' : 'Set Number →'}
                             </button>
+                            )}
                         </div>
                         <div className={`p-4 rounded-2xl border flex items-center gap-4 ${theme === 'dark' ? 'bg-slate-800/50 border-white/5' : 'bg-violet-50 border-violet-100'}`}>
                             <span className="text-2xl">🔖</span>
@@ -455,6 +463,7 @@ const AdminSettings = ({
                             </div>
                         </div>
 
+                        {!isViewer && (
                         <button
                             onClick={onSaveUpi}
                             disabled={upiSaving}
@@ -468,6 +477,7 @@ const AdminSettings = ({
                         >
                             {upiSaved ? '✓ Saved UPI Settings' : upiSaving ? 'Saving…' : 'Save UPI Settings →'}
                         </button>
+                        )}
                     </div>
                 </Card>
 
@@ -475,6 +485,7 @@ const AdminSettings = ({
                 <Card theme={theme}>
                     <SectionHeader icon="🚚" title="Motor Vehicles" subtitle="Manage Transport Fleet" colorClass="bg-amber-600 text-amber-500 shadow-amber-500/40" theme={theme} />
                     <div className="space-y-6">
+                        {!isViewer && (
                         <div className="flex flex-col sm:flex-row gap-3">
                             <input
                                 type="text"
@@ -491,6 +502,7 @@ const AdminSettings = ({
                                 Add
                             </button>
                         </div>
+                        )}
                         <div className={`rounded-2xl border overflow-hidden ${theme === 'dark' ? 'border-white/10' : 'border-slate-200'}`}>
                             {motorVehicles.length === 0 ? (
                                 <div className={`p-6 text-center text-sm font-bold ${theme === 'dark' ? 'text-slate-500' : 'text-slate-400'}`}>
@@ -501,6 +513,7 @@ const AdminSettings = ({
                                     {motorVehicles.map(v => (
                                         <li key={v.id} className={`flex items-center justify-between p-4 ${theme === 'dark' ? 'hover:bg-white/5' : 'hover:bg-slate-50'}`}>
                                             <span className={`font-black uppercase ${theme === 'dark' ? 'text-white' : 'text-slate-900'}`}>{v.vehicle_no}</span>
+                                            {!isViewer && (
                                             <button
                                                 onClick={() => handleDeleteVehicle(v.id)}
                                                 className="p-2 text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10 rounded-xl transition-all"
@@ -508,6 +521,7 @@ const AdminSettings = ({
                                             >
                                                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
                                             </button>
+                                            )}
                                         </li>
                                     ))}
                                 </ul>
@@ -524,12 +538,18 @@ const AdminSettings = ({
                             <p className="text-xs font-bold text-slate-500 italic max-w-xl text-center md:text-left">
                                 Revoke all active staff sessions across all mobile devices. This will force every staff member to log in again immediately. Use this for emergency lockouts or shift resets.
                             </p>
+                            {!isViewer ? (
                             <button 
                                 onClick={handleLogoutAllStaff}
                                 className="w-full md:w-auto px-10 py-5 bg-red-600 hover:bg-red-700 text-white font-black rounded-2xl text-xs uppercase tracking-widest shadow-lg shadow-red-500/30 transition-all hover:-translate-y-0.5 active:scale-95 shrink-0"
                             >
                                 Logout All Staff Devices
                             </button>
+                            ) : (
+                            <div className="px-6 py-4 rounded-2xl border border-amber-500/20 bg-amber-500/5 text-amber-500 font-black text-xs uppercase tracking-widest">
+                                👁 View Only — Cannot force logout
+                            </div>
+                            )}
                         </div>
                     </Card>
                 </div>

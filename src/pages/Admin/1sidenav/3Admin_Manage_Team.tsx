@@ -9,9 +9,10 @@ interface ManageTeamProps {
     handleEdit: (emp: Employee) => void;
     handleDelete: (id: number) => void;
     handleAddNew: () => void;
+    isViewer?: boolean;
 }
 
-const AdminManageTeam = ({ employees, loading, theme, billCount, handleEdit, handleDelete, handleAddNew }: ManageTeamProps) => {
+const AdminManageTeam = ({ employees, loading, theme, billCount, handleEdit, handleDelete, handleAddNew, isViewer }: ManageTeamProps) => {
     return (
         <div className="space-y-10 animate-in fade-in slide-in-from-bottom-5 duration-700">
             {/* Stats grid */}
@@ -63,17 +64,19 @@ const AdminManageTeam = ({ employees, loading, theme, billCount, handleEdit, han
                 </div>
             </div>
 
-            <div className="flex flex-col sm:flex-row justify-between items-center sm:items-end gap-6 text-center sm:text-left">
+                <div className="flex flex-col sm:flex-row justify-between items-center sm:items-end gap-6 text-center sm:text-left">
                 <div>
                     <h3 className={`text-2xl sm:text-3xl font-black tracking-tight ${theme === 'dark' ? 'text-white' : 'text-slate-900'}`}>Manage staff and admins</h3>
                     <p className="text-slate-500 font-bold mt-1 text-sm sm:text-base">Found {employees.length} active database nodes</p>
                 </div>
-                <button
-                    onClick={handleAddNew}
-                    className="w-full sm:w-auto bg-blue-600 text-white px-8 sm:px-10 py-4 sm:py-5 rounded-[20px] sm:rounded-[30px] font-black shadow-2xl shadow-blue-600/40 hover:bg-blue-700 hover:-translate-y-1 active:scale-95 transition-all text-lg sm:text-xl uppercase tracking-widest flex items-center justify-center"
-                >
-                    <span className="text-2xl sm:text-3xl mr-2 sm:mr-3">+</span> Add User
-                </button>
+                {!isViewer && (
+                    <button
+                        onClick={handleAddNew}
+                        className="w-full sm:w-auto bg-blue-600 text-white px-8 sm:px-10 py-4 sm:py-5 rounded-[20px] sm:rounded-[30px] font-black shadow-2xl shadow-blue-600/40 hover:bg-blue-700 hover:-translate-y-1 active:scale-95 transition-all text-lg sm:text-xl uppercase tracking-widest flex items-center justify-center"
+                    >
+                        <span className="text-2xl sm:text-3xl mr-2 sm:mr-3">+</span> Add User
+                    </button>
+                )}
             </div>
 
             <div className={`rounded-[28px] sm:rounded-[48px] border overflow-hidden transition-all ${theme === 'dark' ? 'bg-slate-900 border-white/5' : 'bg-white border-slate-100 shadow-2xl shadow-slate-200/30'}`}>
@@ -134,6 +137,7 @@ const AdminManageTeam = ({ employees, loading, theme, billCount, handleEdit, han
                                             </div>
                                         </td>
                                         <td className="px-10 py-8 text-right">
+                                            {!isViewer ? (
                                             <div className="flex justify-end items-center space-x-3">
                                                 <button
                                                     onClick={() => handleEdit(emp)}
@@ -151,6 +155,9 @@ const AdminManageTeam = ({ employees, loading, theme, billCount, handleEdit, han
                                                     </svg>
                                                 </button>
                                             </div>
+                                            ) : (
+                                            <span className="text-xs text-slate-400 italic font-bold">View Only</span>
+                                            )}
                                         </td>
                                     </tr>
                                 ))
@@ -185,6 +192,8 @@ const AdminManageTeam = ({ employees, loading, theme, billCount, handleEdit, han
                                         </div>
                                     </div>
                                     <div className="flex items-center gap-2 shrink-0">
+                                        {!isViewer ? (
+                                        <>
                                         <button
                                             onClick={() => handleEdit(emp)}
                                             className={`p-2.5 rounded-xl transition-all border ${theme === 'dark' ? 'bg-slate-800 border-white/10 text-slate-400 hover:text-blue-400' : 'bg-blue-50 border-blue-100 text-blue-500 hover:bg-blue-600 hover:text-white'}`}
@@ -203,6 +212,8 @@ const AdminManageTeam = ({ employees, loading, theme, billCount, handleEdit, han
                                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                                             </svg>
                                         </button>
+                                        </>
+                                        ) : null}
                                     </div>
                                 </div>
                                 <div className="flex flex-wrap items-center gap-3">

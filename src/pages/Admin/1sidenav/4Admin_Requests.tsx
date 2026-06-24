@@ -19,9 +19,10 @@ interface AdminRequestsProps {
     handleRejectRequest: (id: number) => void;
     handleApproveOl: (id: number) => void;
     handleRejectOl: (id: number) => void;
+    isViewer?: boolean;
 }
 
-const AdminRequests = ({ requests, olRequests, theme, handleApproveRequest, handleRejectRequest, handleApproveOl, handleRejectOl }: AdminRequestsProps) => {
+const AdminRequests = ({ requests, olRequests, theme, handleApproveRequest, handleRejectRequest, handleApproveOl, handleRejectOl, isViewer }: AdminRequestsProps) => {
     return (
         <div className="space-y-12 animate-in fade-in slide-in-from-right-5 duration-700">
             <div>
@@ -62,6 +63,7 @@ const AdminRequests = ({ requests, olRequests, theme, handleApproveRequest, hand
                                         </div>
                                     </div>
                                 </div>
+                                {!isViewer && (
                                 <div className="flex space-x-3">
                                     <button
                                         onClick={() => handleApproveRequest(req.id)}
@@ -76,6 +78,7 @@ const AdminRequests = ({ requests, olRequests, theme, handleApproveRequest, hand
                                         Reject
                                     </button>
                                 </div>
+                                )}
                             </div>
                         ))}
                     </div>
@@ -103,6 +106,7 @@ const AdminRequests = ({ requests, olRequests, theme, handleApproveRequest, hand
                                         <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mt-1">Requester: EMP-{req.employee_id} {req.requester_name}</p>
                                     </div>
                                 </div>
+                                {!isViewer && (
                                 <div className="flex space-x-3">
                                     <button
                                         onClick={() => handleApproveOl(req.id)}
@@ -117,6 +121,7 @@ const AdminRequests = ({ requests, olRequests, theme, handleApproveRequest, hand
                                         Dismiss
                                     </button>
                                 </div>
+                                )}
                             </div>
                         ))}
                     </div>

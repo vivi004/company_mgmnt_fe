@@ -96,6 +96,7 @@ const StaffDashboard = () => {
                                     type={state.userProfile.role?.toLowerCase() === 'player' ? 'admin' : 'staff'}
                                     userProfileName={state.userProfile.first_name ? `${state.userProfile.first_name} ${state.userProfile.last_name || ''}`.trim() : 'Staff'}
                                     onUnverifiedCountChange={actions.setUnverifiedCount}
+                                    userRole={state.userProfile.role}
                                 />
                             )}
                             {state.activeTab === 'settings' && (

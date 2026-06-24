@@ -12,6 +12,7 @@ interface Props {
     theme: string;
     orderLines: OrderLine[];
     isAdmin?: boolean;
+    isViewer?: boolean;
 }
 
 const fmt = (n: number) => n.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
@@ -21,6 +22,7 @@ interface CollectionRowProps {
     idx: number;
     isDark: boolean;
     isAdmin: boolean;
+    isViewer?: boolean;
     setSelectedShop: (shop: any) => void;
     setShowPaymentModal: (show: boolean) => void;
     setShowAdjustModal: (show: boolean) => void;
@@ -35,6 +37,7 @@ const CollectionRow = React.memo(({
     idx,
     isDark,
     isAdmin,
+    isViewer = false,
     setSelectedShop,
     setShowPaymentModal,
     setShowAdjustModal,
@@ -66,6 +69,7 @@ const CollectionRow = React.memo(({
                             </span>
                         )}
                     </div>
+                    {!isViewer && (
                     <div className="flex items-center gap-2 mt-1.5 opacity-0 group-hover:opacity-100 transition-opacity">
                         <button 
                             onClick={() => { setSelectedShop(actionShop); setShowPaymentModal(true); }}
@@ -92,6 +96,7 @@ const CollectionRow = React.memo(({
                             Ledger 👁
                         </button>
                     </div>
+                    )}
                 </div>
             </td>
             <td className={`px-5 py-3.5 text-right font-bold ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>₹{fmt(row.old_balance)}</td>
@@ -153,7 +158,7 @@ const CollectionRow = React.memo(({
 });
 CollectionRow.displayName = 'CollectionRow';
 
-const AdminCollections = ({ theme, orderLines, isAdmin: propsIsAdmin }: Props) => {
+const AdminCollections = ({ theme, orderLines, isAdmin: propsIsAdmin, isViewer = false }: Props) => {
     const isDark = theme === 'dark';
     const {
         selectedDate, setSelectedDate,
@@ -1501,6 +1506,7 @@ const AdminCollections = ({ theme, orderLines, isAdmin: propsIsAdmin }: Props) =
                                                 idx={idx}
                                                 isDark={isDark}
                                                 isAdmin={isAdmin}
+                                                isViewer={isViewer}
                                                 setSelectedShop={setSelectedShop}
                                                 setShowPaymentModal={setShowPaymentModal}
                                                 setShowAdjustModal={setShowAdjustModal}
@@ -1547,6 +1553,7 @@ const AdminCollections = ({ theme, orderLines, isAdmin: propsIsAdmin }: Props) =
                                                         </span>
                                                     )}
                                                 </span>
+                                                {!isViewer && (
                                                 <div className="flex items-center gap-2">
                                                     <button 
                                                         onClick={() => {
@@ -1586,6 +1593,7 @@ const AdminCollections = ({ theme, orderLines, isAdmin: propsIsAdmin }: Props) =
                                                         👁
                                                     </button>
                                                 </div>
+                                                )}
                                             </div>
                                             <div className="grid grid-cols-2 gap-2 text-[11px]">
                                                 <div><span className="text-slate-400">Prev Bal:</span> <span className="font-bold">₹{fmt(row.old_balance)}</span></div>

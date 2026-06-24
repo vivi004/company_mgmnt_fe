@@ -18,9 +18,10 @@ interface OrderLineProps {
     handleRefreshInvoiceSettings?: () => Promise<void>;
     setOrderLines?: React.Dispatch<React.SetStateAction<OrderLine[]>>;
     fetchOrderLines?: () => Promise<void>;
+    isViewer?: boolean;
 }
 
-const AdminOrderLines = ({ orderLines, theme, handleOpenOlModal, handleDeleteOl, handleRefreshInvoiceSettings, setOrderLines, fetchOrderLines }: OrderLineProps) => {
+const AdminOrderLines = ({ orderLines, theme, handleOpenOlModal, handleDeleteOl, handleRefreshInvoiceSettings, setOrderLines, fetchOrderLines, isViewer }: OrderLineProps) => {
     const [selectedVillage, setSelectedVillage] = useState<OrderLine | null>(null);
 
     // If a village is selected, show its shop list
@@ -47,12 +48,14 @@ const AdminOrderLines = ({ orderLines, theme, handleOpenOlModal, handleDeleteOl,
                     <p className="text-slate-500 font-bold mt-1 uppercase text-xs tracking-[0.2em]">Click a village to view its shops</p>
                 </div>
 
+                {!isViewer && (
                 <button
                     onClick={() => handleOpenOlModal()}
                     className="px-8 py-3 bg-blue-600 text-white font-black rounded-2xl text-[10px] uppercase tracking-[0.3em] shadow-lg shadow-blue-600/20 hover:bg-blue-700 hover:-translate-y-0.5 active:scale-95 transition-all w-full sm:w-auto"
                 >
                     + New Shop Lines
                 </button>
+                )}
             </div>
 
             {/* Village Sector Cards */}
@@ -103,6 +106,7 @@ const AdminOrderLines = ({ orderLines, theme, handleOpenOlModal, handleDeleteOl,
                                 </svg>
                             </div>
 
+                            {!isViewer && (
                             <div className="flex justify-end items-center mt-4 sm:mt-6 pt-4 sm:pt-6 border-t border-slate-100/5">
                                 <div className="flex items-center gap-2 sm:gap-3">
                                     <button
@@ -127,6 +131,7 @@ const AdminOrderLines = ({ orderLines, theme, handleOpenOlModal, handleDeleteOl,
                                     </button>
                                 </div>
                             </div>
+                            )}
                         </div>
                     ))}
                 </div>

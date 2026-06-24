@@ -12,9 +12,10 @@ interface AdminSidenavProps {
     billCount: number;
     unverifiedCount: number;
     onClose?: () => void;
+    isViewer?: boolean;
 }
 
-const AdminSidenav = ({ activeTab, setActiveTab, companyName, requestCount, olRequestCount, billCount, unverifiedCount, onClose }: AdminSidenavProps) => {
+const AdminSidenav = ({ activeTab, setActiveTab, companyName, requestCount, olRequestCount, billCount, unverifiedCount, onClose, isViewer }: AdminSidenavProps) => {
     return (
         <aside className="w-72 bg-slate-900 text-white flex flex-col h-full shadow-2xl z-20 transition-all border-r border-white/5 relative">
             <div className="p-8 pb-6 flex items-start justify-between">
@@ -24,7 +25,7 @@ const AdminSidenav = ({ activeTab, setActiveTab, companyName, requestCount, olRe
                     </div>
                     <div>
                         <h1 className="text-2xl font-black tracking-tight leading-none">{companyName}</h1>
-                        <p className="text-[10px] text-blue-400 font-bold uppercase tracking-widest mt-1">Enterprise Admin</p>
+                        <p className="text-[10px] text-blue-400 font-bold uppercase tracking-widest mt-1">{isViewer ? 'View Only Access' : 'Enterprise Admin'}</p>
                     </div>
                 </div>
                 {onClose && (
@@ -176,6 +177,15 @@ const AdminSidenav = ({ activeTab, setActiveTab, companyName, requestCount, olRe
             </nav>
 
             <div className="p-6 border-t border-white/5 space-y-4">
+                {isViewer && (
+                    <div className="bg-amber-500/10 border border-amber-500/20 rounded-2xl px-4 py-3 flex items-center gap-3">
+                        <span className="text-lg">👁</span>
+                        <div>
+                            <p className="text-amber-400 font-black text-xs uppercase tracking-widest">View Only</p>
+                            <p className="text-amber-500/70 text-[10px] font-bold mt-0.5">Read-only access. No edits allowed.</p>
+                        </div>
+                    </div>
+                )}
                 <div className="bg-slate-800/50 rounded-2xl p-4 border border-white/5">
                     <p className="text-[10px] font-black uppercase text-slate-500 tracking-[0.2em] mb-2">Connected Base</p>
                     <div className="flex items-center space-x-2 text-green-400 font-bold text-sm">

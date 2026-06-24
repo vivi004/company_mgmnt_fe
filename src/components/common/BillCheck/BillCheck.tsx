@@ -31,9 +31,10 @@ interface Props {
     type: 'admin' | 'staff';
     userProfileName?: string; // Required for staff type
     onUnverifiedCountChange?: (count: number) => void;
+    userRole?: string;
 }
 
-const BillCheck = ({ theme, type, userProfileName, onUnverifiedCountChange }: Props) => {
+const BillCheck = ({ theme, type, userProfileName, onUnverifiedCountChange, userRole }: Props) => {
     const isDark = theme === 'dark';
     const isAdmin = type === 'admin';
     const [unverifiedBills, setUnverifiedBills] = useState<Bill[]>([]);
@@ -384,7 +385,7 @@ const BillCheck = ({ theme, type, userProfileName, onUnverifiedCountChange }: Pr
                                 Data
                             </button>
                             <button
-                                onClick={() => printLoadingSheet(filteredUnverified, getTodayLocal())}
+                                onClick={() => printLoadingSheet(filteredUnverified, getTodayLocal(), '', userRole?.toLowerCase() === 'player')}
                                 className="px-4 sm:px-6 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-black rounded-2xl text-[10px] sm:text-xs uppercase tracking-widest shadow-lg shadow-emerald-600/30 transition-all hover:-translate-y-0.5 active:scale-95 flex items-center justify-center gap-2"
                             >
                                 <svg className="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -394,7 +395,7 @@ const BillCheck = ({ theme, type, userProfileName, onUnverifiedCountChange }: Pr
                             </button>
                         </>
                     )}
-                    {unverifiedBills.length > 0 && (
+                    {unverifiedBills.length > 0 && userRole?.toLowerCase() !== 'player' && (
                         <button
                             onClick={() => handleVerifyBatch(unverifiedBills, 'ALL STAFF')}
                             className="px-4 sm:px-6 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-black rounded-2xl text-[10px] sm:text-xs uppercase tracking-widest shadow-lg shadow-emerald-600/30 transition-all hover:-translate-y-0.5 active:scale-95"
@@ -433,7 +434,7 @@ const BillCheck = ({ theme, type, userProfileName, onUnverifiedCountChange }: Pr
                                             Data
                                         </button>
                                         <button
-                                            onClick={() => printLoadingSheet(staffBills, getTodayLocal())}
+                                            onClick={() => printLoadingSheet(staffBills, getTodayLocal(), '', userRole?.toLowerCase() === 'player')}
                                             className="px-3 py-1.5 bg-emerald-500/10 hover:bg-emerald-500 text-emerald-600 dark:text-emerald-400 hover:text-white font-black rounded-xl text-[9px] uppercase tracking-widest transition-all border border-emerald-500/20 flex items-center gap-1.5"
                                         >
                                             <svg className="w-3.5 h-3.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -441,145 +442,153 @@ const BillCheck = ({ theme, type, userProfileName, onUnverifiedCountChange }: Pr
                                             </svg>
                                             Loading Sheet
                                         </button>
-                                        <button
-                                            onClick={() => handleRejectBatch(staffBills, staffName)}
-                                            className="px-3 py-1.5 bg-red-500/10 hover:bg-red-500 text-red-500 hover:text-white font-black rounded-xl text-[9px] uppercase tracking-widest transition-all border border-red-500/20"
-                                        >
-                                            Reject All
-                                        </button>
-                                        <button
-                                            onClick={() => handleVerifyBatch(staffBills, staffName)}
-                                            className="px-3 py-1.5 bg-emerald-500/10 hover:bg-emerald-500 text-emerald-600 dark:text-emerald-400 hover:text-white font-black rounded-xl text-[9px] uppercase tracking-widest transition-all border border-emerald-500/20"
-                                        >
-                                            Verify All
-                                        </button>
+                                        {userRole?.toLowerCase() !== 'player' && (
+                                            <>
+                                                <button
+                                                    onClick={() => handleRejectBatch(staffBills, staffName)}
+                                                    className="px-3 py-1.5 bg-red-500/10 hover:bg-red-500 text-red-500 hover:text-white font-black rounded-xl text-[9px] uppercase tracking-widest transition-all border border-red-500/20"
+                                                >
+                                                    Reject All
+                                                </button>
+                                                <button
+                                                    onClick={() => handleVerifyBatch(staffBills, staffName)}
+                                                    className="px-3 py-1.5 bg-emerald-500/10 hover:bg-emerald-500 text-emerald-600 dark:text-emerald-400 hover:text-white font-black rounded-xl text-[9px] uppercase tracking-widest transition-all border border-emerald-500/20"
+                                                >
+                                                    Verify All
+                                                </button>
+                                            </>
+                                        )}
                                     </div>
                                     <div className="h-px flex-grow bg-slate-200 dark:bg-white/10" />
                                 </div>
                             )}
                             <div className="grid grid-cols-1 gap-4">
-                                {staffBills.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()).map(bill => (
-                                    <div key={bill.id}
-                                        className={`p-4 sm:p-6 rounded-[20px] sm:rounded-[30px] border transition-all 
-                                         ${isAdmin
-                                                ? (isDark ? 'bg-slate-900 border-white/5' : 'bg-white border-slate-100 shadow-lg shadow-slate-200/50')
-                                                : (isDark ? 'bg-slate-900 border-amber-500/20 shadow-lg shadow-amber-500/5' : 'bg-amber-50/50 border-amber-200 shadow-xl shadow-amber-500/10')
-                                            }`}>
+                                {staffBills.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()).map(bill => {
+                                    const isPlayer = userRole?.toLowerCase() === 'player';
+                                    return (
+                                        <div key={bill.id}
+                                            className={`border transition-all 
+                                             ${isPlayer ? 'p-3 sm:p-4 rounded-[20px]' : 'p-4 sm:p-6 rounded-[20px] sm:rounded-[30px]'}
+                                             ${isAdmin
+                                                    ? (isDark ? 'bg-slate-900 border-white/5' : 'bg-white border-slate-100 shadow-lg shadow-slate-200/50')
+                                                    : (isDark ? 'bg-slate-900 border-amber-500/20 shadow-lg shadow-amber-500/5' : 'bg-amber-50/50 border-amber-200 shadow-xl shadow-amber-500/10')
+                                                }`}>
 
-                                        {/* Shop Name + Invoice */}
-                                        <div className="flex flex-wrap items-center gap-2 sm:gap-3 mb-2">
-                                            <p className={`font-black tracking-tight text-base sm:text-lg ${isDark ? 'text-white' : 'text-slate-900'}`}>
-                                                {bill.shopName}
-                                            </p>
-                                            <span className={`px-2 sm:px-2.5 py-0.5 sm:py-1 rounded-lg text-[9px] sm:text-[10px] font-black uppercase tracking-widest border ${isDark ? 'bg-slate-800 border-white/10 text-slate-300' : 'bg-white border-slate-200 text-slate-600'}`}>
-                                                INV-{bill.invoiceNo}
-                                            </span>
-                                            {bill.isEditedPrice && (
-                                                <span className="text-[8px] font-black uppercase tracking-widest text-red-500 bg-red-500/10 px-1.5 py-0.5 rounded border border-red-500/20">Edited Price</span>
+                                            {/* Shop Name + Invoice */}
+                                            <div className="flex flex-wrap items-center gap-2 sm:gap-3 mb-2">
+                                                <p className={`font-black tracking-tight text-base sm:text-lg ${isDark ? 'text-white' : 'text-slate-900'}`}>
+                                                    {bill.shopName} {bill.createdBy && <span className="text-xs font-normal text-slate-500 normal-case ml-1">({bill.createdBy})</span>}
+                                                </p>
+                                                <span className={`px-2 sm:px-2.5 py-0.5 sm:py-1 rounded-lg text-[9px] sm:text-[10px] font-black uppercase tracking-widest border ${isDark ? 'bg-slate-800 border-white/10 text-slate-300' : 'bg-white border-slate-200 text-slate-600'}`}>
+                                                    INV-{bill.invoiceNo}
+                                                </span>
+                                                {bill.isEditedPrice && (
+                                                    <span className="text-[8px] font-black uppercase tracking-widest text-red-500 bg-red-500/10 px-1.5 py-0.5 rounded border border-red-500/20">Edited Price</span>
+                                                )}
+                                            </div>
+                                            <p className="text-[10px] sm:text-xs font-bold text-slate-500 uppercase tracking-widest">{bill.villageName}</p>
+
+                                            {!isPlayer && (
+                                                <>
+                                                    {/* Status / Created By / Delivery Date */}
+                                                    {!isPlayer && (
+                                                        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mt-4 bg-slate-50 rounded-2xl p-4 border border-slate-100">
+                                                            <div className="hidden sm:block">
+                                                                <p className="text-[9px] sm:text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 mb-0.5">Created By</p>
+                                                                <p className={`text-sm font-semibold truncate ${isDark ? 'text-slate-300' : 'text-slate-600'}`}>
+                                                                    {isAdmin ? (bill.createdBy || 'Unknown') : 'AWAITING VERIFICATION'}
+                                                                </p>
+                                                            </div>
+                                                            <div>
+                                                                <p className="text-[9px] sm:text-[10px] font-black uppercase tracking-[0.2em] text-blue-500 mb-0.5">Delivery Date</p>
+                                                                <p className={`text-sm font-black ${isDark ? 'text-slate-200' : 'text-slate-800'}`}>
+                                                                    {new Date(bill.deliveryDate || bill.date).toLocaleDateString('en-IN', {
+                                                                        day: '2-digit', month: 'short', year: 'numeric',
+                                                                        timeZone: 'Asia/Kolkata'
+                                                                    })}
+                                                                </p>
+                                                            </div>
+                                                        </div>
+                                                    )}
+
+                                                    {/* Financials Row */}
+                                                    {!isPlayer && (
+                                                        <div className="flex items-center justify-between mt-4 gap-4">
+                                                            <div>
+                                                                <p className="text-[9px] sm:text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 mb-0.5">Total Items</p>
+                                                                <p className={`text-lg font-black ${isDark ? 'text-white' : 'text-slate-900'}`}>
+                                                                    {getItemCount(bill.cart)}
+                                                                </p>
+                                                            </div>
+                                                            <div className="text-right">
+                                                                <p className="text-[9px] sm:text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 mb-0.5">Total Value</p>
+                                                                <p className={`text-xl font-black italic tracking-tighter ${isDark ? 'text-white' : 'text-slate-900'}`}>
+                                                                    ₹{getTotal(bill.cart, bill.customRates).toLocaleString('en-IN', { minimumFractionDigits: 2 })}
+                                                                </p>
+                                                            </div>
+                                                        </div>
+                                                    )}
+                                                </>
                                             )}
-                                        </div>
-                                        <p className="text-[10px] sm:text-xs font-bold text-slate-500 uppercase tracking-widest">{bill.villageName}</p>
 
-                                        {/* Status / Created By / Delivery Date */}
-                                        <div className="mt-3 flex flex-wrap gap-x-8 gap-y-3">
-                                            <div>
-                                                <p className={`text-[9px] sm:text-[10px] font-black uppercase tracking-[0.2em] mb-0.5 ${isAdmin ? 'text-slate-400' : 'text-amber-500'}`}>
-                                                    {isAdmin ? 'Generated By' : 'Status'}
-                                                </p>
-                                                <p className={`text-sm font-black italic tracking-tighter ${isAdmin ? (isDark ? 'text-blue-400' : 'text-blue-600') : (isDark ? 'text-amber-400' : 'text-amber-600')}`}>
-                                                    {isAdmin ? (bill.createdBy || 'Unknown') : 'AWAITING VERIFICATION'}
-                                                </p>
-                                            </div>
-                                            <div>
-                                                <p className="text-[9px] sm:text-[10px] font-black uppercase tracking-[0.2em] text-blue-500 mb-0.5">Delivery Date</p>
-                                                <p className={`text-sm font-black ${isDark ? 'text-slate-200' : 'text-slate-800'}`}>
-                                                    {new Date(bill.deliveryDate || bill.date).toLocaleDateString('en-IN', {
-                                                        day: '2-digit', month: 'short', year: 'numeric',
-                                                        timeZone: 'Asia/Kolkata'
-                                                    })}
-                                                </p>
-                                            </div>
-                                            <div className="hidden sm:block">
-                                                <p className="text-[9px] sm:text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 mb-0.5">Order Time</p>
-                                                <p className="text-sm font-semibold text-slate-500">
-                                                    {new Date(bill.date).toLocaleString('en-IN', {
-                                                        day: '2-digit', month: 'short', year: 'numeric',
-                                                        hour: '2-digit', minute: '2-digit',
-                                                        timeZone: 'Asia/Kolkata'
-                                                    })}
-                                                </p>
+                                            {/* Action Buttons */}
+                                            <div className={`flex flex-wrap items-center justify-end gap-2 sm:gap-3
+                                                 ${isPlayer ? 'mt-2' : `mt-4 sm:mt-6 pt-4 sm:pt-6 border-t border-dashed ${isAdmin ? (isDark ? 'border-white/10' : 'border-slate-200') : (isDark ? 'border-white/10' : 'border-amber-200')}`}`}>
+                                                <button
+                                                    onClick={() => {
+                                                        const billDateStr = bill.deliveryDate || bill.date;
+                                                        const datePart = billDateStr.includes('T') ? billDateStr.split('T')[0] : billDateStr.split(' ')[0];
+                                                        printLoadingSheet([bill], datePart, '', userRole?.toLowerCase() === 'player');
+                                                    }}
+                                                    className={`p-2 sm:p-2.5 rounded-xl transition-all border shrink-0
+                                                         ${isDark ? 'bg-slate-800 border-white/10 text-slate-300 hover:text-emerald-400 hover:border-emerald-500/50 hover:bg-emerald-500/10' : 'bg-white border-slate-200 text-slate-600 hover:text-emerald-600 shadow-sm hover:border-emerald-400 hover:bg-emerald-50'}`}
+                                                    title="Loading Sheet"
+                                                >
+                                                    <svg className="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                                                    </svg>
+                                                </button>
+                                                <button
+                                                    onClick={() => previewBill(bill)}
+                                                    className={`p-2 sm:p-2.5 rounded-xl transition-all border shrink-0
+                                                         ${isDark ? 'bg-slate-800 border-white/10 text-slate-300 hover:text-white hover:border-slate-500' : 'bg-white border-slate-200 text-slate-600 hover:text-slate-900 shadow-sm hover:border-slate-400'}`}
+                                                    title="Preview PDF"
+                                                >
+                                                    <svg className="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                                                    </svg>
+                                                </button>
+                                                {!isPlayer && (
+                                                    <>
+                                                        <button
+                                                            onClick={() => openEditModal(bill)}
+                                                            className={`p-2 sm:p-2.5 rounded-xl transition-all border shrink-0
+                                                                 ${isDark ? 'bg-slate-800 border-white/10 text-slate-300 hover:text-blue-400 hover:border-blue-500/50 hover:bg-blue-500/10' : 'bg-white border-slate-200 text-slate-600 hover:text-blue-600 shadow-sm hover:border-blue-400 hover:bg-blue-50'}`}
+                                                            title="Edit Bill"
+                                                        >
+                                                            <svg className="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                                                            </svg>
+                                                        </button>
+                                                        <button
+                                                            onClick={() => handleReject(bill.id)}
+                                                            className={`px-3 sm:px-6 py-2 sm:py-3 rounded-xl sm:rounded-2xl font-black text-[10px] sm:text-xs uppercase tracking-widest transition-all ${isDark ? 'text-red-400 hover:bg-red-500/10' : 'text-red-500 hover:bg-red-50'}`}
+                                                        >
+                                                            Reject / Discard
+                                                        </button>
+                                                        <button
+                                                            onClick={() => handleVerify(bill)}
+                                                            className="px-3 sm:px-6 py-2 sm:py-3 bg-blue-600 hover:bg-blue-700 text-white font-black rounded-xl sm:rounded-2xl text-[10px] sm:text-xs uppercase tracking-widest shadow-lg shadow-blue-600/30 transition-all hover:-translate-y-0.5"
+                                                        >
+                                                            Verify Bill ✓
+                                                        </button>
+                                                    </>
+                                                )}
                                             </div>
                                         </div>
-
-                                        {/* Financials Row */}
-                                        <div className="flex items-center justify-between mt-4 gap-4">
-                                            <div>
-                                                <p className="text-[9px] sm:text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 mb-0.5">Total Items</p>
-                                                <p className={`text-lg font-black ${isDark ? 'text-white' : 'text-slate-900'}`}>
-                                                    {getItemCount(bill.cart)}
-                                                </p>
-                                            </div>
-                                            <div className="text-right">
-                                                <p className="text-[9px] sm:text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 mb-0.5">Total Value</p>
-                                                <p className={`text-xl font-black italic tracking-tighter ${isDark ? 'text-white' : 'text-slate-900'}`}>
-                                                    ₹{getTotal(bill.cart, bill.customRates).toLocaleString('en-IN', { minimumFractionDigits: 2 })}
-                                                </p>
-                                            </div>
-                                        </div>
-
-                                        {/* Action Buttons */}
-                                        <div className={`mt-4 sm:mt-6 pt-4 sm:pt-6 border-t border-dashed flex flex-wrap items-center justify-end gap-2 sm:gap-3
-                                            ${isAdmin ? (isDark ? 'border-white/10' : 'border-slate-200') : (isDark ? 'border-white/10' : 'border-amber-200')}`}>
-                                            <button
-                                                onClick={() => {
-                                                    const billDateStr = bill.deliveryDate || bill.date;
-                                                    const datePart = billDateStr.includes('T') ? billDateStr.split('T')[0] : billDateStr.split(' ')[0];
-                                                    printLoadingSheet([bill], datePart);
-                                                }}
-                                                className={`p-2 sm:p-2.5 rounded-xl transition-all border shrink-0
-                                                    ${isDark ? 'bg-slate-800 border-white/10 text-slate-300 hover:text-emerald-400 hover:border-emerald-500/50 hover:bg-emerald-500/10' : 'bg-white border-slate-200 text-slate-600 hover:text-emerald-600 shadow-sm hover:border-emerald-400 hover:bg-emerald-50'}`}
-                                                title="Loading Sheet"
-                                            >
-                                                <svg className="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                                                </svg>
-                                            </button>
-                                            <button
-                                                onClick={() => previewBill(bill)}
-                                                className={`p-2 sm:p-2.5 rounded-xl transition-all border shrink-0
-                                                    ${isDark ? 'bg-slate-800 border-white/10 text-slate-300 hover:text-white hover:border-slate-500' : 'bg-white border-slate-200 text-slate-600 hover:text-slate-900 shadow-sm hover:border-slate-400'}`}
-                                                title="Preview PDF"
-                                            >
-                                                <svg className="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                                                </svg>
-                                            </button>
-                                            <button
-                                                onClick={() => openEditModal(bill)}
-                                                className={`p-2 sm:p-2.5 rounded-xl transition-all border shrink-0
-                                                    ${isDark ? 'bg-slate-800 border-white/10 text-slate-300 hover:text-blue-400 hover:border-blue-500/50 hover:bg-blue-500/10' : 'bg-white border-slate-200 text-slate-600 hover:text-blue-600 shadow-sm hover:border-blue-400 hover:bg-blue-50'}`}
-                                                title="Edit Bill"
-                                            >
-                                                <svg className="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                                                </svg>
-                                            </button>
-                                            <button
-                                                onClick={() => handleReject(bill.id)}
-                                                className={`px-3 sm:px-6 py-2 sm:py-3 rounded-xl sm:rounded-2xl font-black text-[10px] sm:text-xs uppercase tracking-widest transition-all ${isDark ? 'text-red-400 hover:bg-red-500/10' : 'text-red-500 hover:bg-red-50'}`}
-                                            >
-                                                Reject / Discard
-                                            </button>
-                                            <button
-                                                onClick={() => handleVerify(bill)}
-                                                className="px-3 sm:px-6 py-2 sm:py-3 bg-blue-600 hover:bg-blue-700 text-white font-black rounded-xl sm:rounded-2xl text-[10px] sm:text-xs uppercase tracking-widest shadow-lg shadow-blue-600/30 transition-all hover:-translate-y-0.5"
-                                            >
-                                                Verify Bill ✓
-                                            </button>
-                                        </div>
-                                    </div>
-                                ))}
+                                    );
+                                })}
                             </div>
                         </div>
                     ))}
