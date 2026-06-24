@@ -99,7 +99,7 @@ export const useAdminDashboardData = () => {
                     // Strip stale _box / _ltr keys — they are always derived dynamically
                     const cleaned: Record<string, number> = {};
                     for (const key of Object.keys(raw)) {
-                        if (!key.endsWith('_box') && !key.endsWith('_ltr')) {
+                        if (!key.endsWith('_box') && !key.endsWith('_ltr') && !key.endsWith('_box_wl') && !key.endsWith('_ltr_wl')) {
                             cleaned[key] = raw[key];
                         }
                     }
@@ -126,9 +126,10 @@ export const useAdminDashboardData = () => {
                     for (const bill of legacyBills) {
                         const legacyRates: Record<string, number> = {};
                         currentProducts.forEach(p => {
-                            if (p.id.endsWith('_box') || p.id.endsWith('_ltr')) return;
+                            if (p.id.endsWith('_box') || p.id.endsWith('_ltr') || p.id.endsWith('_box_wl') || p.id.endsWith('_ltr_wl')) return;
 
-                            if (bill.cart[p.id] || bill.cart[`${p.id}_box`] || bill.cart[`${p.id}_ltr`]) {
+                            if (bill.cart[p.id] || bill.cart[`${p.id}_box`] || bill.cart[`${p.id}_ltr`] ||
+                                bill.cart[`${p.id}_wl`] || bill.cart[`${p.id}_box_wl`] || bill.cart[`${p.id}_ltr_wl`]) {
                                 legacyRates[p.id] = p.price;
                             }
                         });

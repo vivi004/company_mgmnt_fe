@@ -90,7 +90,7 @@ const BillCheck = ({ theme, type, userProfileName, onUnverifiedCountChange }: Pr
                     const raw = b.custom_rates || b.customRates || {};
                     const cleaned: Record<string, number> = {};
                     for (const key of Object.keys(raw)) {
-                        if (!key.endsWith('_box') && !key.endsWith('_ltr')) cleaned[key] = raw[key];
+                        if (!key.endsWith('_box') && !key.endsWith('_ltr') && !key.endsWith('_box_wl') && !key.endsWith('_ltr_wl')) cleaned[key] = raw[key];
                     }
                     return cleaned;
                 })(),
@@ -116,8 +116,9 @@ const BillCheck = ({ theme, type, userProfileName, onUnverifiedCountChange }: Pr
                     legacyBills.forEach(async (bill: any) => {
                         const legacyRates: Record<string, number> = {};
                         currentProducts.forEach(p => {
-                            if (p.id.endsWith('_box') || p.id.endsWith('_ltr')) return;
-                            if (bill.cart[p.id] || bill.cart[`${p.id}_box`] || bill.cart[`${p.id}_ltr`]) {
+                            if (p.id.endsWith('_box') || p.id.endsWith('_ltr') || p.id.endsWith('_box_wl') || p.id.endsWith('_ltr_wl')) return;
+                            if (bill.cart[p.id] || bill.cart[`${p.id}_box`] || bill.cart[`${p.id}_ltr`] ||
+                                bill.cart[`${p.id}_wl`] || bill.cart[`${p.id}_box_wl`] || bill.cart[`${p.id}_ltr_wl`]) {
                                 legacyRates[p.id] = p.price;
                             }
                         });
@@ -231,6 +232,8 @@ const BillCheck = ({ theme, type, userProfileName, onUnverifiedCountChange }: Pr
             // Flush variants so they recalculate from the new base rate
             delete next[`${id}_box`];
             delete next[`${id}_ltr`];
+            delete next[`${id}_box_wl`];
+            delete next[`${id}_ltr_wl`];
             return next;
         });
     };
@@ -257,8 +260,9 @@ const BillCheck = ({ theme, type, userProfileName, onUnverifiedCountChange }: Pr
 
         const finalRates = { ...editRates };
         getAllProducts().forEach(p => {
-            if (p.id.endsWith('_box') || p.id.endsWith('_ltr')) return;
-            if (finalCart[p.id] || finalCart[`${p.id}_box`] || finalCart[`${p.id}_ltr`]) {
+            if (p.id.endsWith('_box') || p.id.endsWith('_ltr') || p.id.endsWith('_box_wl') || p.id.endsWith('_ltr_wl')) return;
+            if (finalCart[p.id] || finalCart[`${p.id}_box`] || finalCart[`${p.id}_ltr`] ||
+                finalCart[`${p.id}_wl`] || finalCart[`${p.id}_box_wl`] || finalCart[`${p.id}_ltr_wl`]) {
                 finalRates[p.id] = editRates[p.id] ?? p.price;
             }
         });

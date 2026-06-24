@@ -76,6 +76,13 @@ const SHOP_CATEGORIES: ShopCategory[] = [
     ],
     getProducts: getOilCakeProducts,
   },
+  {
+    id: 'nisha_wl',
+    name: 'Nisha Oils (Without Label)',
+    icon: '🏷️',
+    subcategories: getNishaSubcategories(),
+    getProducts: getNishaProducts,
+  },
 ];
 
 // Helper: Filter products by subcategory
@@ -100,12 +107,14 @@ interface CardProps {
   updateQuantity: (id: string, delta: number) => void;
   updateRate: (id: string, rate: number) => void;
   handleManualQuantity: (id: string, val: number, p?: Product) => void;
+  isWlCategory: boolean;
 }
 
-const BoxLitreControls = memo(({ boxId, litreId, boxMultiplier, litreStep, litreMultiplier, litreLabel, currentBaseRate, isDark, updateQuantity, handleManualQuantity, product, cart }: {
+const BoxLitreControls = memo(({ boxId, litreId, boxMultiplier, litreStep, litreMultiplier, litreLabel, currentBaseRate, isDark, updateQuantity, handleManualQuantity, product, cart, isWlCategory }: {
   boxId: string; litreId: string; boxMultiplier: number; litreStep: number; litreMultiplier: number; litreLabel: string;
   currentBaseRate: number; isDark: boolean; updateQuantity: (id: string, delta: number) => void; 
   handleManualQuantity: (id: string, val: number, p?: Product) => void; product: Product; cart: Record<string, number>;
+  isWlCategory?: boolean;
 }) => {
   const boxRate = currentBaseRate * boxMultiplier;
   const litreRate = currentBaseRate * litreMultiplier;
@@ -117,10 +126,10 @@ const BoxLitreControls = memo(({ boxId, litreId, boxMultiplier, litreStep, litre
       <div className="flex items-center justify-between sm:justify-start gap-3 flex-1">
         <div className="flex flex-col items-start sm:items-end min-w-[60px] sm:min-w-[70px]">
           <span className="text-[10px] font-black text-slate-400 uppercase tracking-tighter">Box</span>
-          <span className={`text-xs font-black ${isDark ? 'text-blue-400' : 'text-blue-600'}`}>₹{boxRate.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</span>
+          <span className={`text-xs font-black ${isDark ? (isWlCategory ? 'text-amber-400' : 'text-blue-400') : (isWlCategory ? 'text-amber-600' : 'text-blue-600')}`}>₹{boxRate.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</span>
         </div>
         <div className={`flex items-center gap-1 p-1 rounded-xl border ${isDark ? 'bg-slate-900 border-white/10' : 'bg-white border-slate-200 shadow-sm'}`}>
-          <button onClick={() => updateQuantity(boxId, -1)} className="w-10 h-10 sm:w-8 sm:h-8 rounded-lg flex items-center justify-center hover:bg-red-50 text-slate-400 hover:text-red-500 transition-colors">
+          <button onClick={() => updateQuantity(boxId, -1)} className="w-10 h-10 sm:w-8 sm:h-8 rounded-lg flex items-center justify-center hover:bg-red-50 text-slate-400 hover:text-red-500 transition-colors" disabled={!(cart[boxId] || 0)}>
             <RemoveIcon style={{ fontSize: 18 }} />
           </button>
           <input
@@ -129,7 +138,7 @@ const BoxLitreControls = memo(({ boxId, litreId, boxMultiplier, litreStep, litre
             placeholder="0"
             className={`w-12 sm:w-10 text-center text-base sm:text-sm font-black bg-transparent outline-none ${isDark ? 'text-white' : 'text-slate-900'} [-moz-appearance:_textfield][&::-webkit-inner-spin-button]:m-0[&::-webkit-inner-spin-button]:appearance-none`}
           />
-          <button onClick={() => updateQuantity(boxId, 1)} className="w-10 h-10 sm:w-8 sm:h-8 rounded-lg bg-blue-600 text-white flex items-center justify-center hover:bg-blue-700 shadow-lg shadow-blue-600/20">
+          <button onClick={() => updateQuantity(boxId, 1)} className={`w-10 h-10 sm:w-8 sm:h-8 rounded-lg text-white flex items-center justify-center shadow-lg transition-all ${isWlCategory ? 'bg-amber-500 hover:bg-amber-600 shadow-amber-600/20' : 'bg-blue-600 hover:bg-blue-700 shadow-blue-600/20'}`}>
             <AddIcon style={{ fontSize: 18 }} />
           </button>
         </div>
@@ -142,10 +151,10 @@ const BoxLitreControls = memo(({ boxId, litreId, boxMultiplier, litreStep, litre
       <div className="flex items-center justify-between sm:justify-start gap-3 flex-1">
         <div className="flex flex-col items-start sm:items-end min-w-[60px] sm:min-w-[70px]">
           <span className="text-[10px] font-black text-slate-400 uppercase tracking-tighter">{litreLabel}</span>
-          <span className={`text-xs font-black ${isDark ? 'text-blue-400' : 'text-blue-600'}`}>₹{litreRate.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</span>
+          <span className={`text-xs font-black ${isDark ? (isWlCategory ? 'text-amber-400' : 'text-blue-400') : (isWlCategory ? 'text-amber-600' : 'text-blue-600')}`}>₹{litreRate.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</span>
         </div>
         <div className={`flex items-center gap-1 p-1 rounded-xl border ${isDark ? 'bg-slate-900 border-white/10' : 'bg-white border-slate-200 shadow-sm'}`}>
-          <button onClick={() => updateQuantity(litreId, -litreStep)} className="w-10 h-10 sm:w-8 sm:h-8 rounded-lg flex items-center justify-center hover:bg-red-50 text-slate-400 hover:text-red-500 transition-colors">
+          <button onClick={() => updateQuantity(litreId, -litreStep)} className="w-10 h-10 sm:w-8 sm:h-8 rounded-lg flex items-center justify-center hover:bg-red-50 text-slate-400 hover:text-red-500 transition-colors" disabled={!(cart[litreId] || 0)}>
             <RemoveIcon style={{ fontSize: 18 }} />
           </button>
           <input
@@ -154,7 +163,7 @@ const BoxLitreControls = memo(({ boxId, litreId, boxMultiplier, litreStep, litre
             placeholder="0"
             className={`w-12 sm:w-10 text-center text-base sm:text-sm font-black bg-transparent outline-none ${isDark ? 'text-white' : 'text-slate-900'} [-moz-appearance:_textfield][&::-webkit-inner-spin-button]:m-0[&::-webkit-inner-spin-button]:appearance-none`}
           />
-          <button onClick={() => updateQuantity(litreId, litreStep)} className="w-10 h-10 sm:w-8 sm:h-8 rounded-lg bg-blue-600 text-white flex items-center justify-center hover:bg-blue-700 shadow-lg shadow-blue-600/20">
+          <button onClick={() => updateQuantity(litreId, litreStep)} className={`w-10 h-10 sm:w-8 sm:h-8 rounded-lg text-white flex items-center justify-center shadow-lg transition-all ${isWlCategory ? 'bg-amber-500 hover:bg-amber-600 shadow-amber-600/20' : 'bg-blue-600 hover:bg-blue-700 shadow-blue-600/20'}`}>
             <AddIcon style={{ fontSize: 18 }} />
           </button>
         </div>
@@ -163,7 +172,7 @@ const BoxLitreControls = memo(({ boxId, litreId, boxMultiplier, litreStep, litre
   );
 });
 
-const UnifiedProductCard = memo(({ product, cart, rates, isDark, updateQuantity, updateRate, handleManualQuantity }: CardProps) => {
+const UnifiedProductCard = memo(({ product, cart, rates, isDark, updateQuantity, updateRate, handleManualQuantity, isWlCategory }: CardProps) => {
   // Local state for price input to allow clearing/editing without jumps
   const sizeLower = product.size.toLowerCase();
   const is100ml = sizeLower === '100 ml';
@@ -210,44 +219,56 @@ const UnifiedProductCard = memo(({ product, cart, rates, isDark, updateQuantity,
   };
 
   // Determine if product is actively in cart
-  const isInCart = (cart[product.id] > 0 || cart[product.id + '_box'] > 0 || cart[product.id + '_ltr'] > 0);
-  const primaryColor = 'blue';
-
+  const isInCart = (
+    cart[product.id] > 0 || cart[product.id + '_box'] > 0 || cart[product.id + '_ltr'] > 0 ||
+    cart[product.id + '_wl'] > 0 || cart[product.id + '_box_wl'] > 0 || cart[product.id + '_ltr_wl'] > 0
+  );
   const renderSizeControls = () => {
     const sizeLower = product.size.toLowerCase();
     const currentBaseRate = rates[product.id] ?? product.price;
 
-    // Pattern matching exactly like old layout
-    if (sizeLower === '100 ml') return <BoxLitreControls boxId={product.id + '_box'} litreId={product.id + '_ltr'} boxMultiplier={50} litreStep={1} litreMultiplier={10} litreLabel="LTR" currentBaseRate={currentBaseRate} isDark={isDark} updateQuantity={updateQuantity} handleManualQuantity={handleManualQuantity} product={product} cart={cart} />;
-    if (sizeLower === '200 ml') return <BoxLitreControls boxId={product.id + '_box'} litreId={product.id + '_ltr'} boxMultiplier={25} litreStep={1} litreMultiplier={5} litreLabel="LTR" currentBaseRate={currentBaseRate} isDark={isDark} updateQuantity={updateQuantity} handleManualQuantity={handleManualQuantity} product={product} cart={cart} />;
-    if (sizeLower === '500 ml') return <BoxLitreControls boxId={product.id + '_box'} litreId={product.id + '_ltr'} boxMultiplier={20} litreStep={1} litreMultiplier={2} litreLabel="LTR" currentBaseRate={currentBaseRate} isDark={isDark} updateQuantity={updateQuantity} handleManualQuantity={handleManualQuantity} product={product} cart={cart} />;
-    if (sizeLower === '1 litre' || sizeLower === '1 ltr-pet' || sizeLower === '1 ltr') return <BoxLitreControls boxId={product.id + '_box'} litreId={product.id} boxMultiplier={10} litreStep={1} litreMultiplier={1} litreLabel="PCS" currentBaseRate={currentBaseRate} isDark={isDark} updateQuantity={updateQuantity} handleManualQuantity={handleManualQuantity} product={product} cart={cart} />;
-    if (sizeLower === '2 ltr') return <BoxLitreControls boxId={product.id + '_box'} litreId={product.id} boxMultiplier={5} litreStep={1} litreMultiplier={1} litreLabel="2L-PCS" currentBaseRate={currentBaseRate} isDark={isDark} updateQuantity={updateQuantity} handleManualQuantity={handleManualQuantity} product={product} cart={cart} />;
+    const getControlsForKeys = (suffixBox: string, suffixLtr: string, suffixBase: string) => {
+        if (sizeLower === '100 ml') return <BoxLitreControls boxId={product.id + suffixBox} litreId={product.id + suffixLtr} boxMultiplier={50} litreStep={1} litreMultiplier={10} litreLabel="LTR" currentBaseRate={currentBaseRate} isDark={isDark} updateQuantity={updateQuantity} handleManualQuantity={handleManualQuantity} product={product} cart={cart} isWlCategory={isWlCategory} />;
+        if (sizeLower === '200 ml') return <BoxLitreControls boxId={product.id + suffixBox} litreId={product.id + suffixLtr} boxMultiplier={25} litreStep={1} litreMultiplier={5} litreLabel="LTR" currentBaseRate={currentBaseRate} isDark={isDark} updateQuantity={updateQuantity} handleManualQuantity={handleManualQuantity} product={product} cart={cart} isWlCategory={isWlCategory} />;
+        if (sizeLower === '500 ml') return <BoxLitreControls boxId={product.id + suffixBox} litreId={product.id + suffixLtr} boxMultiplier={20} litreStep={1} litreMultiplier={2} litreLabel="LTR" currentBaseRate={currentBaseRate} isDark={isDark} updateQuantity={updateQuantity} handleManualQuantity={handleManualQuantity} product={product} cart={cart} isWlCategory={isWlCategory} />;
+        if (sizeLower === '1 litre' || sizeLower === '1 ltr-pet' || sizeLower === '1 ltr') return <BoxLitreControls boxId={product.id + suffixBox} litreId={product.id + (suffixLtr === '_ltr_wl' ? '_wl' : suffixBase)} boxMultiplier={10} litreStep={1} litreMultiplier={1} litreLabel="PCS" currentBaseRate={currentBaseRate} isDark={isDark} updateQuantity={updateQuantity} handleManualQuantity={handleManualQuantity} product={product} cart={cart} isWlCategory={isWlCategory} />;
+        if (sizeLower === '2 ltr') return <BoxLitreControls boxId={product.id + suffixBox} litreId={product.id + (suffixLtr === '_ltr_wl' ? '_wl' : suffixBase)} boxMultiplier={5} litreStep={1} litreMultiplier={1} litreLabel="2L-PCS" currentBaseRate={currentBaseRate} isDark={isDark} updateQuantity={updateQuantity} handleManualQuantity={handleManualQuantity} product={product} cart={cart} isWlCategory={isWlCategory} />;
 
-    // Default simple quantity control
-    return (
-      <div className={`mt-2 flex items-center gap-2 p-1.5 rounded-xl border w-max ${isDark ? 'bg-slate-950 border-white/10' : 'bg-slate-50 border-slate-200'}`}>
-        <button onClick={() => updateQuantity(product.id, -1)} className={`w-8 h-8 rounded-lg flex items-center justify-center transition-all ${(cart[product.id] || 0) > 0 ? 'hover:bg-red-100 hover:text-red-500 text-slate-600' : 'text-slate-300'}`} disabled={!(cart[product.id] || 0)}>
-          <RemoveIcon style={{ fontSize: 16 }} />
-        </button>
-        <input
-          type="number" min="0" value={cart[product.id] || ''}
-          onChange={(e) => handleManualQuantity(product.id, parseInt(e.target.value) || 0)}
-          placeholder="0"
-          className={`w-10 text-center text-base font-black bg-transparent outline-none ${isDark ? 'text-white' : 'text-slate-900'} [-moz-appearance:_textfield][&::-webkit-inner-spin-button]:m-0[&::-webkit-inner-spin-button]:appearance-none`}
-        />
-        <button onClick={() => updateQuantity(product.id, 1)} className={`w-8 h-8 rounded-lg bg-${primaryColor}-500 text-white flex items-center justify-center transition-all hover:bg-${primaryColor}-600`}>
-          <AddIcon style={{ fontSize: 16 }} />
-        </button>
-      </div>
-    );
+        return (
+          <div className={`mt-2 flex items-center gap-2 p-1.5 rounded-xl border w-max ${isDark ? 'bg-slate-950 border-white/10' : 'bg-slate-50 border-slate-200'}`}>
+            <button onClick={() => updateQuantity(product.id + suffixBase, -1)} className={`w-8 h-8 rounded-lg flex items-center justify-center transition-all ${(cart[product.id + suffixBase] || 0) > 0 ? 'hover:bg-red-100 hover:text-red-500 text-slate-600' : 'text-slate-300'}`} disabled={!(cart[product.id + suffixBase] || 0)}>
+              <RemoveIcon style={{ fontSize: 16 }} />
+            </button>
+            <input
+              type="number" min="0" value={cart[product.id + suffixBase] || ''}
+              onChange={(e) => handleManualQuantity(product.id + suffixBase, parseInt(e.target.value) || 0)}
+              placeholder="0"
+              className={`w-10 text-center text-base font-black bg-transparent outline-none ${isDark ? 'text-white' : 'text-slate-900'} [-moz-appearance:_textfield][&::-webkit-inner-spin-button]:m-0[&::-webkit-inner-spin-button]:appearance-none`}
+            />
+            <button onClick={() => updateQuantity(product.id + suffixBase, 1)} className={`w-8 h-8 rounded-lg bg-${isWlCategory ? 'amber' : 'blue'}-500 text-white flex items-center justify-center transition-all hover:bg-${isWlCategory ? 'amber' : 'blue'}-600`}>
+              <AddIcon style={{ fontSize: 16 }} />
+            </button>
+          </div>
+        );
+    };
+
+    if (isWlCategory && product.brand === 'Nisha') {
+        return getControlsForKeys('_box_wl', '_ltr_wl', '_wl');
+    }
+
+    return getControlsForKeys('_box', '_ltr', '');
   };
 
+  const borderClass = isDark
+    ? isInCart
+      ? isWlCategory ? 'border-amber-500/50 shadow-lg shadow-amber-500/10 ring-1 ring-amber-500/40' : 'border-blue-500/50 shadow-lg shadow-blue-500/10 ring-1 ring-blue-500/40'
+      : 'border-white/5 hover:border-white/10'
+    : isInCart
+      ? isWlCategory ? 'border-amber-400 shadow-xl ring-1 ring-amber-400' : 'border-blue-400 shadow-xl ring-1 ring-blue-400'
+      : 'border-slate-100 shadow-sm hover:shadow-md';
+
   return (
-    <div className={`relative flex flex-col lg:flex-row flex-wrap items-stretch lg:items-center gap-4 rounded-[32px] p-4 lg:p-5 transition-all duration-300 group border ${isDark
-      ? isInCart ? 'bg-slate-800 border-blue-500/50 shadow-lg shadow-blue-500/10 ring-1 ring-blue-500/40' : 'bg-slate-800 border-white/5 hover:border-white/10'
-      : isInCart ? 'bg-white border-blue-400 shadow-xl ring-1 ring-blue-400' : 'bg-white border-slate-100 shadow-sm hover:shadow-md'
-    }`}>
+    <div className={`relative flex flex-col lg:flex-row flex-wrap items-stretch lg:items-center gap-4 rounded-[32px] p-4 lg:p-5 transition-all duration-300 group border ${isDark ? 'bg-slate-800' : 'bg-white'} ${borderClass}`}>
       {/* Product info section */}
       <div className="flex items-center gap-4 flex-1 min-w-[280px]">
         {/* Icon */}
@@ -257,8 +278,8 @@ const UnifiedProductCard = memo(({ product, cart, rates, isDark, updateQuantity,
         
         {/* Details */}
         <div className="flex-1 min-w-0">
-          <p className={`text-[10px] font-black uppercase tracking-[0.2em] ${isDark ? 'text-blue-400' : 'text-blue-500'}`}>
-            {product.brand} &middot; {product.size}
+          <p className={`text-[10px] font-black uppercase tracking-[0.2em] ${isDark ? (isWlCategory ? 'text-amber-400' : 'text-blue-400') : (isWlCategory ? 'text-amber-600' : 'text-blue-500')}`}>
+            {product.brand} &middot; {product.size} {isWlCategory && <span className="text-amber-500 font-bold ml-1 border border-amber-300 px-1.5 py-0.5 rounded bg-amber-50/50 text-[8px] tracking-normal leading-none align-middle">(WL)</span>}
           </p>
           <h3 className={`text-base lg:text-lg font-black leading-tight mt-1 truncate ${isDark ? 'text-white' : 'text-slate-900'}`}>{product.name}</h3>
           
@@ -470,6 +491,7 @@ const UnifiedOrderingView: React.FC<Props> = ({ shopName, theme, cart, rates, up
                   updateQuantity={updateQuantity}
                   updateRate={updateRate}
                   handleManualQuantity={handleManualQuantity}
+                  isWlCategory={activeCatId === 'nisha_wl'}
                 />
               ))}
             </div>

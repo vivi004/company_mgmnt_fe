@@ -21,6 +21,7 @@ interface Shop {
     parent_shop_id?: number | null;
     has_order_today?: boolean;
     last_order_time?: string;
+    without_label_enabled?: boolean;
 }
 
 interface Props {
@@ -44,7 +45,7 @@ const ShopManager = ({ orderLineId, villageName, theme, onBack, type, handleRefr
     const [loading, setLoading] = useState(true);
     const [showModal, setShowModal] = useState(false);
     const [editingShop, setEditingShop] = useState<Shop | null>(null);
-    const [formData, setFormData] = useState({ shop_name: '', owner_name: '', shop_owner: '', phone: '', phone2: '', balance: '', parent_shop_id: '' as string | number });
+    const [formData, setFormData] = useState({ shop_name: '', owner_name: '', shop_owner: '', phone: '', phone2: '', balance: '', parent_shop_id: '' as string | number, without_label_enabled: false });
     const { toasts, showToast, removeToast } = useToast();
     const [shopSearch, setShopSearch] = useState('');
     const [cart, setCart] = useState<Record<string, number>>({});
@@ -230,7 +231,7 @@ const ShopManager = ({ orderLineId, villageName, theme, onBack, type, handleRefr
 
     const openAdd = () => {
         setEditingShop(null);
-        setFormData({ shop_name: '', owner_name: '', shop_owner: '', phone: '', phone2: '', balance: '', parent_shop_id: '' });
+        setFormData({ shop_name: '', owner_name: '', shop_owner: '', phone: '', phone2: '', balance: '', parent_shop_id: '', without_label_enabled: false });
         fetchAllShopsList();
         setShowModal(true);
     };
@@ -244,7 +245,8 @@ const ShopManager = ({ orderLineId, villageName, theme, onBack, type, handleRefr
             phone: shop.phone,
             phone2: shop.phone2 || '',
             balance: shop.balance.toString(),
-            parent_shop_id: shop.parent_shop_id ? shop.parent_shop_id.toString() : ''
+            parent_shop_id: shop.parent_shop_id ? shop.parent_shop_id.toString() : '',
+            without_label_enabled: !!shop.without_label_enabled
         });
         fetchAllShopsList();
         setShowModal(true);
@@ -264,6 +266,7 @@ const ShopManager = ({ orderLineId, villageName, theme, onBack, type, handleRefr
             phone2: formData.phone2,
             balance: parseFloat(formData.balance) || 0,
             parent_shop_id: formData.parent_shop_id ? parseInt(String(formData.parent_shop_id)) : null,
+            without_label_enabled: formData.without_label_enabled,
             created_by: (() => {
                 const storedUser = JSON.parse(localStorage.getItem('user') || '{}');
                 return storedUser.first_name ? `${storedUser.first_name} ${storedUser.last_name || ''}`.trim() : (isAdmin ? 'Admin' : 'Staff');
@@ -820,6 +823,7 @@ const ShopManager = ({ orderLineId, villageName, theme, onBack, type, handleRefr
                                     </p>
                                 </div>
                             )}
+
                             <button
                                 type="submit"
                                 disabled={submittingShop}

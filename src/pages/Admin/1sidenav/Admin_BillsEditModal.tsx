@@ -95,21 +95,28 @@ const AdminBillsEditModal: React.FC<AdminBillsEditModalProps> = ({
                             .map(p => {
                                 const qty = editCart[p.id] || 0;
 
-                                // Detect if this is a box or ltr variant
-                                const isBoxVariant = p.id.endsWith('_box');
-                                const isLtrVariant = p.id.endsWith('_ltr');
-                                const isVariant = isBoxVariant || isLtrVariant;
+                                // Detect if this is a box, ltr, or WL variant
+                                const isWlSuffix = p.id.endsWith('_wl') && !p.id.endsWith('_box_wl') && !p.id.endsWith('_ltr_wl');
+                                const isBoxVariant = p.id.endsWith('_box') || p.id.endsWith('_box_wl');
+                                const isLtrVariant = p.id.endsWith('_ltr') || p.id.endsWith('_ltr_wl');
+                                const isVariant = isBoxVariant || isLtrVariant || isWlSuffix;
 
                                 let displayRate: number;
                                 if (isVariant) {
                                     // Derive rate from base product's editRate × multiplier
                                     // Multiplier = variant's static price / base product's static price
-                                    const baseId = p.id.slice(0, -4);
+                                    let suffixLen = 4;
+                                    if (p.id.endsWith('_box_wl') || p.id.endsWith('_ltr_wl')) {
+                                        suffixLen = 7;
+                                    } else if (p.id.endsWith('_wl')) {
+                                        suffixLen = 3;
+                                    }
+                                    const baseId = p.id.slice(0, -suffixLen);
                                     // Find the base product to get its static price
                                     const allBase = getAllProducts();
                                     const baseProduct = allBase.find(b => b.id === baseId);
                                     if (baseProduct && baseProduct.price > 0) {
-                                        const multiplier = Math.round(p.price / baseProduct.price);
+                                        const multiplier = isWlSuffix ? 1 : Math.round(p.price / baseProduct.price);
                                         const baseEditRate = editRates[baseId] ?? baseProduct.price;
                                         displayRate = baseEditRate * multiplier;
                                     } else {

@@ -117,7 +117,7 @@ export const invoiceHTML = (bill: Bill, vehicleNo: string = '') => {
     const upiLink2 = `upi://pay?pa=${upi.upiId2}&pn=${encodeURIComponent(upi.upiName2)}&cu=INR`;
 
     const items = getCartItems(bill.cart, bill.customRates).map(it => {
-        const isLtrVariant = it.id.endsWith('_ltr');
+        const isLtrVariant = it.id.endsWith('_ltr') || it.id.endsWith('_ltr_wl');
         const sizeLower = it.size.toLowerCase();
         const is100ml = sizeLower === '100 ml';
         const is200ml = sizeLower === '200 ml';
@@ -170,7 +170,9 @@ export const invoiceHTML = (bill: Bill, vehicleNo: string = '') => {
 
         const itemRows = pageItems.map((it, i) => {
             const serialNo = startIndex + i;
-            let desc = `${it.name.toUpperCase()} ${it.size.toUpperCase()}`;
+            let isWl = it.id.endsWith('_wl') || it.name.includes('(WL)');
+            let cleanName = it.name.replace(/\s*\(WL\)/gi, '');
+            let desc = `${cleanName.toUpperCase()} ${it.size.toUpperCase()}`;
             if (it.id === 'vs-gn-500ml-box' || it.id === 'vs-gn-1l-box') {
                 desc = desc.replace(/\s*BOX$/i, '');
             }
@@ -183,13 +185,17 @@ export const invoiceHTML = (bill: Bill, vehicleNo: string = '') => {
             desc = desc.replace('1 LTR (10X100ML)', '100ML');
             desc = desc.replace('1 LTR (5X200ML)', '200ML');
 
+            if (isWl) {
+                desc = `${desc} (WL)`;
+            }
+
             let u = (it.unit || 'NOS').toUpperCase();
             if (it.id === 'vs-gn-500ml-box' || it.id === 'vs-gn-1l-box' || it.id.endsWith('-box')) {
                 u = 'BOX';
             } else if (/\b15\s*(LTR|KG|L|T|TIN)\b/i.test(desc)) u = 'TIN';
             else if (/\b5\s*(LTR|KG|L|CAN)\b/i.test(desc)) u = 'CAN';
             else if (/\bBOX\b/i.test(desc) || it.id.includes('_box')) u = 'BOX';
-            else if (it.id.endsWith('_ltr') && (it.size.toLowerCase() === '100 ml' || it.size.toLowerCase() === '200 ml' || it.size.toLowerCase() === '500 ml')) u = 'LTR';
+            else if ((it.id.endsWith('_ltr') || it.id.endsWith('_ltr_wl')) && (it.size.toLowerCase() === '100 ml' || it.size.toLowerCase() === '200 ml' || it.size.toLowerCase() === '500 ml')) u = 'LTR';
             else if (/\b(100|200|500)\s*ML\b/i.test(desc)) u = 'PCS';
             else if (u === 'LITRE') u = 'PCS';
 
@@ -479,7 +485,7 @@ const staffDataPrintStyles = `
 
 export const staffDataBillHTML = (bill: Bill) => {
     const items = getCartItems(bill.cart, bill.customRates).map(it => {
-        const isLtrVariant = it.id.endsWith('_ltr');
+        const isLtrVariant = it.id.endsWith('_ltr') || it.id.endsWith('_ltr_wl');
         const sizeLower = it.size.toLowerCase();
         const is100ml = sizeLower === '100 ml';
         const is200ml = sizeLower === '200 ml';
@@ -498,7 +504,9 @@ export const staffDataBillHTML = (bill: Bill) => {
 
     const itemRows = items.map((it, i) => {
         const serialNo = i + 1;
-        let desc = `${it.name.toUpperCase()} ${it.size.toUpperCase()}`;
+        let isWl = it.id.endsWith('_wl') || it.name.includes('(WL)');
+        let cleanName = it.name.replace(/\s*\(WL\)/gi, '');
+        let desc = `${cleanName.toUpperCase()} ${it.size.toUpperCase()}`;
         if (it.id === 'vs-gn-500ml-box' || it.id === 'vs-gn-1l-box') {
             desc = desc.replace(/\s*BOX$/i, '');
         }
@@ -511,13 +519,17 @@ export const staffDataBillHTML = (bill: Bill) => {
         desc = desc.replace('1 LTR (10X100ML)', '100ML');
         desc = desc.replace('1 LTR (5X200ML)', '200ML');
 
+        if (isWl) {
+            desc = `${desc} (WL)`;
+        }
+
         let u = (it.unit || 'NOS').toUpperCase();
         if (it.id === 'vs-gn-500ml-box' || it.id === 'vs-gn-1l-box' || it.id.endsWith('-box')) {
             u = 'BOX';
         } else if (/\b15\s*(LTR|KG|L|T|TIN)\b/i.test(desc)) u = 'TIN';
         else if (/\b5\s*(LTR|KG|L|CAN)\b/i.test(desc)) u = 'CAN';
         else if (/\bBOX\b/i.test(desc) || it.id.includes('_box')) u = 'BOX';
-        else if (it.id.endsWith('_ltr') && (it.size.toLowerCase() === '100 ml' || it.size.toLowerCase() === '200 ml' || it.size.toLowerCase() === '500 ml')) u = 'LTR';
+        else if ((it.id.endsWith('_ltr') || it.id.endsWith('_ltr_wl')) && (it.size.toLowerCase() === '100 ml' || it.size.toLowerCase() === '200 ml' || it.size.toLowerCase() === '500 ml')) u = 'LTR';
         else if (/\b(100|200|500)\s*ML\b/i.test(desc)) u = 'PCS';
         else if (u === 'LITRE') u = 'PCS';
 
