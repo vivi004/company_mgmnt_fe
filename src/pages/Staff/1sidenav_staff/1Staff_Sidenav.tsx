@@ -8,10 +8,11 @@ interface StaffSidenavProps {
     setActiveTab: (tab: string) => void;
     companyName: string;
     unverifiedCount: number;
+    userRole?: string;
     onClose?: () => void;
 }
 
-const StaffSidenav = ({ activeTab, setActiveTab, companyName, unverifiedCount, onClose }: StaffSidenavProps) => {
+const StaffSidenav = ({ activeTab, setActiveTab, companyName, unverifiedCount, userRole, onClose }: StaffSidenavProps) => {
     return (
         <aside className="w-72 bg-slate-900 text-white flex flex-col h-full shadow-2xl z-20 border-r border-white/5 relative">
             <div className="p-8 pb-6 flex items-start justify-between">
@@ -21,7 +22,9 @@ const StaffSidenav = ({ activeTab, setActiveTab, companyName, unverifiedCount, o
                     </div>
                     <div>
                         <h1 className="text-2xl font-black tracking-tight leading-none">{companyName}</h1>
-                        <p className="text-[10px] text-blue-400 font-bold uppercase tracking-widest mt-1">Staff Access</p>
+                        <p className="text-[10px] text-blue-400 font-bold uppercase tracking-widest mt-1">
+                            {userRole?.toLowerCase() === 'player' ? 'Player Access' : 'Staff Access'}
+                        </p>
                     </div>
                 </div>
                 {onClose && (
@@ -49,29 +52,33 @@ const StaffSidenav = ({ activeTab, setActiveTab, companyName, unverifiedCount, o
                     <span className="font-bold tracking-tight">Product Rates</span>
                 </button>
 
-                <button
-                    onClick={() => setActiveTab("order-lines")}
-                    className={`w-full flex items-center space-x-4 px-5 py-4 rounded-2xl transition-all duration-300 group ${activeTab === 'order-lines' ? 'bg-blue-600 text-white shadow-xl shadow-blue-600/30' : 'text-slate-400 hover:bg-white/10 hover:text-white'}`}
-                >
-                    <div className={`p-2 rounded-xl border ${activeTab === 'order-lines' ? 'bg-white/20 border-white/30' : 'bg-slate-800 border-slate-700'} group-hover:scale-110 transition-transform`}>
-                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
-                        </svg>
-                    </div>
-                    <span className="font-bold tracking-tight">Order Lines</span>
-                </button>
+                {userRole?.toLowerCase() !== 'player' && (
+                    <button
+                        onClick={() => setActiveTab("order-lines")}
+                        className={`w-full flex items-center space-x-4 px-5 py-4 rounded-2xl transition-all duration-300 group ${activeTab === 'order-lines' ? 'bg-blue-600 text-white shadow-xl shadow-blue-600/30' : 'text-slate-400 hover:bg-white/10 hover:text-white'}`}
+                    >
+                        <div className={`p-2 rounded-xl border ${activeTab === 'order-lines' ? 'bg-white/20 border-white/30' : 'bg-slate-800 border-slate-700'} group-hover:scale-110 transition-transform`}>
+                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
+                            </svg>
+                        </div>
+                        <span className="font-bold tracking-tight">Order Lines</span>
+                    </button>
+                )}
 
-                <button
-                    onClick={() => setActiveTab("collections")}
-                    className={`w-full flex items-center space-x-4 px-5 py-4 rounded-2xl transition-all duration-300 group ${activeTab === 'collections' ? 'bg-blue-600 text-white shadow-xl shadow-blue-600/30' : 'text-slate-400 hover:bg-white/10 hover:text-white'}`}
-                >
-                    <div className={`p-2 rounded-xl border ${activeTab === 'collections' ? 'bg-white/20 border-white/30' : 'bg-slate-800 border-slate-700'} group-hover:scale-110 transition-transform`}>
-                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z" />
-                        </svg>
-                    </div>
-                    <span className="font-bold tracking-tight">Today Collection</span>
-                </button>
+                {userRole?.toLowerCase() !== 'player' && (
+                    <button
+                        onClick={() => setActiveTab("collections")}
+                        className={`w-full flex items-center space-x-4 px-5 py-4 rounded-2xl transition-all duration-300 group ${activeTab === 'collections' ? 'bg-blue-600 text-white shadow-xl shadow-blue-600/30' : 'text-slate-400 hover:bg-white/10 hover:text-white'}`}
+                    >
+                        <div className={`p-2 rounded-xl border ${activeTab === 'collections' ? 'bg-white/20 border-white/30' : 'bg-slate-800 border-slate-700'} group-hover:scale-110 transition-transform`}>
+                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z" />
+                            </svg>
+                        </div>
+                        <span className="font-bold tracking-tight">Today Collection</span>
+                    </button>
+                )}
 
                 <button
                     onClick={() => setActiveTab("bill-check")}

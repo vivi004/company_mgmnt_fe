@@ -103,8 +103,9 @@ const AdminEmployeeModal: React.FC<AdminEmployeeModalProps> = ({
                         <div className="space-y-3">
                             <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-4">Role Matrix</label>
                             <select disabled={isEditingSelf} className={`w-full rounded-[25px] px-8 py-5 border transition-all font-black text-sm focus:outline-none focus:ring-4 ${isEditingSelf ? 'opacity-65 cursor-not-allowed' : ''} ${theme === 'dark' ? 'bg-slate-800 border-white/10 text-white focus:ring-blue-500/20 focus:border-blue-500' : 'bg-slate-50 border-slate-200 text-slate-900 focus:ring-blue-600/10 focus:border-blue-600'}`} value={formData.role} onChange={e => setFormData({ ...formData, role: e.target.value })}>
-                                <option value="Staff">Node Staff</option>
-                                <option value="Admin">Core Admin</option>
+                                <option value="Staff">Staff</option>
+                                <option value="Admin">Admin</option>
+                                <option value="Player">Player</option>
                             </select>
                         </div>
                         <div className="space-y-3">

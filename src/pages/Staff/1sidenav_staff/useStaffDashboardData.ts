@@ -9,7 +9,14 @@ import { syncRatesFromSheet } from "../../../services/googleSheetSync";
 export const useStaffDashboardData = () => {
     const [products, setProducts] = useState<Product[]>([]);
     const [loading, setLoading] = useState(true);
-    const [activeTab, setActiveTab] = useState(() => localStorage.getItem('staffActiveTab') || "product-rates");
+    const [activeTab, setActiveTab] = useState(() => {
+        const stored = localStorage.getItem('staffActiveTab') || "product-rates";
+        const initialUser = JSON.parse(localStorage.getItem('user') || '{}');
+        if (initialUser.role?.toLowerCase() === 'player' && (stored === 'order-lines' || stored === 'collections')) {
+            return 'product-rates';
+        }
+        return stored;
+    });
     const [showModal, setShowModal] = useState(false);
 
     const [theme, setTheme] = useState(() => localStorage.getItem('staffTheme') || "light");
@@ -64,11 +71,13 @@ export const useStaffDashboardData = () => {
                 const userName = userProfile.first_name ? `${userProfile.first_name} ${userProfile.last_name || ''}`.trim() : 'Staff';
                 const response = await api().get('/api/bills/unverified');
                 const bills = response.data || [];
-                const myUnverified = bills.filter((b: any) => 
-                    b.created_by === userProfile.username || 
-                    b.created_by === userName ||
-                    b.created_by === userProfile.first_name
-                );
+                const myUnverified = userProfile.role?.toLowerCase() === 'player'
+                    ? bills
+                    : bills.filter((b: any) => 
+                        b.created_by === userProfile.username || 
+                        b.created_by === userName ||
+                        b.created_by === userProfile.first_name
+                    );
                 setUnverifiedCount(myUnverified.length);
             } catch (err) {
                 console.error("Failed to load unverified count", err);

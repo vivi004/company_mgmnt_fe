@@ -24,7 +24,7 @@ const StaffDashboard = () => {
 
             {/* Desktop Sidenav */}
             <div className="hidden lg:block h-full">
-                <StaffSidenav activeTab={state.activeTab} setActiveTab={actions.setActiveTab} companyName={state.companyName} unverifiedCount={state.unverifiedCount} />
+                <StaffSidenav activeTab={state.activeTab} setActiveTab={actions.setActiveTab} companyName={state.companyName} unverifiedCount={state.unverifiedCount} userRole={state.userProfile.role} />
             </div>
 
             {/* Mobile Sidenav Drawer */}
@@ -40,7 +40,7 @@ const StaffDashboard = () => {
                 }}
             >
                 <div onClick={() => actions.setIsMobileMenuOpen(false)} className="h-full">
-                    <StaffSidenav activeTab={state.activeTab} setActiveTab={actions.setActiveTab} companyName={state.companyName} unverifiedCount={state.unverifiedCount} onClose={() => actions.setIsMobileMenuOpen(false)} />
+                    <StaffSidenav activeTab={state.activeTab} setActiveTab={actions.setActiveTab} companyName={state.companyName} unverifiedCount={state.unverifiedCount} userRole={state.userProfile.role} onClose={() => actions.setIsMobileMenuOpen(false)} />
                 </div>
             </Drawer>
 
@@ -93,7 +93,7 @@ const StaffDashboard = () => {
                             {state.activeTab === 'bill-check' && (
                                 <BillCheck
                                     theme={state.theme}
-                                    type="staff"
+                                    type={state.userProfile.role?.toLowerCase() === 'player' ? 'admin' : 'staff'}
                                     userProfileName={state.userProfile.first_name ? `${state.userProfile.first_name} ${state.userProfile.last_name || ''}`.trim() : 'Staff'}
                                     onUnverifiedCountChange={actions.setUnverifiedCount}
                                 />

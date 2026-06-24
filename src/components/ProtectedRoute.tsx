@@ -41,9 +41,14 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children, requiredRole 
     // Parse user and check role
     try {
         const user = JSON.parse(userRaw);
-        if (requiredRole && user.role !== requiredRole) {
-            // Wrong role — redirect to appropriate dashboard
-            return <Navigate to={user.role === 'admin' ? '/admin/dashboard' : '/staff/dashboard'} replace />;
+        const userRoleLower = user.role?.toLowerCase();
+        if (requiredRole && userRoleLower !== requiredRole.toLowerCase()) {
+            if (requiredRole.toLowerCase() === 'staff' && userRoleLower === 'player') {
+                // Allow player to use the staff dashboard layout
+            } else {
+                // Wrong role — redirect to appropriate dashboard
+                return <Navigate to={userRoleLower === 'admin' ? '/admin/dashboard' : '/staff/dashboard'} replace />;
+            }
         }
     } catch {
         clearAuthStorage();
