@@ -331,6 +331,24 @@ export const useAdminDashboardData = () => {
     }, []);
 
     useEffect(() => {
+        const handleWindowFocus = () => {
+            console.log('[WINDOW FOCUS] Refocus detected. Refreshing stats and lists.');
+            fetchEmployees();
+            fetchRequests();
+            fetchOrderLines();
+            fetchOlRequests();
+            checkBackendHealth();
+            bootstrapDashboardData();
+            loadBills(billSelectedDate);
+        };
+
+        window.addEventListener('focus', handleWindowFocus);
+        return () => {
+            window.removeEventListener('focus', handleWindowFocus);
+        };
+    }, [billSelectedDate]);
+
+    useEffect(() => {
         localStorage.setItem('companyName', companyName);
         localStorage.setItem('adminTheme', theme);
         localStorage.setItem('nextInvoiceNo', String(nextInvoiceNo));
