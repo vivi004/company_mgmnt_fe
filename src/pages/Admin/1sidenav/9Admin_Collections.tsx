@@ -172,7 +172,7 @@ const AdminCollections = ({ theme, orderLines, isAdmin: propsIsAdmin, isViewer =
     } = useCollections(orderLines);
 
     const storedUser = JSON.parse(localStorage.getItem('user') || '{}');
-    const isAdmin = propsIsAdmin ?? (storedUser.role === 'admin' || storedUser.role === 'Admin');
+    const isAdmin = (propsIsAdmin ?? (storedUser.role === 'admin' || storedUser.role === 'Admin')) && !isViewer;
 
     const { toasts, showToast, removeToast } = useToast();
 
@@ -1697,12 +1697,14 @@ const AdminCollections = ({ theme, orderLines, isAdmin: propsIsAdmin, isViewer =
                                 <h3 className={`text-sm font-black uppercase tracking-widest ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
                                     💰 Collection Breakdown by Mode
                                 </h3>
-                                <button
-                                    onClick={handleOpenAdd}
-                                    className={`px-5 py-2.5 rounded-xl text-xs font-black uppercase tracking-widest transition-all border shadow-lg ${isDark ? 'bg-amber-600 border-amber-500 text-white hover:bg-amber-500 shadow-amber-900/40' : 'bg-amber-500 border-amber-400 text-white hover:bg-amber-400 shadow-amber-200'}`}
-                                >
-                                    💸 Add Expense
-                                </button>
+                                {!isViewer && (
+                                    <button
+                                        onClick={handleOpenAdd}
+                                        className={`px-5 py-2.5 rounded-xl text-xs font-black uppercase tracking-widest transition-all border shadow-lg ${isDark ? 'bg-amber-600 border-amber-500 text-white hover:bg-amber-500 shadow-amber-900/40' : 'bg-amber-500 border-amber-400 text-white hover:bg-amber-400 shadow-amber-200'}`}
+                                    >
+                                        💸 Add Expense
+                                    </button>
+                                )}
                             </div>
                             <div className="overflow-x-auto">
                                 <table className="w-full text-sm min-w-[400px]">
@@ -1787,22 +1789,24 @@ const AdminCollections = ({ theme, orderLines, isAdmin: propsIsAdmin, isViewer =
                                             <td className="px-5 py-3 text-right">
                                                 <div className="flex items-center justify-end gap-4">
                                                     <span className="font-black text-amber-500 text-xs">- ₹{fmt(exp.amount)}</span>
-                                                    <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                                                        <button 
-                                                            onClick={() => handleOpenEdit(exp)}
-                                                            className="p-1 hover:bg-blue-500/20 rounded text-blue-400 transition-colors"
-                                                            title="Edit"
-                                                        >
-                                                            <span className="inline-block hover:scale-125 transition-transform duration-200 text-sm sm:text-base">✏️</span>
-                                                        </button>
-                                                        <button 
-                                                            onClick={() => handleDeleteExpense(exp.id)}
-                                                            className="p-1 hover:bg-red-500/20 rounded text-red-400 transition-colors"
-                                                            title="Delete"
-                                                        >
-                                                            🗑️
-                                                        </button>
-                                                    </div>
+                                                    {!isViewer && (
+                                                        <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                                                            <button 
+                                                                onClick={() => handleOpenEdit(exp)}
+                                                                className="p-1 hover:bg-blue-500/20 rounded text-blue-400 transition-colors"
+                                                                title="Edit"
+                                                            >
+                                                                <span className="inline-block hover:scale-125 transition-transform duration-200 text-sm sm:text-base">✏️</span>
+                                                            </button>
+                                                            <button 
+                                                                onClick={() => handleDeleteExpense(exp.id)}
+                                                                className="p-1 hover:bg-red-500/20 rounded text-red-400 transition-colors"
+                                                                title="Delete"
+                                                            >
+                                                                🗑️
+                                                            </button>
+                                                        </div>
+                                                    )}
                                                 </div>
                                             </td>
                                             <td className="px-5 py-3 text-right"></td>
@@ -1832,12 +1836,14 @@ const AdminCollections = ({ theme, orderLines, isAdmin: propsIsAdmin, isViewer =
                                     Verify physical cash in hand against web recorded cash for {new Date(selectedDate).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric', timeZone: 'Asia/Kolkata' })}
                                 </p>
                             </div>
-                            <button
-                                onClick={handleResetTally}
-                                className={`px-3 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all border ${isDark ? 'bg-white/5 border-white/10 text-slate-400 hover:text-white' : 'bg-slate-50 border-slate-200 text-slate-500 hover:text-red-500 shadow-sm'}`}
-                            >
-                                🔄 Reset Tally
-                            </button>
+                            {!isViewer && (
+                                <button
+                                    onClick={handleResetTally}
+                                    className={`px-3 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all border ${isDark ? 'bg-white/5 border-white/10 text-slate-400 hover:text-white' : 'bg-slate-50 border-slate-200 text-slate-500 hover:text-red-500 shadow-sm'}`}
+                                >
+                                    🔄 Reset Tally
+                                </button>
+                            )}
                         </div>
 
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -1850,7 +1856,7 @@ const AdminCollections = ({ theme, orderLines, isAdmin: propsIsAdmin, isViewer =
                                     </h4>
                                 </div>
                                 <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest mt-4">
-                                    Includes all cash collections minus daily expenses
+                                    Includes all cash collections daily expenses
                                 </p>
                             </div>
 
@@ -1866,6 +1872,7 @@ const AdminCollections = ({ theme, orderLines, isAdmin: propsIsAdmin, isViewer =
                                             <input
                                                 id="physical-cash-input"
                                                 type="text"
+                                                disabled={isViewer}
                                                 value={tempCashInput}
                                                 onChange={(e) => {
                                                     const val = e.target.value;
@@ -1873,16 +1880,18 @@ const AdminCollections = ({ theme, orderLines, isAdmin: propsIsAdmin, isViewer =
                                                         setTempCashInput(val);
                                                     }
                                                 }}
-                                                placeholder="Enter counted cash..."
-                                                className={`w-full pl-8 pr-4 py-3 rounded-xl border font-black text-base outline-none transition-all ${isDark ? 'bg-slate-900 border-white/10 text-white focus:border-blue-500/50' : 'bg-white border-slate-200 text-slate-900 focus:border-blue-500/30 shadow-sm'}`}
+                                                placeholder={isViewer ? "Tally read-only" : "Enter counted cash..."}
+                                                className={`w-full pl-8 pr-4 py-3 rounded-xl border font-black text-base outline-none transition-all ${isDark ? 'bg-slate-900 border-white/10 text-white focus:border-blue-500/50' : 'bg-white border-slate-200 text-slate-900 focus:border-blue-500/30 shadow-sm'} ${isViewer ? 'opacity-60 cursor-not-allowed' : ''}`}
                                             />
                                         </div>
-                                        <button
-                                            onClick={() => handleSaveTally(tempCashInput)}
-                                            className={`px-5 py-3 rounded-xl text-sm font-black uppercase tracking-widest transition-all shadow-md ${isDark ? 'bg-emerald-600 hover:bg-emerald-500 text-white shadow-emerald-900/20' : 'bg-emerald-500 hover:bg-emerald-400 text-white shadow-emerald-200'}`}
-                                        >
-                                            Okay
-                                        </button>
+                                        {!isViewer && (
+                                            <button
+                                                onClick={() => handleSaveTally(tempCashInput)}
+                                                className={`px-5 py-3 rounded-xl text-sm font-black uppercase tracking-widest transition-all shadow-md ${isDark ? 'bg-emerald-600 hover:bg-emerald-500 text-white shadow-emerald-900/20' : 'bg-emerald-500 hover:bg-emerald-400 text-white shadow-emerald-200'}`}
+                                            >
+                                                Okay
+                                            </button>
+                                        )}
                                     </div>
                                 </div>
                                 <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest mt-4">
@@ -2095,7 +2104,7 @@ const AdminCollections = ({ theme, orderLines, isAdmin: propsIsAdmin, isViewer =
                                                     <td className="px-4 py-3 text-right font-black text-amber-500">
                                                         <div className="flex items-center justify-end gap-3">
                                                             <span>₹{fmt(item.amount)}</span>
-                                                            {isAdmin && (
+                                                            {!isViewer && (
                                                                 <div className="flex items-center gap-1">
                                                                     <button
                                                                         onClick={() => {
@@ -2157,6 +2166,7 @@ const AdminCollections = ({ theme, orderLines, isAdmin: propsIsAdmin, isViewer =
                 handleApprove={handleApprove}
                 handleReject={handleReject}
                 fmt={fmt}
+                isViewer={isViewer}
             />
 
             {/* ── Consolidated Shop Ledger Edit Modal (Admin-Only) ── */}

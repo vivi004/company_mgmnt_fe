@@ -33,9 +33,10 @@ interface Props {
     handleRefreshInvoiceSettings?: () => Promise<void>;
     setOrderLines?: React.Dispatch<React.SetStateAction<any[]>>;
     fetchOrderLines?: () => Promise<void>;
+    isViewer?: boolean;
 }
 
-const ShopManager = ({ orderLineId, villageName, theme, onBack, type, handleRefreshInvoiceSettings, setOrderLines, fetchOrderLines }: Props) => {
+const ShopManager = ({ orderLineId, villageName, theme, onBack, type, handleRefreshInvoiceSettings, setOrderLines, fetchOrderLines, isViewer }: Props) => {
     const isAdmin = type === 'admin';
     const isDark = theme === 'dark';
     const primaryColor = isAdmin ? 'blue' : 'emerald';
@@ -479,12 +480,14 @@ const ShopManager = ({ orderLineId, villageName, theme, onBack, type, handleRefr
                         ${isDark ? `bg-${primaryColor}-500/10 text-${primaryColor}-400 border-${primaryColor}-500/20` : `bg-${primaryColor}-50 text-${primaryColor}-600 border-${primaryColor}-100`}`}>
                         {shops.length} Shops
                     </div>
-                    <button
-                        onClick={openAdd}
-                        className={`flex-1 sm:flex-initial px-6 py-3 bg-${primaryColor}-600 hover:bg-${primaryColor}-700 text-white font-black rounded-2xl text-[10px] sm:text-xs uppercase tracking-widest transition-all shadow-lg shadow-${primaryColor}-600/20 hover:-translate-y-0.5 active:scale-95`}
-                    >
-                        + Add Shop
-                    </button>
+                    {!isViewer && (
+                        <button
+                            onClick={openAdd}
+                            className={`flex-1 sm:flex-initial px-6 py-3 bg-${primaryColor}-600 hover:bg-${primaryColor}-700 text-white font-black rounded-2xl text-[10px] sm:text-xs uppercase tracking-widest transition-all shadow-lg shadow-${primaryColor}-600/20 hover:-translate-y-0.5 active:scale-95`}
+                        >
+                            + Add Shop
+                        </button>
+                    )}
                 </div>
             </div>
 
@@ -666,7 +669,18 @@ const ShopManager = ({ orderLineId, villageName, theme, onBack, type, handleRefr
 
                                 <div className="mt-5 pt-4 border-t border-slate-100/50 dark:border-white/5 w-full">
                                     <div className="grid grid-cols-4 gap-2.5 w-full">
-                                        {isAdmin && (
+                                        {isViewer ? (
+                                            <div className="col-span-4 flex w-full">
+                                                <button
+                                                    onClick={(e) => { e.preventDefault(); e.stopPropagation(); fetchLedger(shop); }}
+                                                    className={`w-full p-3 rounded-2xl border transition-all flex flex-col items-center justify-center gap-1.5 text-[8px] sm:text-[9px] font-black uppercase tracking-widest ${isDark ? 'bg-white/5 border-white/10 text-indigo-400 hover:bg-indigo-500/20' : 'bg-indigo-50 border-indigo-100 text-indigo-600 hover:bg-indigo-600 hover:text-white'}`}
+                                                    title="Ledger"
+                                                >
+                                                    <svg className="w-4.5 h-4.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 17v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2m3.222.882a.5.5 0 010-.764L15.39 8.388a.5.5 0 01.44-.061l1.597.532a.5.5 0 00.54-.124l1.26-1.26a.5.5 0 00-.518-.813l-1.18.393a.5.5 0 01-.44-.061l-1.597-.532a.5.5 0 00-.54.124l-1.26 1.26a.5.5 0 00.518.813l1.18-.393z" /></svg>
+                                                    <span>Ledger</span>
+                                                </button>
+                                            </div>
+                                        ) : isAdmin ? (
                                             <>
                                                 <button
                                                     onClick={(e) => { e.preventDefault(); e.stopPropagation(); setSelectedShop(shop); setPaymentData(p => ({ ...p, amount: '', method: 'Cash' })); setShowPaymentModal(true); }}
@@ -684,10 +698,6 @@ const ShopManager = ({ orderLineId, villageName, theme, onBack, type, handleRefr
                                                     <svg className="w-4.5 h-4.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 17v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2m3.222.882a.5.5 0 010-.764L15.39 8.388a.5.5 0 01.44-.061l1.597.532a.5.5 0 00.54-.124l1.26-1.26a.5.5 0 00-.518-.813l-1.18.393a.5.5 0 01-.44-.061l-1.597-.532a.5.5 0 00-.54.124l-1.26 1.26a.5.5 0 00.518.813l1.18-.393z" /></svg>
                                                     <span>Ledger</span>
                                                 </button>
-                                            </>
-                                        )}
-                                        {isAdmin ? (
-                                            <>
                                                 <button
                                                     onClick={(e) => { e.preventDefault(); e.stopPropagation(); openEdit(shop); }}
                                                     className={`p-3 rounded-2xl border transition-all flex flex-col items-center justify-center gap-1.5 text-[8px] sm:text-[9px] font-black uppercase tracking-widest ${isDark ? 'bg-white/5 border-white/10 text-blue-400 hover:bg-blue-500/20' : 'bg-blue-50 border-blue-100 text-blue-600 hover:bg-blue-600 hover:text-white'}`}

@@ -10,6 +10,7 @@ interface PendingApprovalsModalProps {
     handleApprove: (txId: number) => Promise<void>;
     handleReject: (txId: number, reason: string) => Promise<void>;
     fmt: (v: number) => string;
+    isViewer?: boolean;
 }
 
 export const PendingApprovalsModal = ({
@@ -20,7 +21,8 @@ export const PendingApprovalsModal = ({
     refreshDashboard,
     handleApprove,
     handleReject,
-    fmt
+    fmt,
+    isViewer = false
 }: PendingApprovalsModalProps) => {
     const [pendingTxs, setPendingTxs] = useState<any[]>([]);
     const [loadingPending, setLoadingPending] = useState(false);
@@ -233,14 +235,16 @@ export const PendingApprovalsModal = ({
                             <table className="w-full text-sm text-left">
                                 <thead>
                                     <tr className={`text-[10px] font-black uppercase tracking-widest ${isDark ? 'bg-slate-800/50 text-slate-400' : 'bg-slate-50 text-slate-500'}`}>
-                                        <th className="px-4 py-3 text-center w-12">
-                                            <input 
-                                                type="checkbox"
-                                                checked={filteredPendingTxs.length > 0 && filteredPendingTxs.every((tx: any) => selectedPendingIds.includes(tx.id))}
-                                                onChange={() => handleSelectAllPending(filteredPendingTxs.map((t: any) => t.id))}
-                                                className="w-4 h-4 rounded border-slate-300 text-blue-600 focus:ring-blue-500 dark:bg-slate-800 dark:border-white/10"
-                                            />
-                                        </th>
+                                        {!isViewer && (
+                                            <th className="px-4 py-3 text-center w-12">
+                                                <input 
+                                                    type="checkbox"
+                                                    checked={filteredPendingTxs.length > 0 && filteredPendingTxs.every((tx: any) => selectedPendingIds.includes(tx.id))}
+                                                    onChange={() => handleSelectAllPending(filteredPendingTxs.map((t: any) => t.id))}
+                                                    className="w-4 h-4 rounded border-slate-300 text-blue-600 focus:ring-blue-500 dark:bg-slate-800 dark:border-white/10"
+                                                />
+                                            </th>
+                                        )}
                                         <th className="px-4 py-3">Shop &amp; Village</th>
                                         <th className="px-4 py-3">Type</th>
                                         <th className="px-4 py-3">Method</th>
@@ -256,14 +260,16 @@ export const PendingApprovalsModal = ({
                                         const isAdj = tx.transaction_category === 'MANUAL_ADJUST';
                                         return (
                                             <tr key={tx.id} className={`${isDark ? 'text-slate-300 hover:bg-white/5' : 'text-slate-700 hover:bg-slate-50'} transition-colors`}>
-                                                <td className="px-4 py-3 text-center">
-                                                    <input 
-                                                        type="checkbox"
-                                                        checked={selectedPendingIds.includes(tx.id)}
-                                                        onChange={() => handleSelectPending(tx.id)}
-                                                        className="w-4 h-4 rounded border-slate-300 text-blue-600 focus:ring-blue-500 dark:bg-slate-800 dark:border-white/10"
-                                                    />
-                                                </td>
+                                                {!isViewer && (
+                                                    <td className="px-4 py-3 text-center">
+                                                        <input 
+                                                            type="checkbox"
+                                                            checked={selectedPendingIds.includes(tx.id)}
+                                                            onChange={() => handleSelectPending(tx.id)}
+                                                            className="w-4 h-4 rounded border-slate-300 text-blue-600 focus:ring-blue-500 dark:bg-slate-800 dark:border-white/10"
+                                                        />
+                                                    </td>
+                                                )}
                                                 <td className="px-4 py-3">
                                                     <div className="font-bold">{tx.shop_name}</div>
                                                     <div className="text-[10px] text-slate-500 uppercase tracking-wider">{tx.village_name}</div>
@@ -287,26 +293,30 @@ export const PendingApprovalsModal = ({
                                                     <div className="text-[10px] text-slate-500">{new Date(tx.transaction_date).toLocaleDateString('en-IN', {day:'2-digit', month:'short', year:'numeric'})} {new Date(tx.transaction_date).toLocaleTimeString('en-IN', {hour:'2-digit', minute:'2-digit'})}</div>
                                                 </td>
                                                 <td className="px-4 py-3 text-center">
-                                                    <div className="flex items-center justify-center gap-1.5">
-                                                        <button 
-                                                            onClick={() => handleApprovePendingSingle(tx.id, mode, tx.amount)}
-                                                            className="w-6 h-6 flex items-center justify-center bg-emerald-500 text-white rounded-lg hover:bg-emerald-600 transition-all shadow-lg shadow-emerald-500/20 group/btn"
-                                                            title="Approve"
-                                                        >
-                                                            <svg className="w-4 h-4 group-hover/btn:scale-110 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={4} d="M5 13l4 4L19 7" />
-                                                            </svg>
-                                                        </button>
-                                                        <button 
-                                                            onClick={() => handleRejectPendingSingle(tx.id)}
-                                                            className="w-6 h-6 flex items-center justify-center bg-red-500/10 text-red-500 rounded-lg hover:bg-red-500 hover:text-white transition-all group/btn"
-                                                            title="Reject"
-                                                        >
-                                                            <svg className="w-4 h-4 group-hover/btn:scale-110 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={4} d="M6 18L18 6M6 6l12 12" />
-                                                            </svg>
-                                                        </button>
-                                                    </div>
+                                                    {isViewer ? (
+                                                        <span className="text-xs text-slate-400 italic font-bold">View Only</span>
+                                                    ) : (
+                                                        <div className="flex items-center justify-center gap-1.5">
+                                                            <button 
+                                                                onClick={() => handleApprovePendingSingle(tx.id, mode, tx.amount)}
+                                                                className="w-6 h-6 flex items-center justify-center bg-emerald-500 text-white rounded-lg hover:bg-emerald-600 transition-all shadow-lg shadow-emerald-500/20 group/btn"
+                                                                title="Approve"
+                                                            >
+                                                                <svg className="w-4 h-4 group-hover/btn:scale-110 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={4} d="M5 13l4 4L19 7" />
+                                                                </svg>
+                                                            </button>
+                                                            <button 
+                                                                onClick={() => handleRejectPendingSingle(tx.id)}
+                                                                className="w-6 h-6 flex items-center justify-center bg-red-500/10 text-red-500 rounded-lg hover:bg-red-50 hover:text-white transition-all group/btn"
+                                                                title="Reject"
+                                                            >
+                                                                <svg className="w-4 h-4 group-hover/btn:scale-110 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={4} d="M6 18L18 6M6 6l12 12" />
+                                                                </svg>
+                                                            </button>
+                                                        </div>
+                                                    )}
                                                 </td>
                                             </tr>
                                         );
@@ -327,20 +337,22 @@ export const PendingApprovalsModal = ({
                         >
                             Close
                         </button>
-                        <button
-                            onClick={handleApprovePendingBulk}
-                            disabled={selectedPendingIds.length === 0 || approvingBulk}
-                            className={`px-6 py-2.5 rounded-xl font-black text-xs uppercase tracking-widest transition-all bg-emerald-600 text-white hover:bg-emerald-500 disabled:opacity-40 disabled:cursor-not-allowed shadow-lg shadow-emerald-500/30 flex items-center gap-1.5`}
-                        >
-                            {approvingBulk ? (
-                                <>
-                                    <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                                    Approving...
-                                </>
-                            ) : (
-                                `Approve Selected (${selectedPendingIds.length})`
-                            )}
-                        </button>
+                        {!isViewer && (
+                            <button
+                                onClick={handleApprovePendingBulk}
+                                disabled={selectedPendingIds.length === 0 || approvingBulk}
+                                className={`px-6 py-2.5 rounded-xl font-black text-xs uppercase tracking-widest transition-all bg-emerald-600 text-white hover:bg-emerald-500 disabled:opacity-40 disabled:cursor-not-allowed shadow-lg shadow-emerald-500/30 flex items-center gap-1.5`}
+                            >
+                                {approvingBulk ? (
+                                    <>
+                                        <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                                        Approving...
+                                    </>
+                                ) : (
+                                    `Approve Selected (${selectedPendingIds.length})`
+                                )}
+                            </button>
+                        )}
                     </div>
                 </div>
             </div>

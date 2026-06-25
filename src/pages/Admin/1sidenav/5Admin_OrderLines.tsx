@@ -36,6 +36,7 @@ const AdminOrderLines = ({ orderLines, theme, handleOpenOlModal, handleDeleteOl,
                 handleRefreshInvoiceSettings={handleRefreshInvoiceSettings}
                 setOrderLines={setOrderLines}
                 fetchOrderLines={fetchOrderLines}
+                isViewer={isViewer}
             />
         );
     }

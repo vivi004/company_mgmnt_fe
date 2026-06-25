@@ -96,7 +96,7 @@ const AdminSettings = ({
     }, [upiId1, upiName1, upiId2, upiName2]);
 
     const onSaveUpi = async () => {
-        if (!handleSaveUpiSettings) return;
+        if (!handleSaveUpiSettings || isViewer) return;
         setUpiSaving(true);
         setUpiSaved(false);
         await handleSaveUpiSettings(
@@ -150,6 +150,7 @@ const AdminSettings = ({
     }, [nextInvoiceNo]);
 
     const handleSaveInvoiceNo = async () => {
+        if (isViewer) return;
         const parsed = Math.max(1, parseInt(draftInvoiceNo, 10) || 1);
         setDraftInvoiceNo(String(parsed));
         setInvoiceSaving(true);
@@ -337,23 +338,23 @@ const AdminSettings = ({
                     <div className="space-y-4">
                         <div className="space-y-1">
                             <label className={`text-[10px] font-black italic px-2 uppercase tracking-widest ${theme === 'dark' ? 'text-slate-400' : 'text-slate-500'}`}>Area / Village Name</label>
-                            <input type="text" placeholder="e.g. Salem City" value={manualVillage} onChange={e => setManualVillage(e.target.value)}
-                                className={`w-full px-5 py-3 rounded-2xl font-bold text-sm border focus:outline-none focus:ring-2 transition-all ${theme === 'dark' ? 'bg-slate-800 border-white/10 text-white focus:border-pink-500' : 'bg-slate-50 border-slate-200 text-slate-900 focus:border-pink-500'}`} />
+                            <input type="text" placeholder="e.g. Salem City" value={manualVillage} onChange={e => setManualVillage(e.target.value)} disabled={isViewer}
+                                className={`w-full px-5 py-3 rounded-2xl font-bold text-sm border focus:outline-none focus:ring-2 transition-all ${theme === 'dark' ? 'bg-slate-800 border-white/10 text-white focus:border-pink-500' : 'bg-slate-50 border-slate-200 text-slate-900 focus:border-pink-500'} ${isViewer ? 'opacity-65 cursor-not-allowed' : ''}`} />
                         </div>
                         <div className="space-y-1">
                             <label className={`text-[10px] font-black italic px-2 uppercase tracking-widest ${theme === 'dark' ? 'text-slate-400' : 'text-slate-500'}`}>Shop Name</label>
-                            <input type="text" placeholder="e.g. General Traders" value={manualShop} onChange={e => setManualShop(e.target.value)}
-                                className={`w-full px-5 py-3 rounded-2xl font-bold text-sm border focus:outline-none focus:ring-2 transition-all ${theme === 'dark' ? 'bg-slate-800 border-white/10 text-white focus:border-pink-500' : 'bg-slate-50 border-slate-200 text-slate-900 focus:border-pink-500'}`} />
+                            <input type="text" placeholder="e.g. General Traders" value={manualShop} onChange={e => setManualShop(e.target.value)} disabled={isViewer}
+                                className={`w-full px-5 py-3 rounded-2xl font-bold text-sm border focus:outline-none focus:ring-2 transition-all ${theme === 'dark' ? 'bg-slate-800 border-white/10 text-white focus:border-pink-500' : 'bg-slate-50 border-slate-200 text-slate-900 focus:border-pink-500'} ${isViewer ? 'opacity-65 cursor-not-allowed' : ''}`} />
                         </div>
                         <div className="space-y-1">
                             <label className={`text-[10px] font-black italic px-2 uppercase tracking-widest ${theme === 'dark' ? 'text-slate-400' : 'text-slate-500'}`}>Specific Area / Landmark (Optional)</label>
-                            <input type="text" placeholder="e.g. Near Bustand / Complex" value={manualSpecificArea} onChange={e => setManualSpecificArea(e.target.value)}
-                                className={`w-full px-5 py-3 rounded-2xl font-bold text-sm border focus:outline-none focus:ring-2 transition-all ${theme === 'dark' ? 'bg-slate-800 border-white/10 text-white focus:border-pink-500' : 'bg-slate-50 border-slate-200 text-slate-900 focus:border-pink-500'}`} />
+                            <input type="text" placeholder="e.g. Near Bustand / Complex" value={manualSpecificArea} onChange={e => setManualSpecificArea(e.target.value)} disabled={isViewer}
+                                className={`w-full px-5 py-3 rounded-2xl font-bold text-sm border focus:outline-none focus:ring-2 transition-all ${theme === 'dark' ? 'bg-slate-800 border-white/10 text-white focus:border-pink-500' : 'bg-slate-50 border-slate-200 text-slate-900 focus:border-pink-500'} ${isViewer ? 'opacity-65 cursor-not-allowed' : ''}`} />
                         </div>
                         <div className="space-y-1">
                             <label className={`text-[10px] font-black italic px-2 uppercase tracking-widest ${theme === 'dark' ? 'text-slate-400' : 'text-slate-500'}`}>Phone Number (Optional)</label>
-                            <input type="text" placeholder="e.g. 9876543210" value={manualPhone} onChange={e => setManualPhone(e.target.value)}
-                                className={`w-full px-5 py-3 rounded-2xl font-bold text-sm border focus:outline-none focus:ring-2 transition-all ${theme === 'dark' ? 'bg-slate-800 border-white/10 text-white focus:border-pink-500' : 'bg-slate-50 border-slate-200 text-slate-900 focus:border-pink-500'}`} />
+                            <input type="text" placeholder="e.g. 9876543210" value={manualPhone} onChange={e => setManualPhone(e.target.value)} disabled={isViewer}
+                                className={`w-full px-5 py-3 rounded-2xl font-bold text-sm border focus:outline-none focus:ring-2 transition-all ${theme === 'dark' ? 'bg-slate-800 border-white/10 text-white focus:border-pink-500' : 'bg-slate-50 border-slate-200 text-slate-900 focus:border-pink-500'} ${isViewer ? 'opacity-65 cursor-not-allowed' : ''}`} />
                         </div>
                         {!isViewer && (
                         <button onClick={handleStartManualBill}
@@ -375,7 +376,8 @@ const AdminSettings = ({
                                 value={draftInvoiceNo}
                                 onChange={e => setDraftInvoiceNo(e.target.value)}
                                 onKeyDown={e => { if (e.key === 'Enter') handleSaveInvoiceNo(); }}
-                                className={`w-full px-6 py-4 rounded-[20px] font-black text-2xl tracking-widest border transition-all focus:outline-none focus:ring-4 ${theme === 'dark' ? 'bg-slate-800 border-white/10 text-violet-300 focus:ring-violet-500/20 focus:border-violet-500' : 'bg-slate-50 border-slate-200 text-violet-700 focus:ring-violet-600/10 focus:border-violet-600'}`}
+                                disabled={isViewer}
+                                className={`w-full px-6 py-4 rounded-[20px] font-black text-2xl tracking-widest border transition-all focus:outline-none focus:ring-4 ${theme === 'dark' ? 'bg-slate-800 border-white/10 text-violet-300 focus:ring-violet-500/20 focus:border-violet-500' : 'bg-slate-50 border-slate-200 text-violet-700 focus:ring-violet-600/10 focus:border-violet-600'} ${isViewer ? 'opacity-65 cursor-not-allowed' : ''}`}
                             />
                             {!isViewer && (
                             <button
@@ -425,7 +427,8 @@ const AdminSettings = ({
                                     placeholder="e.g. merchant@ybl"
                                     value={draftUpiId1}
                                     onChange={e => setDraftUpiId1(e.target.value)}
-                                    className={`w-full px-5 py-3 rounded-2xl font-bold text-sm border focus:outline-none focus:ring-2 transition-all ${theme === 'dark' ? 'bg-slate-800 border-white/10 text-white focus:border-indigo-500' : 'bg-slate-50 border-slate-200 text-slate-900 focus:border-indigo-500'}`}
+                                    disabled={isViewer}
+                                    className={`w-full px-5 py-3 rounded-2xl font-bold text-sm border focus:outline-none focus:ring-2 transition-all ${theme === 'dark' ? 'bg-slate-800 border-white/10 text-white focus:border-indigo-500' : 'bg-slate-50 border-slate-200 text-slate-900 focus:border-indigo-500'} ${isViewer ? 'opacity-65 cursor-not-allowed' : ''}`}
                                 />
                             </div>
                             <div className="space-y-1">
@@ -435,7 +438,8 @@ const AdminSettings = ({
                                     placeholder="e.g. NISHA OIL MILL"
                                     value={draftUpiName1}
                                     onChange={e => setDraftUpiName1(e.target.value)}
-                                    className={`w-full px-5 py-3 rounded-2xl font-bold text-sm border focus:outline-none focus:ring-2 transition-all ${theme === 'dark' ? 'bg-slate-800 border-white/10 text-white focus:border-indigo-500' : 'bg-slate-50 border-slate-200 text-slate-900 focus:border-indigo-500'}`}
+                                    disabled={isViewer}
+                                    className={`w-full px-5 py-3 rounded-2xl font-bold text-sm border focus:outline-none focus:ring-2 transition-all ${theme === 'dark' ? 'bg-slate-800 border-white/10 text-white focus:border-indigo-500' : 'bg-slate-50 border-slate-200 text-slate-900 focus:border-indigo-500'} ${isViewer ? 'opacity-65 cursor-not-allowed' : ''}`}
                                 />
                             </div>
                         </div>
@@ -448,7 +452,8 @@ const AdminSettings = ({
                                     placeholder="e.g. merchant@okaxis"
                                     value={draftUpiId2}
                                     onChange={e => setDraftUpiId2(e.target.value)}
-                                    className={`w-full px-5 py-3 rounded-2xl font-bold text-sm border focus:outline-none focus:ring-2 transition-all ${theme === 'dark' ? 'bg-slate-800 border-white/10 text-white focus:border-indigo-500' : 'bg-slate-50 border-slate-200 text-slate-900 focus:border-indigo-500'}`}
+                                    disabled={isViewer}
+                                    className={`w-full px-5 py-3 rounded-2xl font-bold text-sm border focus:outline-none focus:ring-2 transition-all ${theme === 'dark' ? 'bg-slate-800 border-white/10 text-white focus:border-indigo-500' : 'bg-slate-50 border-slate-200 text-slate-900 focus:border-indigo-500'} ${isViewer ? 'opacity-65 cursor-not-allowed' : ''}`}
                                 />
                             </div>
                             <div className="space-y-1">
@@ -458,7 +463,8 @@ const AdminSettings = ({
                                     placeholder="e.g. NISHA OIL MILL"
                                     value={draftUpiName2}
                                     onChange={e => setDraftUpiName2(e.target.value)}
-                                    className={`w-full px-5 py-3 rounded-2xl font-bold text-sm border focus:outline-none focus:ring-2 transition-all ${theme === 'dark' ? 'bg-slate-800 border-white/10 text-white focus:border-indigo-500' : 'bg-slate-50 border-slate-200 text-slate-900 focus:border-indigo-500'}`}
+                                    disabled={isViewer}
+                                    className={`w-full px-5 py-3 rounded-2xl font-bold text-sm border focus:outline-none focus:ring-2 transition-all ${theme === 'dark' ? 'bg-slate-800 border-white/10 text-white focus:border-indigo-500' : 'bg-slate-50 border-slate-200 text-slate-900 focus:border-indigo-500'} ${isViewer ? 'opacity-65 cursor-not-allowed' : ''}`}
                                 />
                             </div>
                         </div>
