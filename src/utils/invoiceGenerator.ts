@@ -111,7 +111,7 @@ const paginateItems = (allItems: any[]): InvoicePage[] => {
     return pages;
 };
 
-export const invoiceHTML = (bill: Bill, vehicleNo: string = '') => {
+export const invoiceHTML = (bill: Bill, vehicleNo: string = '', printBothCopies: boolean = true) => {
     const upi = getUpiSettings();
     const upiLink1 = `upi://pay?pa=${upi.upiId1}&pn=${encodeURIComponent(upi.upiName1)}&cu=INR`;
     const upiLink2 = `upi://pay?pa=${upi.upiId2}&pn=${encodeURIComponent(upi.upiName2)}&cu=INR`;
@@ -241,8 +241,7 @@ export const invoiceHTML = (bill: Bill, vehicleNo: string = '') => {
         Edappadi[Tk],Salem[dt].<br>
         FSSAI NO:12417018000626.<br>
         State Name : Tamil Nadu, Code : 33<br>
-        Contact : 9965174472<br>
-        E-Mail : nishaoilmills.pvt.ltd@gmail.com
+        Contact : 9965174472
     </td>
     <td colspan="2" style="${B}font-size:10px;">Invoice No.<br><b style="font-size:11px;">${bill.invoiceNo}</b></td>
     <td colspan="2" style="${B}font-size:10px;">Dated<br><b style="font-size:11px;">${dds}</b></td>
@@ -411,7 +410,11 @@ ${isFinal ? `
         }).join('');
     };
 
-    return generateCopyHTML('ORIGINAL FOR RECIPIENT') + generateCopyHTML('DUPLICATE FOR SUPPLIER');
+    if (printBothCopies) {
+        return generateCopyHTML('ORIGINAL FOR RECIPIENT') + generateCopyHTML('DUPLICATE FOR SUPPLIER');
+    } else {
+        return generateCopyHTML('ORIGINAL FOR RECIPIENT');
+    }
 };
 
 const printStyles = `
@@ -428,36 +431,36 @@ const printStyles = `
     }
 `;
 
-export const downloadBill = (bill: Bill, vehicleNo: string = '') => {
+export const downloadBill = (bill: Bill, vehicleNo: string = '', printBothCopies: boolean = true) => {
     const w = window.open('', '_blank');
     if (!w) return;
-    w.document.write(`<html><head><title>Invoice-${bill.shopName}</title><style>${printStyles}</style></head><body>${invoiceHTML(bill, vehicleNo)}</body></html>`);
+    w.document.write(`<html><head><title>Invoice-${bill.shopName}</title><style>${printStyles}</style></head><body>${invoiceHTML(bill, vehicleNo, printBothCopies)}</body></html>`);
     w.document.close();
     setTimeout(() => { w.print(); w.close(); }, 600);
 };
 
-export const previewBill = (bill: Bill, vehicleNo: string = '') => {
+export const previewBill = (bill: Bill, vehicleNo: string = '', printBothCopies: boolean = true) => {
     const w = window.open('', '_blank');
     if (!w) return;
-    w.document.write(`<html><head><title>Preview-${bill.shopName}</title><style>${printStyles} body { padding: 20px; } div.bp { max-width: 210mm; margin: 0 auto 30px; box-shadow: 0 0 10px rgba(0,0,0,0.1); }</style></head><body>${invoiceHTML(bill, vehicleNo)}</body></html>`);
+    w.document.write(`<html><head><title>Preview-${bill.shopName}</title><style>${printStyles} body { padding: 20px; } div.bp { max-width: 210mm; margin: 0 auto 30px; box-shadow: 0 0 10px rgba(0,0,0,0.1); }</style></head><body>${invoiceHTML(bill, vehicleNo, printBothCopies)}</body></html>`);
     w.document.close();
 };
 
-export const downloadAllFiltered = (filteredBills: Bill[], vehicleNo: string = '') => {
+export const downloadAllFiltered = (filteredBills: Bill[], vehicleNo: string = '', printBothCopies: boolean = true) => {
     if (filteredBills.length === 0) return;
     const w = window.open('', '_blank');
     if (!w) return;
-    const allHTML = filteredBills.map(b => invoiceHTML(b, vehicleNo)).join('');
+    const allHTML = filteredBills.map(b => invoiceHTML(b, vehicleNo, printBothCopies)).join('');
     w.document.write(`<html><head><title>All Invoices</title><style>${printStyles}</style></head><body>${allHTML}</body></html>`);
     w.document.close();
     setTimeout(() => { w.print(); w.close(); }, 600);
 };
 
-export const downloadStaffBillsPdf = (staffBills: Bill[], staffName: string, vehicleNo: string = '') => {
+export const downloadStaffBillsPdf = (staffBills: Bill[], staffName: string, vehicleNo: string = '', printBothCopies: boolean = true) => {
     if (staffBills.length === 0) return;
     const w = window.open('', '_blank');
     if (!w) return;
-    const allHTML = staffBills.map(b => invoiceHTML(b, vehicleNo)).join('');
+    const allHTML = staffBills.map(b => invoiceHTML(b, vehicleNo, printBothCopies)).join('');
     w.document.write(`<html><head><title>${staffName} Invoices</title><style>${printStyles}</style></head><body>${allHTML}</body></html>`);
     w.document.close();
     setTimeout(() => { w.print(); w.close(); }, 600);

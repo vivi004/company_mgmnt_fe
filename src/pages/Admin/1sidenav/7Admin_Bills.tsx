@@ -23,6 +23,7 @@ const AdminBills: React.FC<Props> = ({ bills, theme, onDeleteBill, onEditBill, s
     const { state, actions, computed, refs } = useAdminBills(bills, onEditBill, selectedDate, setSelectedDate);
 
     const [selectedVehicles, setSelectedVehicles] = useState<Record<string, string>>({});
+    const [printBothCopies, setPrintBothCopies] = useState(false);
 
     const handleVehicleChange = (staffName: string, vehicleNo: string) => {
         setSelectedVehicles(prev => ({ ...prev, [staffName]: vehicleNo }));
@@ -165,10 +166,29 @@ const AdminBills: React.FC<Props> = ({ bills, theme, onDeleteBill, onEditBill, s
                     </div>
                 </div>
 
-                <div className="flex flex-col sm:flex-row flex-wrap sm:flex-nowrap gap-3 sm:gap-4 w-full sm:w-auto">
+                <div className="flex flex-col sm:flex-row flex-wrap sm:flex-nowrap gap-3 sm:gap-4 w-full sm:w-auto items-center">
+                    {/* Print Duplicate Toggle */}
+                    <div className="flex items-center gap-3 mr-2 sm:mr-4 select-none">
+                        <span className={`text-[10px] sm:text-xs font-black uppercase tracking-widest ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
+                            Duplicate Copy
+                        </span>
+                        <button
+                            onClick={() => setPrintBothCopies(!printBothCopies)}
+                            className={`w-11 h-6 flex items-center rounded-full p-1 transition-colors duration-300 outline-none ${
+                                printBothCopies ? 'bg-blue-600' : (isDark ? 'bg-slate-700' : 'bg-slate-200')
+                            }`}
+                        >
+                            <div
+                                className={`bg-white w-4 h-4 rounded-full shadow-md transform transition-transform duration-300 ${
+                                    printBothCopies ? 'translate-x-5' : 'translate-x-0'
+                                }`}
+                            />
+                        </button>
+                    </div>
+
                     {!isViewer && (
                     <button
-                        onClick={() => downloadAllFiltered(state.filteredBills)}
+                        onClick={() => downloadAllFiltered(state.filteredBills, '', printBothCopies)}
                         disabled={state.filteredBills.length === 0}
                         className="flex-1 sm:flex-none px-4 sm:px-6 py-3 bg-blue-600 hover:bg-blue-700 disabled:opacity-40 disabled:cursor-not-allowed text-white font-black rounded-2xl text-[10px] sm:text-xs uppercase tracking-widest transition-all shadow-lg shadow-blue-600/20 hover:-translate-y-0.5 active:scale-95 flex items-center justify-center gap-2"
                     >
@@ -226,7 +246,7 @@ const AdminBills: React.FC<Props> = ({ bills, theme, onDeleteBill, onEditBill, s
                                         </select>
                                         <div className="flex items-center gap-3 flex-1 xs:flex-initial">
                                             <button
-                                                onClick={() => downloadStaffBillsPdf(allStaffBills, staffName, selectedVehicles[staffName] || '')}
+                                                onClick={() => downloadStaffBillsPdf(allStaffBills, staffName, selectedVehicles[staffName] || '', printBothCopies)}
                                                 className="flex-1 xs:flex-initial px-4 py-2 bg-blue-500/10 hover:bg-blue-500 text-blue-600 dark:text-blue-400 hover:text-white font-black rounded-xl text-xs uppercase tracking-widest transition-all shadow-sm flex items-center justify-center gap-2"
                                             >
                                                 <svg className="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -276,7 +296,7 @@ const AdminBills: React.FC<Props> = ({ bills, theme, onDeleteBill, onEditBill, s
                                                 </div>
                                                 <div className="flex gap-2 w-full xs:w-auto justify-end">
                                                     <button
-                                                        onClick={() => downloadStaffBillsPdf(villageBills, `${staffName}_${villageName}`, selectedVehicles[staffName] || '')}
+                                                        onClick={() => downloadStaffBillsPdf(villageBills, `${staffName}_${villageName}`, selectedVehicles[staffName] || '', printBothCopies)}
                                                         className={`px-3 py-1.5 rounded-lg text-[9px] font-black uppercase tracking-widest border transition-all ${isDark ? 'bg-white/5 border-white/10 text-slate-400 hover:text-white' : 'bg-white border-slate-200 text-slate-500 hover:text-blue-600 shadow-sm'}`}
                                                     >
                                                         PDF
@@ -345,7 +365,7 @@ const AdminBills: React.FC<Props> = ({ bills, theme, onDeleteBill, onEditBill, s
                                                             </div>
                                                             <div className="col-span-3 flex justify-end gap-2">
                                                                 <button
-                                                                    onClick={() => previewBill(bill, selectedVehicles[staffName] || '')}
+                                                                    onClick={() => previewBill(bill, selectedVehicles[staffName] || '', printBothCopies)}
                                                                     className={`p-2 rounded-lg transition-all border shrink-0
                                                                         ${isDark ? 'bg-slate-800 border-white/10 text-slate-300 hover:text-white' : 'bg-white border-slate-200 text-slate-600 hover:text-slate-900 shadow-sm'}`}
                                                                 >
@@ -361,7 +381,7 @@ const AdminBills: React.FC<Props> = ({ bills, theme, onDeleteBill, onEditBill, s
                                                                 </button>
                                                                 )}
                                                                 <button
-                                                                    onClick={() => downloadBill(bill, selectedVehicles[staffName] || '')}
+                                                                    onClick={() => downloadBill(bill, selectedVehicles[staffName] || '', printBothCopies)}
                                                                     className="px-2.5 py-2 bg-blue-500 hover:bg-blue-600 text-white font-black rounded-lg text-[9px] uppercase tracking-widest transition-all active:scale-90 flex items-center"
                                                                 >
                                                                     PDF
@@ -422,7 +442,7 @@ const AdminBills: React.FC<Props> = ({ bills, theme, onDeleteBill, onEditBill, s
                                                             </span>
                                                             <div className="flex items-center justify-end gap-2 w-full xs:w-auto">
                                                                 <button
-                                                                    onClick={() => previewBill(bill, selectedVehicles[staffName] || '')}
+                                                                    onClick={() => previewBill(bill, selectedVehicles[staffName] || '', printBothCopies)}
                                                                     className={`flex-1 xs:flex-initial p-2 rounded-lg transition-all border flex items-center justify-center
                                                                         ${isDark ? 'bg-slate-800 border-white/10 text-slate-300 hover:text-white' : 'bg-white border-slate-200 text-slate-600 hover:text-slate-900 shadow-sm'}`}
                                                                     title="Preview"
@@ -440,7 +460,7 @@ const AdminBills: React.FC<Props> = ({ bills, theme, onDeleteBill, onEditBill, s
                                                                 </button>
                                                                 )}
                                                                 <button
-                                                                    onClick={() => downloadBill(bill, selectedVehicles[staffName] || '')}
+                                                                    onClick={() => downloadBill(bill, selectedVehicles[staffName] || '', printBothCopies)}
                                                                     className="flex-1 xs:flex-initial px-3 py-2 bg-blue-500 hover:bg-blue-600 text-white font-black rounded-lg text-[9px] uppercase tracking-widest transition-all active:scale-90 flex items-center justify-center"
                                                                 >
                                                                     PDF
