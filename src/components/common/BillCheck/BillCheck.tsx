@@ -160,18 +160,15 @@ const BillCheck = ({ theme, type, userProfileName, onUnverifiedCountChange, user
         if (bills.length === 0) return;
         if (!window.confirm(`Verify ALL ${bills.length} bills for ${label} and push them to the primary ledger?`)) return;
 
-        let success = 0;
-        let failed = 0;
-        for (const bill of bills) {
-            try {
-                await api().put(`/api/bills/verify/${bill.id}`);
-                success++;
-            } catch {
-                failed++;
-            }
+        try {
+            const billIds = bills.map(b => b.id);
+            await api().put('/api/bills/verify/batch', { ids: billIds });
+            showToast(`All ${bills.length} bills for ${label} verified successfully!`, 'success');
+        } catch {
+            showToast('Failed to verify batch bills', 'error');
+        } finally {
+            loadUnverifiedBills();
         }
-        showToast(`${success} bills verified${failed > 0 ? `, ${failed} failed` : ''}`, success > 0 ? 'success' : 'error');
-        loadUnverifiedBills();
     };
 
     const handleRejectBatch = async (bills: Bill[], label: string) => {
