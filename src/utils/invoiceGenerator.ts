@@ -17,6 +17,8 @@ export interface Bill {
     phone?: string;
     phone2?: string;
     isEditedPrice?: boolean;
+    isEditedQty?: boolean;
+    isEditedDate?: boolean;
     old_balance?: number;
     oldBalance?: number;
 }

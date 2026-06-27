@@ -22,6 +22,8 @@ interface Bill {
     phone?: string;
     phone2?: string;
     isEditedPrice?: boolean;
+    isEditedQty?: boolean;
+    isEditedDate?: boolean;
     old_balance?: number;
     oldBalance?: number;
 }
@@ -102,6 +104,8 @@ const BillCheck = ({ theme, type, userProfileName, onUnverifiedCountChange, user
                 phone: b.phone || '',
                 phone2: b.phone2 || '',
                 isEditedPrice: Boolean(b.is_edited_price || b.isEditedPrice),
+                isEditedQty: Boolean(b.is_edited_qty || b.isEditedQty),
+                isEditedDate: Boolean(b.is_edited_date || b.isEditedDate),
                 old_balance: b.old_balance ?? b.oldBalance ?? 0,
                 oldBalance: b.old_balance ?? b.oldBalance ?? 0
             }));
@@ -481,6 +485,12 @@ const BillCheck = ({ theme, type, userProfileName, onUnverifiedCountChange, user
                                                 </span>
                                                 {bill.isEditedPrice && (
                                                     <span className="text-[8px] font-black uppercase tracking-widest text-red-500 bg-red-500/10 px-1.5 py-0.5 rounded border border-red-500/20">Edited Price</span>
+                                                )}
+                                                {bill.isEditedQty && (
+                                                    <span className="text-[8px] font-black uppercase tracking-widest text-amber-500 bg-amber-500/10 px-1.5 py-0.5 rounded border border-amber-500/20">Edited Qty</span>
+                                                )}
+                                                {bill.isEditedDate && (
+                                                    <span className="text-[8px] font-black uppercase tracking-widest text-blue-500 bg-blue-500/10 px-1.5 py-0.5 rounded border border-blue-500/20">Edited Date</span>
                                                 )}
                                             </div>
                                             <p className="text-[10px] sm:text-xs font-bold text-slate-500 uppercase tracking-widest">{bill.villageName}</p>

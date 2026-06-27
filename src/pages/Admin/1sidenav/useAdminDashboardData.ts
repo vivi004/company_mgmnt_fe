@@ -112,6 +112,8 @@ export const useAdminDashboardData = () => {
                 phone: b.phone || '',
                 phone2: b.phone2 || '',
                 isEditedPrice: Boolean(b.is_edited_price || b.isEditedPrice),
+                isEditedQty: Boolean(b.is_edited_qty || b.isEditedQty),
+                isEditedDate: Boolean(b.is_edited_date || b.isEditedDate),
                 old_balance: b.old_balance ?? b.oldBalance ?? 0
             }));
             
