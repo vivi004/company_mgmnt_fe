@@ -272,12 +272,42 @@ const BillCheck = ({ theme, type, userProfileName, onUnverifiedCountChange, user
         try {
             const totalAmount = getTotal(finalCart, finalRates);
             const finalDeliveryDate = editDeliveryDate || editingBill.deliveryDate;
+
+            // 1. Detect if any rate was changed from the original bill
+            const originalRates = editingBill.customRates || {};
+            const hasEditedPrice = Object.keys(finalRates).some(id => {
+                const p = getAllProducts().find(x => x.id === id);
+                const originalEffectiveRate = originalRates[id] ?? p?.price;
+                return finalRates[id] !== undefined && finalRates[id] !== originalEffectiveRate;
+            }) || editingBill.isEditedPrice === true || isEditedPrice === true;
+
+            // 2. Detect if quantities changed from the original bill
+            const originalCart = editingBill.cart || {};
+            const allCartKeys = new Set([...Object.keys(originalCart), ...Object.keys(finalCart)]);
+            let hasEditedQty = editingBill.isEditedQty === true;
+            for (const key of allCartKeys) {
+                if ((originalCart[key] || 0) !== (finalCart[key] || 0)) {
+                    hasEditedQty = true;
+                    break;
+                }
+            }
+
+            // 3. Detect if delivery date changed from the original bill
+            const originalDateStr = (() => {
+                const d = editingBill.deliveryDate || editingBill.date || '';
+                return d.includes('T') ? d.split('T')[0] : d.split(' ')[0];
+            })();
+            const newDateStr = finalDeliveryDate ? (finalDeliveryDate.includes('T') ? finalDeliveryDate.split('T')[0] : finalDeliveryDate.split(' ')[0]) : '';
+            const hasEditedDate = (originalDateStr !== newDateStr) || editingBill.isEditedDate === true;
+
             await api().put(`/api/bills/${editingBill.id}`, { 
                 cart: finalCart, 
                 custom_rates: finalRates,
                 total_amount: totalAmount,
                 delivery_date: finalDeliveryDate,
-                is_edited_price: isEditedPrice,
+                is_edited_price: hasEditedPrice,
+                is_edited_qty: hasEditedQty,
+                is_edited_date: hasEditedDate,
                 created_by: (() => {
                     const storedUser = JSON.parse(localStorage.getItem('user') || '{}');
                     return storedUser.first_name ? `${storedUser.first_name} ${storedUser.last_name || ''}`.trim() : (isAdmin ? 'Admin' : 'Staff');

@@ -11,7 +11,7 @@ interface Props {
     bills: Bill[];
     theme: string;
     onDeleteBill: (id: number) => void;
-    onEditBill: (id: number, newCart: Record<string, number>, newRates?: Record<string, number>, newDate?: string, isEditedPrice?: boolean) => void;
+    onEditBill: (id: number, newCart: Record<string, number>, newRates?: Record<string, number>, newDate?: string, isEditedPrice?: boolean, isEditedQty?: boolean, isEditedDate?: boolean) => void;
     selectedDate: string;
     setSelectedDate: (date: string) => void;
     motorVehicles: any[];

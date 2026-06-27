@@ -4,7 +4,7 @@ import type { Bill } from '../../../utils/invoiceGenerator';
 
 export const useAdminBills = (
     bills: Bill[],
-    onEditBill: (id: number, newCart: Record<string, number>, newRates?: Record<string, number>, newDate?: string, isEditedPrice?: boolean) => void,
+    onEditBill: (id: number, newCart: Record<string, number>, newRates?: Record<string, number>, newDate?: string, isEditedPrice?: boolean, isEditedQty?: boolean, isEditedDate?: boolean) => void,
     externalSelectedDate?: string,
     setExternalSelectedDate?: (date: string) => void
 ) => {
@@ -143,13 +143,34 @@ export const useAdminBills = (
 
         const finalDeliveryDate = editDeliveryDate || editingBill.deliveryDate;
 
-        // Detect if any rate was changed from the original bill
+        // 1. Detect if any rate was changed from the original bill
         const originalRates = editingBill.customRates || {};
         const hasEditedPrice = Object.keys(finalRates).some(id => {
-            return finalRates[id] !== undefined && finalRates[id] !== (originalRates[id] ?? finalRates[id]);
+            const p = getAllProducts().find(x => x.id === id);
+            const originalEffectiveRate = originalRates[id] ?? p?.price;
+            return finalRates[id] !== undefined && finalRates[id] !== originalEffectiveRate;
         }) || editingBill.isEditedPrice === true || isEditedPrice === true; // preserve flag if previously set or edited in current session
 
-        onEditBill(editingBill.id, finalCart, finalRates, finalDeliveryDate, hasEditedPrice);
+        // 2. Detect if quantities changed from the original bill
+        const originalCart = editingBill.cart || {};
+        const allCartKeys = new Set([...Object.keys(originalCart), ...Object.keys(finalCart)]);
+        let hasEditedQty = editingBill.isEditedQty === true;
+        for (const key of allCartKeys) {
+            if ((originalCart[key] || 0) !== (finalCart[key] || 0)) {
+                hasEditedQty = true;
+                break;
+            }
+        }
+
+        // 3. Detect if delivery date changed from the original bill
+        const originalDateStr = (() => {
+            const d = editingBill.deliveryDate || editingBill.date || '';
+            return d.includes('T') ? d.split('T')[0] : d.split(' ')[0];
+        })();
+        const newDateStr = finalDeliveryDate ? (finalDeliveryDate.includes('T') ? finalDeliveryDate.split('T')[0] : finalDeliveryDate.split(' ')[0]) : '';
+        const hasEditedDate = (originalDateStr !== newDateStr) || editingBill.isEditedDate === true;
+
+        onEditBill(editingBill.id, finalCart, finalRates, finalDeliveryDate, hasEditedPrice, hasEditedQty, hasEditedDate);
         setEditingBill(null);
         setShowReview(false);
     };
