@@ -24,6 +24,8 @@ interface Bill {
     isEditedPrice?: boolean;
     isEditedQty?: boolean;
     isEditedDate?: boolean;
+    originalCart?: Record<string, number>;
+    originalDeliveryDate?: string;
     old_balance?: number;
     oldBalance?: number;
 }
@@ -106,6 +108,15 @@ const BillCheck = ({ theme, type, userProfileName, onUnverifiedCountChange, user
                 isEditedPrice: Boolean(b.is_edited_price || b.isEditedPrice),
                 isEditedQty: Boolean(b.is_edited_qty || b.isEditedQty),
                 isEditedDate: Boolean(b.is_edited_date || b.isEditedDate),
+                originalCart: (() => {
+                    const raw = b.original_cart || b.originalCart || b.cart || {};
+                    const cleaned: Record<string, number> = {};
+                    for (const key of Object.keys(raw)) {
+                        cleaned[key] = raw[key];
+                    }
+                    return cleaned;
+                })(),
+                originalDeliveryDate: b.original_delivery_date || b.originalDeliveryDate || b.delivery_date || b.deliveryDate || b.bill_date || b.date,
                 old_balance: b.old_balance ?? b.oldBalance ?? 0,
                 oldBalance: b.old_balance ?? b.oldBalance ?? 0
             }));
@@ -273,18 +284,16 @@ const BillCheck = ({ theme, type, userProfileName, onUnverifiedCountChange, user
             const totalAmount = getTotal(finalCart, finalRates);
             const finalDeliveryDate = editDeliveryDate || editingBill.deliveryDate;
 
-            // 1. Detect if any rate was changed from the original bill
-            const originalRates = editingBill.customRates || {};
+            // 1. Detect if any price differs from the default product price
             const hasEditedPrice = Object.keys(finalRates).some(id => {
                 const p = getAllProducts().find(x => x.id === id);
-                const originalEffectiveRate = originalRates[id] ?? p?.price;
-                return finalRates[id] !== undefined && finalRates[id] !== originalEffectiveRate;
-            }) || editingBill.isEditedPrice === true || isEditedPrice === true;
+                return p && finalRates[id] !== undefined && finalRates[id] !== p.price;
+            }) || isEditedPrice;
 
             // 2. Detect if quantities changed from the original bill
-            const originalCart = editingBill.cart || {};
+            const originalCart = editingBill.originalCart || editingBill.cart || {};
             const allCartKeys = new Set([...Object.keys(originalCart), ...Object.keys(finalCart)]);
-            let hasEditedQty = editingBill.isEditedQty === true;
+            let hasEditedQty = false;
             for (const key of allCartKeys) {
                 if ((originalCart[key] || 0) !== (finalCart[key] || 0)) {
                     hasEditedQty = true;
@@ -294,11 +303,11 @@ const BillCheck = ({ theme, type, userProfileName, onUnverifiedCountChange, user
 
             // 3. Detect if delivery date changed from the original bill
             const originalDateStr = (() => {
-                const d = editingBill.deliveryDate || editingBill.date || '';
+                const d = editingBill.originalDeliveryDate || editingBill.deliveryDate || editingBill.date || '';
                 return d.includes('T') ? d.split('T')[0] : d.split(' ')[0];
             })();
             const newDateStr = finalDeliveryDate ? (finalDeliveryDate.includes('T') ? finalDeliveryDate.split('T')[0] : finalDeliveryDate.split(' ')[0]) : '';
-            const hasEditedDate = (originalDateStr !== newDateStr) || editingBill.isEditedDate === true;
+            const hasEditedDate = (originalDateStr !== newDateStr);
 
             await api().put(`/api/bills/${editingBill.id}`, { 
                 cart: finalCart, 

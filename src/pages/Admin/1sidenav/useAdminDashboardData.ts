@@ -114,6 +114,15 @@ export const useAdminDashboardData = () => {
                 isEditedPrice: Boolean(b.is_edited_price || b.isEditedPrice),
                 isEditedQty: Boolean(b.is_edited_qty || b.isEditedQty),
                 isEditedDate: Boolean(b.is_edited_date || b.isEditedDate),
+                originalCart: (() => {
+                    const raw = b.original_cart || b.originalCart || b.cart || {};
+                    const cleaned: Record<string, number> = {};
+                    for (const key of Object.keys(raw)) {
+                        cleaned[key] = raw[key];
+                    }
+                    return cleaned;
+                })(),
+                originalDeliveryDate: b.original_delivery_date || b.originalDeliveryDate || b.delivery_date || b.deliveryDate || b.bill_date || b.date,
                 old_balance: b.old_balance ?? b.oldBalance ?? 0
             }));
             

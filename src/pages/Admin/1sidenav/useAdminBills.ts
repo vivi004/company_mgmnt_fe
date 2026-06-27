@@ -143,18 +143,16 @@ export const useAdminBills = (
 
         const finalDeliveryDate = editDeliveryDate || editingBill.deliveryDate;
 
-        // 1. Detect if any rate was changed from the original bill
-        const originalRates = editingBill.customRates || {};
+        // 1. Detect if any price differs from the default product price
         const hasEditedPrice = Object.keys(finalRates).some(id => {
             const p = getAllProducts().find(x => x.id === id);
-            const originalEffectiveRate = originalRates[id] ?? p?.price;
-            return finalRates[id] !== undefined && finalRates[id] !== originalEffectiveRate;
-        }) || editingBill.isEditedPrice === true || isEditedPrice === true; // preserve flag if previously set or edited in current session
+            return p && finalRates[id] !== undefined && finalRates[id] !== p.price;
+        }) || isEditedPrice;
 
         // 2. Detect if quantities changed from the original bill
-        const originalCart = editingBill.cart || {};
+        const originalCart = editingBill.originalCart || editingBill.cart || {};
         const allCartKeys = new Set([...Object.keys(originalCart), ...Object.keys(finalCart)]);
-        let hasEditedQty = editingBill.isEditedQty === true;
+        let hasEditedQty = false;
         for (const key of allCartKeys) {
             if ((originalCart[key] || 0) !== (finalCart[key] || 0)) {
                 hasEditedQty = true;
@@ -164,11 +162,11 @@ export const useAdminBills = (
 
         // 3. Detect if delivery date changed from the original bill
         const originalDateStr = (() => {
-            const d = editingBill.deliveryDate || editingBill.date || '';
+            const d = editingBill.originalDeliveryDate || editingBill.deliveryDate || editingBill.date || '';
             return d.includes('T') ? d.split('T')[0] : d.split(' ')[0];
         })();
         const newDateStr = finalDeliveryDate ? (finalDeliveryDate.includes('T') ? finalDeliveryDate.split('T')[0] : finalDeliveryDate.split(' ')[0]) : '';
-        const hasEditedDate = (originalDateStr !== newDateStr) || editingBill.isEditedDate === true;
+        const hasEditedDate = (originalDateStr !== newDateStr);
 
         onEditBill(editingBill.id, finalCart, finalRates, finalDeliveryDate, hasEditedPrice, hasEditedQty, hasEditedDate);
         setEditingBill(null);

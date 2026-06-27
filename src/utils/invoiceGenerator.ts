@@ -19,6 +19,8 @@ export interface Bill {
     isEditedPrice?: boolean;
     isEditedQty?: boolean;
     isEditedDate?: boolean;
+    originalCart?: Record<string, number>;
+    originalDeliveryDate?: string;
     old_balance?: number;
     oldBalance?: number;
 }
