@@ -153,7 +153,7 @@ export const useAdminBills = (
                 break;
             }
         }
-        const hasEditedPrice = ratesChanged || Boolean(editingBill.isEditedPrice || editingBill.is_edited_price);
+        const hasEditedPrice = ratesChanged || isEditedPrice || Boolean(editingBill.isEditedPrice);
 
         // 2. Detect if quantities changed from the original bill
         const originalCart = editingBill.originalCart || editingBill.cart || {};
