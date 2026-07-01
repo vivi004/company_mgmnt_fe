@@ -284,11 +284,17 @@ const BillCheck = ({ theme, type, userProfileName, onUnverifiedCountChange, user
             const totalAmount = getTotal(finalCart, finalRates);
             const finalDeliveryDate = editDeliveryDate || editingBill.deliveryDate;
 
-            // 1. Detect if any price differs from the default product price
-            const hasEditedPrice = Object.keys(finalRates).some(id => {
-                const p = getAllProducts().find(x => x.id === id);
-                return p && finalRates[id] !== undefined && finalRates[id] !== p.price;
-            }) || isEditedPrice;
+            // 1. Detect if any price was changed during this edit session
+            const originalRates = editingBill.customRates || {};
+            const allRateKeys = new Set([...Object.keys(originalRates), ...Object.keys(finalRates)]);
+            let ratesChanged = false;
+            for (const key of allRateKeys) {
+                if ((originalRates[key] ?? undefined) !== (finalRates[key] ?? undefined)) {
+                    ratesChanged = true;
+                    break;
+                }
+            }
+            const hasEditedPrice = ratesChanged || Boolean(editingBill.isEditedPrice || editingBill.is_edited_price);
 
             // 2. Detect if quantities changed from the original bill
             const originalCart = editingBill.originalCart || editingBill.cart || {};
