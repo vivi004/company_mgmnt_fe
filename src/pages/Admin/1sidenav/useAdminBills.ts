@@ -148,7 +148,11 @@ export const useAdminBills = (
         const allRateKeys = new Set([...Object.keys(originalRates), ...Object.keys(finalRates)]);
         let ratesChanged = false;
         for (const key of allRateKeys) {
-            if ((originalRates[key] ?? undefined) !== (finalRates[key] ?? undefined)) {
+            const product = getAllProducts().find(p => p.id === key);
+            const defaultPrice = product ? product.price : 0;
+            const origVal = originalRates[key] ?? defaultPrice;
+            const finalVal = finalRates[key] ?? defaultPrice;
+            if (origVal !== finalVal) {
                 ratesChanged = true;
                 break;
             }
