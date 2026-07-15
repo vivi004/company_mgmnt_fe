@@ -271,6 +271,11 @@ const BillCheck = ({ theme, type, userProfileName, onUnverifiedCountChange, user
             if (qty > 0) finalCart[id] = qty;
         }
 
+        if (Object.keys(finalCart).length === 0) {
+            showToast('Cannot save an empty bill. Please reject or discard the bill instead.', 'error');
+            return;
+        }
+
         const finalRates = { ...editRates };
         getAllProducts().forEach(p => {
             if (p.id.endsWith('_box') || p.id.endsWith('_ltr') || p.id.endsWith('_box_wl') || p.id.endsWith('_ltr_wl')) return;

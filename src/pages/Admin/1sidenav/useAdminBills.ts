@@ -130,6 +130,11 @@ export const useAdminBills = (
             if (qty > 0) finalCart[id] = qty;
         }
 
+        if (Object.keys(finalCart).length === 0) {
+            alert('Cannot save an empty bill. Please reject or delete the bill instead.');
+            return;
+        }
+
         // Ensure newly added items capture the current price instead of staying dynamic
         const finalRates = { ...editRates };
         getAllProducts().forEach(p => {
