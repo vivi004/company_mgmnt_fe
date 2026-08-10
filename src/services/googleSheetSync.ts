@@ -138,7 +138,7 @@ function mapSheetToProducts(rows: string[][]): Record<string, number> {
     set('mo-v-15kg', 6, 3); // 2440
     // ── Block 1: ROSI GOLD Palm Oil (cols E=4, F=5) ──
     set('po-r-850g', 3, 5);
-    set('po-r-820g', 4, 5);
+    set('po-r-1ltr', 4, 5);
     // Row 6 is typically 5L CAN (not available for Palm Oil)
     set('po-r-15l', 7, 5);
     set('po-r-15kg', 8, 5);
