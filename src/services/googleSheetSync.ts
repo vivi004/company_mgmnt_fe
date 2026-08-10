@@ -136,16 +136,9 @@ function mapSheetToProducts(rows: string[][]): Record<string, number> {
     set('mo-v-5lcan-ny', 17, 3); // Connect with Nisha Yellow (Row 18, Col D in Sheet)
     set('mo-v-15l', 5, 3); // 2230
     set('mo-v-15kg', 6, 3); // 2440
-
-    // ── Block 1: Roshini Mixed Oil (row 8, cols C=2, D=3) ──
-    set('mo-r-0.5lpo', 8, 3); // 1380 (BOX)
-    set('mo-r-1lpo', 8, 3); // 1380 (BOX)
-
     // ── Block 1: ROSI GOLD Palm Oil (cols E=4, F=5) ──
     set('po-r-850g', 3, 5);
     set('po-r-820g', 4, 5);
-    set('po-r-800g', 5, 5);
-    set('po-r-750g', 6, 5);
     // Row 6 is typically 5L CAN (not available for Palm Oil)
     set('po-r-15l', 7, 5);
     set('po-r-15kg', 8, 5);
