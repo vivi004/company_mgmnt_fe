@@ -13,15 +13,20 @@ const AdminSales = ({ theme }: Props) => {
     useEffect(() => { actions.fetchSalesData(); }, []);
 
     const card = (title: string, value: string, sub: string, icon: string, color: string) => {
-        const isLong = value.length > 9;
+        const valLen = value.length;
+        const fontSizeClass = valLen > 10
+            ? 'text-base sm:text-lg lg:text-xl 2xl:text-sm min-[1700px]:text-base'
+            : valLen > 7
+                ? 'text-lg sm:text-xl lg:text-2xl 2xl:text-base min-[1700px]:text-lg'
+                : 'text-xl sm:text-2xl lg:text-3xl 2xl:text-lg min-[1700px]:text-xl';
         return (
-            <div className={`p-6 rounded-[28px] border transition-all hover:-translate-y-1 min-w-0 overflow-hidden
+            <div className={`p-4 sm:p-5 rounded-[28px] border transition-all hover:-translate-y-1 min-w-0 overflow-hidden
                 ${isDark ? 'bg-slate-900 border-white/5' : 'bg-white border-slate-100 shadow-lg'}`}>
                 <div className="flex items-center justify-between mb-4 gap-2 min-w-0">
                     <span className={`text-3xl p-3 rounded-2xl shrink-0 ${isDark ? 'bg-slate-800' : `bg-${color}-50`}`}>{icon}</span>
-                    <span className={`text-[10px] font-black uppercase tracking-widest ${isDark ? 'text-slate-500' : 'text-slate-400'} truncate`} title={title}>{title}</span>
+                    <span className={`text-[10px] font-black uppercase tracking-wider 2xl:tracking-normal ${isDark ? 'text-slate-500' : 'text-slate-400'} truncate`} title={title}>{title}</span>
                 </div>
-                <p className={`font-black tracking-tight ${isLong ? 'text-lg sm:text-xl lg:text-2xl' : 'text-2xl sm:text-3xl'} ${isDark ? 'text-white' : 'text-slate-900'} truncate`} title={value}>
+                <p className={`font-black tracking-tight ${fontSizeClass} ${isDark ? 'text-white' : 'text-slate-900'} truncate`} title={value}>
                     {value}
                 </p>
                 <p className="text-sm text-slate-500 mt-1 font-medium truncate" title={sub}>{sub}</p>

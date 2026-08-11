@@ -1331,18 +1331,23 @@ const AdminCollections = ({ theme, orderLines, isAdmin: propsIsAdmin, isViewer =
                     { label: 'Pending', value: `₹${fmt(totals.todaysBillBalance)}`, icon: '⏳', color: totals.todaysBillBalance > 0 ? 'amber' : 'green' },
                     { label: 'Shops', value: String(collections.length), icon: '🏪', color: 'purple' },
                 ].map((card) => {
-                    const isLongValue = card.value.length > 9;
+                    const valLen = card.value.length;
+                    const fontSizeClass = valLen > 10
+                        ? 'text-sm sm:text-base lg:text-lg 2xl:text-xs min-[1700px]:text-sm'
+                        : valLen > 7
+                            ? 'text-base sm:text-lg lg:text-xl 2xl:text-sm min-[1700px]:text-base'
+                            : 'text-xl sm:text-2xl 2xl:text-base min-[1700px]:text-lg';
                     return (
                         <div
                             key={card.label}
-                            className={`rounded-2xl border p-4 sm:p-5 transition-all min-w-0 overflow-hidden ${isDark ? 'bg-slate-900/50 border-white/5' : 'bg-white border-slate-100 shadow-sm'}`}
+                            className={`rounded-2xl border p-3.5 sm:p-4 2xl:p-3 transition-all min-w-0 overflow-hidden ${isDark ? 'bg-slate-900/50 border-white/5' : 'bg-white border-slate-100 shadow-sm'}`}
                         >
                             <div className="flex items-center gap-2 mb-2 min-w-0 overflow-hidden">
                                 <span className="text-lg shrink-0">{card.icon}</span>
-                                <span className={`text-[10px] font-black uppercase tracking-widest ${isDark ? 'text-slate-500' : 'text-slate-400'} truncate`} title={card.label}>{card.label}</span>
+                                <span className={`text-[10px] 2xl:text-[9px] font-black uppercase tracking-wider ${isDark ? 'text-slate-500' : 'text-slate-400'} truncate`} title={card.label}>{card.label}</span>
                             </div>
                             <p 
-                                className={`font-black tracking-tight ${isLongValue ? 'text-base sm:text-lg lg:text-xl' : 'text-xl sm:text-2xl'} ${isDark ? 'text-white' : 'text-slate-900'} truncate`}
+                                className={`font-black tracking-tight ${fontSizeClass} ${isDark ? 'text-white' : 'text-slate-900'} truncate`}
                                 title={card.value}
                             >
                                 {card.value}
