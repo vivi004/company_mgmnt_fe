@@ -509,6 +509,8 @@ export const staffDataBillHTML = (bill: Bill) => {
         return it;
     });
 
+    const totalAmt = items.reduce((a, i) => a + i.price * i.quantity, 0);
+
     const itemRows = items.map((it, i) => {
         const serialNo = i + 1;
         let isWl = it.id.endsWith('_wl') || it.name.includes('(WL)');
@@ -544,6 +546,7 @@ export const staffDataBillHTML = (bill: Bill) => {
             <td style="border: 1px solid #000; padding: 6px 8px; text-align: center; font-size: 13px;">${serialNo}</td>
             <td style="border: 1px solid #000; padding: 6px 8px; font-weight: bold; font-size: 13px;">${desc}</td>
             <td style="border: 1px solid #000; padding: 6px 8px; text-align: center; font-weight: bold; font-size: 14px;">${it.quantity} ${u}</td>
+            <td style="border: 1px solid #000; padding: 6px 8px; text-align: right; font-weight: bold; font-size: 13px;">&#8377; ${(it.quantity * it.price).toLocaleString('en-IN', { minimumFractionDigits: 2 })}</td>
         </tr>`;
     }).join('');
 
@@ -557,11 +560,16 @@ export const staffDataBillHTML = (bill: Bill) => {
                 <tr style="background-color: #f2f2f2;">
                     <th style="border: 1px solid #000; padding: 6px 8px; width: 8%; font-size: 12px; text-transform: uppercase;">Sl</th>
                     <th style="border: 1px solid #000; padding: 6px 8px; text-align: left; font-size: 12px; text-transform: uppercase;">Product Name</th>
-                    <th style="border: 1px solid #000; padding: 6px 8px; width: 25%; font-size: 12px; text-transform: uppercase;">Qty</th>
+                    <th style="border: 1px solid #000; padding: 6px 8px; width: 20%; font-size: 12px; text-transform: uppercase;">Qty</th>
+                    <th style="border: 1px solid #000; padding: 6px 8px; width: 22%; text-align: right; font-size: 12px; text-transform: uppercase;">Amount</th>
                 </tr>
             </thead>
             <tbody>
                 ${itemRows}
+                <tr style="font-weight: bold; background-color: #f9f9f9;">
+                    <td colspan="3" style="border: 1px solid #000; padding: 6px 8px; text-align: right; font-size: 13px; text-transform: uppercase;">Total:</td>
+                    <td style="border: 1px solid #000; padding: 6px 8px; text-align: right; font-size: 13px;">&#8377; ${totalAmt.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</td>
+                </tr>
             </tbody>
         </table>
     </div>
