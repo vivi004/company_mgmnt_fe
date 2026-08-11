@@ -174,8 +174,8 @@ export const invoiceHTML = (bill: Bill, vehicleNo: string = '', printBothCopies:
 
         const itemRows = pageItems.map((it, i) => {
             const serialNo = startIndex + i;
-            let isWl = it.id.endsWith('_wl') || it.name.includes('(WL)');
-            let cleanName = it.name.replace(/\s*\(WL\)/gi, '');
+            const isWl = it.id.endsWith('_wl') || it.name.includes('(WL)');
+            const cleanName = it.name.replace(/\s*\(WL\)/gi, '');
             let desc = `${cleanName.toUpperCase()} ${it.size.toUpperCase()}`;
             if (it.id === 'vs-gn-500ml-box' || it.id === 'vs-gn-1l-box') {
                 desc = desc.replace(/\s*BOX$/i, '');
@@ -513,8 +513,8 @@ export const staffDataBillHTML = (bill: Bill) => {
 
     const itemRows = items.map((it, i) => {
         const serialNo = i + 1;
-        let isWl = it.id.endsWith('_wl') || it.name.includes('(WL)');
-        let cleanName = it.name.replace(/\s*\(WL\)/gi, '');
+        const isWl = it.id.endsWith('_wl') || it.name.includes('(WL)');
+        const cleanName = it.name.replace(/\s*\(WL\)/gi, '');
         let desc = `${cleanName.toUpperCase()} ${it.size.toUpperCase()}`;
         if (it.id === 'vs-gn-500ml-box' || it.id === 'vs-gn-1l-box') {
             desc = desc.replace(/\s*BOX$/i, '');
