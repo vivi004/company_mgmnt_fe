@@ -551,7 +551,7 @@ export const staffDataBillHTML = (bill: Bill) => {
     }).join('');
 
     return `
-    <div class="data-page" style="font-family: Arial, sans-serif; padding: 10px; margin-bottom: 25px; border-bottom: 2px dashed #333; page-break-inside: avoid;">
+    <div class="data-page" style="font-family: Arial, sans-serif; padding: 10px 10px 25px 10px; margin-bottom: 25px; border-bottom: 2px dashed #333; page-break-inside: avoid;">
         <h2 style="font-size: 18px; font-weight: 900; margin-bottom: 8px; text-transform: uppercase;">
             ${bill.shopName} <span style="font-size: 13px; font-weight: normal; color: #555;">(${bill.specificArea || bill.areaName || bill.villageName || ''})</span>
         </h2>
