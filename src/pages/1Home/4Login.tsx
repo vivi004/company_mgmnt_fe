@@ -26,7 +26,7 @@ interface User {
 
 interface LoginResponse {
     token: string;
-    role: 'admin' | 'staff';
+    role: 'admin' | 'staff' | 'super_admin';
     user: User;
 }
 
@@ -70,7 +70,7 @@ const LoginPage: React.FC = () => {
 
             // Pre-load the profile picture into localstorage so the dashboard can render it immediately
             if (user.profile_pic) {
-                if (role === 'admin') {
+                if (role === 'admin' || role === 'super_admin') {
                     localStorage.setItem('adminProfilePic', user.profile_pic);
                 } else {
                     localStorage.setItem('staffProfilePic', user.profile_pic);
@@ -80,7 +80,8 @@ const LoginPage: React.FC = () => {
                 localStorage.removeItem('staffProfilePic');
             }
 
-            if (role === 'admin') navigate('/admin/dashboard');
+            if (role === 'super_admin') navigate('/super-admin/dashboard');
+            else if (role === 'admin') navigate('/admin/dashboard');
             else navigate('/staff/dashboard');
 
         } catch (err: any) {

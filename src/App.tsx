@@ -8,6 +8,7 @@ import { LoadingScreen } from "./components/common/LoadingScreen";
 // Lazy-loaded pages
 const AdminDashboard = React.lazy(() => import("./pages/Admin/1sidenav/2Admin_Dashboard"));
 const StaffDashboard = React.lazy(() => import("./pages/Staff/1sidenav_staff/2Staff_Dashboard"));
+const SuperAdminPortal = React.lazy(() => import("./pages/SuperAdmin/SuperAdmin_Portal"));
 const ServicesPage = React.lazy(() => import("./pages/1Home/services"));
 const AboutPage = React.lazy(() => import("./pages/1Home/About"));
 const ContactPage = React.lazy(() => import("./pages/1Home/Contact"));
@@ -26,6 +27,14 @@ function App() {
           <Route path="/contact" element={<ContactPage />} />
           <Route path="/login" element={<LoginPage />} />
           <Route path="/shop/category" element={<ShopCategoryPage />} />
+          <Route
+            path="/super-admin/dashboard"
+            element={
+              <ProtectedRoute requiredRole="super_admin">
+                <SuperAdminPortal />
+              </ProtectedRoute>
+            }
+          />
           <Route
             path="/admin/dashboard"
             element={

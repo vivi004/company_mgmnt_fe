@@ -5,7 +5,7 @@ const SESSION_DURATION_MS = 8 * 60 * 60 * 1000; // 8 hours
 
 interface ProtectedRouteProps {
     children: React.ReactElement;
-    requiredRole?: 'admin' | 'staff' | 'viewer';
+    requiredRole?: 'admin' | 'staff' | 'viewer' | 'super_admin';
 }
 
 // Keys to preserve across logout/session expiry (non-sensitive app settings)
@@ -49,13 +49,16 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children, requiredRole 
                 // Allow viewer to use the admin dashboard layout (read-only)
             } else {
                 // Wrong role — redirect to appropriate dashboard
+                if (userRoleLower === 'super_admin') {
+                    return <Navigate to="/super-admin/dashboard" replace />;
+                }
                 if (userRoleLower === 'admin' || userRoleLower === 'viewer') {
                     return <Navigate to="/admin/dashboard" replace />;
                 }
                 return <Navigate to="/staff/dashboard" replace />;
             }
         }
-    } catch {
+    } catch (nullErr) {
         clearAuthStorage();
         return <Navigate to="/login" replace />;
     }
